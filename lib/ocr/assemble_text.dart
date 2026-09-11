@@ -25,6 +25,20 @@ int _readingOrder(double aTop, double aLeft, double bTop, double bLeft) {
   return byTop != 0 ? byTop : aLeft.compareTo(bLeft);
 }
 
+// 캡처 맨 위 상태바를 이루는 조각: 시각, 오전/오후, 배터리 숫자·%, 통신 방식, 통신사
+final _statusBarToken = RegExp(
+  r'^(\d{1,2}:\d{2}|오전|오후|\d{1,3}%?|%|5G\+?|4G|3G|LTE\+?|LTE-A|Wi-?Fi|VoLTE|SKT|KT|LG|U\+|LGU\+)$',
+  caseSensitive: false,
+);
+final _statusBarAnchor = RegExp(r'\d{1,2}:\d{2}|\d\s*%');
+
+/// 시각이나 배터리 표시가 있고, 모든 조각이 상태바 조각일 때만 상태바로 본다.
+bool _isStatusBarRow(List<OcrLine> row) {
+  final text = row.map((l) => l.text).join(' ');
+  final tokens = text.split(_spaces).where((t) => t.isNotEmpty);
+  return _statusBarAnchor.hasMatch(text) && tokens.every(_statusBarToken.hasMatch);
+}
+
 /// 줄을 읽는 순서로 정렬하고, 앞 줄과의 간격이 줄 높이(중앙값)보다 크면 새 문단으로 나눈다.
 List<OcrBlock> groupLines(List<OcrLine> lines) {
   final kept = lines.where((l) => l.text.trim().isNotEmpty).toList()..sort((a, b) => a.top.compareTo(b.top));
@@ -34,18 +48,21 @@ List<OcrBlock> groupLines(List<OcrLine> lines) {
   final medianHeight = heights[heights.length ~/ 2];
 
   // 인물명과 대사처럼 한 줄이 따로 인식되면 글꼴 차이로 top이 조금 어긋난다.
-  // 행 첫 줄과 top 차이가 줄 높이 절반 이내면 같은 행으로 보고, 행 안에서는 왼→오.
-  final ordered = <OcrLine>[];
-  var row = <OcrLine>[];
-  void flushRow() => ordered.addAll(row..sort((a, b) => a.left.compareTo(b.left)));
+  // 행 첫 줄과 top 차이가 줄 높이 절반 이내면 같은 행으로 본다.
+  final rows = <List<OcrLine>>[];
   for (final line in kept) {
-    if (row.isNotEmpty && line.top - row.first.top > medianHeight / 2) {
-      flushRow();
-      row = [];
+    if (rows.isNotEmpty && line.top - rows.last.first.top <= medianHeight / 2) {
+      rows.last.add(line);
+    } else {
+      rows.add([line]);
     }
-    row.add(line);
   }
-  flushRow();
+  // 휴대폰 캡처 맨 위의 상태바는 대본이 아니다(맨 윗 행에만 적용)
+  if (_isStatusBarRow(rows.first)) rows.removeAt(0);
+  final ordered = [
+    for (final row in rows) ...(row..sort((a, b) => a.left.compareTo(b.left))),
+  ];
+  if (ordered.isEmpty) return const [];
 
   final blocks = <OcrBlock>[];
   var current = [ordered.first];

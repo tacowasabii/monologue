@@ -21,9 +21,10 @@ void main() {
   });
 
   test('입력 순서와 상관없이 위→아래, 같은 줄은 왼→오', () {
-    final blocks = groupLines([l('87%', 10, left: 300), l('본문', 200), l('9:41', 10, left: 5)]);
+    // 상태바처럼 보이는 글자는 쓰지 않는다(맨 윗줄이면 상태바 규칙으로 빠진다)
+    final blocks = groupLines([l('대사', 10, left: 300), l('본문', 200), l('햄릿', 10, left: 5)]);
     expect(blocks.map((b) => b.lines), [
-      ['9:41', '87%'],
+      ['햄릿', '대사'],
       ['본문'],
     ]);
     expect(blocks.first.top, 10);
@@ -36,6 +37,33 @@ void main() {
       ['햄릿:', '사느냐 죽느냐', '그것이 문제로다'],
     ]);
     expect(joinLines(blocks.single.lines), '햄릿: 사느냐 죽느냐 그것이 문제로다');
+  });
+
+  group('캡처 상태바', () {
+    test('맨 윗줄이 시각·통신·배터리 표시뿐이면 버린다', () {
+      final blocks = groupLines([
+        l('9:41', 10, left: 5),
+        l('5G 87%', 11, left: 300),
+        l('괜찮다는 말', 100),
+        l('나는 늘 괜찮다고', 160),
+      ]);
+      expect(blocks.expand((b) => b.lines), ['괜찮다는 말', '나는 늘 괜찮다고']);
+    });
+
+    test('통신사·LTE·와이파이 표기도 상태바로 본다', () {
+      final blocks = groupLines([l('SKT LTE', 10, left: 5), l('오후 2:03', 10, left: 150), l('97 %', 10, left: 300), l('본문', 100)]);
+      expect(blocks.expand((b) => b.lines), ['본문']);
+    });
+
+    test('상태바처럼 보여도 맨 윗줄이 아니면 남긴다', () {
+      final blocks = groupLines([l('대사 시작', 10), l('10:30', 100)]);
+      expect(blocks.expand((b) => b.lines), ['대사 시작', '10:30']);
+    });
+
+    test('맨 윗줄에 다른 글자가 섞여 있으면 남긴다', () {
+      final blocks = groupLines([l('9:41 독백', 10)]);
+      expect(blocks.single.lines, ['9:41 독백']);
+    });
   });
 
   test('빈 줄과 빈 입력은 무시한다', () {

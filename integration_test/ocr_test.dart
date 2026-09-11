@@ -33,7 +33,9 @@ void main() {
     for (final phrase in ['괜찮다고 말했어', '참 편리하더라', '하나도 괜찮지 않아', '또 웃고 있네']) {
       expect(squash(text), contains(squash(phrase)), reason: phrase);
     }
-    // 상태바·제목·문단들이 빈 줄로 나뉘어야 한다
+    // 캡처 맨 위 상태바(9:41 5G 87%)는 빠지고, 제목·문단들은 빈 줄로 나뉘어야 한다
+    expect(text, isNot(contains('87%')));
+    expect(text, isNot(contains('86%')));
     expect('\n\n'.allMatches(text).length, greaterThanOrEqualTo(3));
   });
 }
