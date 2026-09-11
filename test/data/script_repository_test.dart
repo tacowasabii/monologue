@@ -68,12 +68,11 @@ void main() {
     expect((await titles(const ScriptFilter(ageRange: AgeRange.thirties)))..sort(), ['무관', '여30']);
   });
 
-  test('태그·상태·즐겨찾기 필터', () async {
+  test('태그·즐겨찾기 필터', () async {
     final a = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['코미디']));
-    await repo.create(const ScriptDraft(title: 'B', body: 'x', status: PracticeStatus.memorized));
+    await repo.create(const ScriptDraft(title: 'B', body: 'x'));
     await repo.setFavorite(a, true);
     expect(await titles(const ScriptFilter(tag: '코미디')), ['A']);
-    expect(await titles(const ScriptFilter(status: PracticeStatus.memorized)), ['B']);
     expect(await titles(const ScriptFilter(favoritesOnly: true)), ['A']);
   });
 

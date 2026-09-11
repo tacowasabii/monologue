@@ -4,7 +4,6 @@ import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/script_filter.dart';
 import '../capture/capture_flow.dart';
-import '../common/status_badge.dart';
 import '../edit/script_edit_screen.dart';
 import '../settings/settings_screen.dart';
 import '../theme.dart';
@@ -78,7 +77,10 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
                 child: SearchBar(
                   hintText: '제목, 작품, 인물, 본문 검색',
                   leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
-                  trailing: [FilterButton(filter: _filter, tags: tags, onChanged: _setFilter)],
+                  trailing: [
+                    FavoritesButton(filter: _filter, onChanged: _setFilter),
+                    FilterButton(filter: _filter, tags: tags, onChanged: _setFilter),
+                  ],
                   padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.only(start: 16, end: 4)),
                   elevation: const WidgetStatePropertyAll(0),
                   onChanged: (q) => _setFilter(_filter.copyWith(query: q)),
@@ -254,26 +256,16 @@ class _ScriptCard extends StatelessWidget {
                     style: TextStyle(fontFamily: serifFamily, fontSize: 14, height: 1.6, color: scheme.onSurfaceVariant),
                   ),
                 ),
-              const SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: Row(
-                  children: [
-                    StatusBadge(s.status),
-                    if (summary.tags.isNotEmpty) ...[
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          summary.tags.map((t) => '#$t').join('  '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ],
-                  ],
+              if (summary.tags.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 14, right: 14),
+                  child: Text(
+                    summary.tags.map((t) => '#$t').join('  '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

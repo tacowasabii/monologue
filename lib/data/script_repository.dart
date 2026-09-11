@@ -39,7 +39,6 @@ class ScriptRepository {
         // 성별·나이대가 '무관'인 대본은 어느 조건에도 맞는다
         if (f.gender != null) e = e & s.gender.isIn([f.gender!.name, Gender.any.name]);
         if (f.ageRange != null) e = e & s.ageRange.isIn([f.ageRange!.name, AgeRange.any.name]);
-        if (f.status != null) e = e & s.status.equals(f.status!.name);
         if (f.favoritesOnly) e = e & s.favorite.equals(true);
         if (f.tag != null) {
           e = e &
@@ -181,9 +180,6 @@ class ScriptRepository {
 
   Future<void> setFavorite(int id, bool value) =>
       (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(favorite: Value(value)));
-
-  Future<void> setStatus(int id, PracticeStatus status) =>
-      (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(status: Value(status)));
 
   Future<void> delete(int id) async {
     final imgs = await (db.select(db.scriptImages)..where((i) => i.scriptId.equals(id))).get();

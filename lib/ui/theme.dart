@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../domain/enums.dart';
-
 /// 제목과 대본 본문에 쓰는 명조체. 번들 폰트에 없는 글자는 시스템 글꼴로 대체된다.
 const serifFamily = 'GowunBatang';
 
@@ -264,13 +262,6 @@ ThemeData buildTheme(Brightness brightness) {
     ),
   );
 }
-
-/// 연습 상태를 목록·보기 화면에서 같은 색으로 표시한다.
-Color statusColor(PracticeStatus status, ColorScheme scheme) => switch (status) {
-      PracticeStatus.notStarted => scheme.outline,
-      PracticeStatus.practicing => scheme.tertiary,
-      PracticeStatus.memorized => scheme.primary,
-    };
 
 /// 즐겨찾기 별 색. 원색 노랑 대신 종이 톤에 맞는 금색.
 Color favoriteColor(ColorScheme scheme) => scheme.tertiary;

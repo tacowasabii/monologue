@@ -35,7 +35,8 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   late final TextEditingController _body;
   late Gender _gender;
   late AgeRange _ageRange;
-  late PracticeStatus _status;
+  // 연습 상태는 화면에서 고르지 않지만, 저장된 값은 덮어쓰지 않고 그대로 넘긴다
+  late final PracticeStatus _status;
   late bool _favorite;
   late List<String> _tags;
   late final List<String> _pendingImages = [...widget.newImagePaths];
@@ -292,18 +293,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                       _ageRange = a;
                       _dirty = true;
                     })),
-                _section('연습'),
-                SegmentedButton<PracticeStatus>(
-                  expandedInsets: EdgeInsets.zero,
-                  segments: [for (final st in PracticeStatus.values) ButtonSegment(value: st, label: Text(st.label))],
-                  selected: {_status},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (v) => setState(() {
-                    _status = v.first;
-                    _dirty = true;
-                  }),
-                ),
-                const SizedBox(height: 4),
+                _section('즐겨찾기 · 태그'),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('즐겨찾기'),

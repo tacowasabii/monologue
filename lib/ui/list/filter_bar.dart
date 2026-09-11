@@ -30,6 +30,26 @@ Future<void> openFilterSheet(
   if (picked != null) onChanged(picked);
 }
 
+/// 검색창 안의 즐겨찾기 토글. 켜지면 금색 별로 채워진다.
+class FavoritesButton extends StatelessWidget {
+  const FavoritesButton({super.key, required this.filter, required this.onChanged});
+
+  final ScriptFilter filter;
+  final ValueChanged<ScriptFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return IconButton(
+      tooltip: filter.favoritesOnly ? '즐겨찾기 필터 해제' : '즐겨찾기만 보기',
+      isSelected: filter.favoritesOnly,
+      icon: Icon(Icons.star_outline_rounded, color: scheme.onSurfaceVariant),
+      selectedIcon: Icon(Icons.star_rounded, color: favoriteColor(scheme)),
+      onPressed: () => onChanged(filter.copyWith(favoritesOnly: !filter.favoritesOnly)),
+    );
+  }
+}
+
 /// 검색창 오른쪽의 필터 버튼. 적용된 필터 수를 배지로 보여준다.
 class FilterButton extends StatelessWidget {
   const FilterButton({super.key, required this.filter, required this.tags, required this.onChanged});
@@ -56,7 +76,7 @@ class FilterButton extends StatelessWidget {
   }
 }
 
-/// 연습 상태 탭과 즐겨찾기 토글, 그 아래로 시트에서 고른 필터를 알약으로 보여준다.
+/// 시트에서 고른 필터를 알약으로 보여준다. 걸린 필터가 없으면 자리를 차지하지 않는다.
 class FilterBar extends StatelessWidget {
   const FilterBar({super.key, required this.filter, required this.tags, required this.onChanged});
 
@@ -73,150 +93,54 @@ class FilterBar extends StatelessWidget {
       if (filter.ageRange case final a?) (label: a.label, without: filter.copyWith(ageRange: () => null)),
       if (filter.tag case final t?) (label: '#$t', without: filter.copyWith(tag: () => null)),
     ];
-    return Column(
-      children: [
-        _StatusTabs(filter: filter, onChanged: onChanged),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          child: pills.isEmpty
-              ? const SizedBox(width: double.infinity)
-              : SizedBox(
-                  height: 52,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
-                    children: [
-                      for (final p in pills)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Center(
-                            child: InputChip(
-                              label: Text(p.label),
-                              labelStyle: TextStyle(
-                                color: scheme.onPrimaryContainer,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              backgroundColor: scheme.primaryContainer,
-                              side: BorderSide.none,
-                              deleteIcon: const Icon(Icons.close_rounded, size: 16),
-                              deleteIconColor: scheme.onPrimaryContainer,
-                              deleteButtonTooltipMessage: '${p.label} 해제',
-                              onDeleted: () => onChanged(p.without),
-                              onPressed: () =>
-                                  openFilterSheet(context, filter: filter, tags: tags, onChanged: onChanged),
-                            ),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: pills.isEmpty
+          ? const SizedBox(width: double.infinity)
+          : SizedBox(
+              height: 52,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                children: [
+                  for (final p in pills)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Center(
+                        child: InputChip(
+                          label: Text(p.label),
+                          labelStyle: TextStyle(
+                            color: scheme.onPrimaryContainer,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      Center(
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            foregroundColor: scheme.onSurfaceVariant,
-                            minimumSize: const Size(0, 36),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
-                          ),
-                          onPressed: () => onChanged(_clearSheetFilters(filter)),
-                          child: const Text('초기화'),
+                          backgroundColor: scheme.primaryContainer,
+                          side: BorderSide.none,
+                          deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                          deleteIconColor: scheme.onPrimaryContainer,
+                          deleteButtonTooltipMessage: '${p.label} 해제',
+                          onDeleted: () => onChanged(p.without),
+                          onPressed: () => openFilterSheet(context, filter: filter, tags: tags, onChanged: onChanged),
                         ),
                       ),
-                    ],
+                    ),
+                  Center(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: scheme.onSurfaceVariant,
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+                      ),
+                      onPressed: () => onChanged(_clearSheetFilters(filter)),
+                      child: const Text('초기화'),
+                    ),
                   ),
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatusTabs extends StatelessWidget {
-  const _StatusTabs({required this.filter, required this.onChanged});
-
-  final ScriptFilter filter;
-  final ValueChanged<ScriptFilter> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    Widget tab(String label, PracticeStatus? value) => _Tab(
-          label: label,
-          selected: filter.status == value,
-          onTap: () => onChanged(filter.copyWith(status: () => value)),
-        );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          const Divider(height: 1),
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      tab('전체', null),
-                      for (final s in PracticeStatus.values) ...[const SizedBox(width: 20), tab(s.label, s)],
-                    ],
-                  ),
-                ),
+                ],
               ),
-              IconButton(
-                tooltip: filter.favoritesOnly ? '즐겨찾기 필터 해제' : '즐겨찾기만 보기',
-                isSelected: filter.favoritesOnly,
-                icon: Icon(Icons.star_outline_rounded, color: scheme.onSurfaceVariant),
-                selectedIcon: Icon(Icons.star_rounded, color: favoriteColor(scheme)),
-                onPressed: () => onChanged(filter.copyWith(favoritesOnly: !filter.favoritesOnly)),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Tab extends StatelessWidget {
-  const _Tab({required this.label, required this.selected, required this.onTap});
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Semantics(
-      selected: selected,
-      button: true,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: selected ? scheme.onSurface : Colors.transparent, width: 2),
             ),
-          ),
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 180),
-            style: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
-              fontSize: 15,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
-            ),
-            child: Text(label),
-          ),
-        ),
-      ),
     );
   }
 }

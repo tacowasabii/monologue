@@ -33,7 +33,7 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('연습 상태 탭과 필터 시트로 목록을 거른다', (tester) async {
+  testWidgets('즐겨찾기 토글과 필터 시트로 목록을 거른다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {
       final r = h.services.repo;
@@ -42,14 +42,13 @@ void main() {
         body: '사느냐 죽느냐',
         gender: Gender.male,
         ageRange: AgeRange.twenties,
-        status: PracticeStatus.practicing,
       ));
       await r.create(const ScriptDraft(
         title: '갈매기',
         body: '나는 갈매기',
         gender: Gender.female,
         ageRange: AgeRange.twenties,
-        status: PracticeStatus.memorized,
+        favorite: true,
       ));
       await r.create(const ScriptDraft(
         title: '벚꽃 동산',
@@ -61,13 +60,12 @@ void main() {
     await tester.pumpWidget(h.wrap(const ScriptListScreen()));
     await tester.pumpAndSettle();
 
-    // 탭 행이 카드의 상태 표시보다 위에 있다
-    await tester.tap(find.text('다 외움').first);
+    await tester.tap(find.byTooltip('즐겨찾기만 보기'));
     await tester.pumpAndSettle();
     expect(find.text('갈매기'), findsOneWidget);
     expect(find.text('햄릿'), findsNothing);
 
-    await tester.tap(find.text('전체'));
+    await tester.tap(find.byTooltip('즐겨찾기 필터 해제'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('필터'));
     await tester.pumpAndSettle();

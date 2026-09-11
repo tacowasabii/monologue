@@ -205,17 +205,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     ],
                   ),
                 ),
-              const SizedBox(height: 24),
-              SegmentedButton<PracticeStatus>(
-                expandedInsets: EdgeInsets.zero,
-                segments: [
-                  for (final st in PracticeStatus.values) ButtonSegment(value: st, label: Text(st.label)),
-                ],
-                selected: {s.status},
-                showSelectedIcon: false,
-                onSelectionChanged: (v) => services.repo.setStatus(s.id, v.first),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Container(width: 28, height: 2, color: scheme.primary.withValues(alpha: 0.5)),
