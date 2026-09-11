@@ -33,6 +33,9 @@ void main() {
     return e;
   }
 
+  // 두 기기를 흉내 내려고 서로 다른 인메모리 DB를 일부러 동시에 연다
+  setUpAll(() => driftRuntimeOptions.dontWarnAboutMultipleDatabases = true);
+
   setUp(() async {
     tmp = await Directory.systemTemp.createTemp('monologue_backup');
     envs = [];

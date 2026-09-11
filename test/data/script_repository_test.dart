@@ -94,6 +94,15 @@ void main() {
     expect(await repo.allTags(), ['b']);
   });
 
+  test('watchAllTags는 태그가 바뀌면 새 목록을 낸다', () async {
+    final tags = repo.watchAllTags();
+    expect(await tags.first, isEmpty);
+    final id = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['코미디', '분노']));
+    expect(await tags.first, ['분노', '코미디']);
+    await repo.update(id, const ScriptDraft(title: 'A', body: 'x', tags: ['슬픔']));
+    expect(await tags.first, ['슬픔']);
+  });
+
   test('delete는 행과 이미지 파일을 지운다', () async {
     final id = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['t']), imagePaths: [await fakeImage('1.png')]);
     final file = images.pathOf((await repo.watchScript(id).first)!.images.single.fileName);

@@ -195,9 +195,12 @@ class ScriptRepository {
     await _deleteFiles([for (final img in imgs) img.fileName]);
   }
 
-  Future<List<String>> allTags() async {
-    final q = db.selectOnly(db.scriptTags, distinct: true)..addColumns([db.scriptTags.tag]);
-    final rows = await q.get();
-    return rows.map((r) => r.read(db.scriptTags.tag)!).toList()..sort();
-  }
+  JoinedSelectStatement<$ScriptTagsTable, dynamic> _distinctTags() =>
+      db.selectOnly(db.scriptTags, distinct: true)..addColumns([db.scriptTags.tag]);
+
+  List<String> _readTags(List<TypedResult> rows) => rows.map((r) => r.read(db.scriptTags.tag)!).toList()..sort();
+
+  Future<List<String>> allTags() async => _readTags(await _distinctTags().get());
+
+  Stream<List<String>> watchAllTags() => _distinctTags().watch().map(_readTags);
 }
