@@ -5,6 +5,8 @@ import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
+import '../common/pill_chip.dart';
+import '../theme.dart';
 import 'tag_input.dart';
 
 class ScriptEditScreen extends StatefulWidget {
@@ -159,14 +161,49 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     if (leave == true && mounted) _leave();
   }
 
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text, style: Theme.of(context).textTheme.labelLarge),
+  /// 구역 제목과 오른쪽으로 이어지는 가는 선
+  Widget _section(String text, {bool first = false}) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(top: first ? 4 : 32, bottom: 14),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
+
+  Widget _label(String text) {
+    final theme = Theme.of(context);
+    return Padding(
+      // 칩은 터치 영역 때문에 위아래 여백이 붙어 있어서 라벨 아래는 좁게 둔다
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        text,
+        style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  Widget _choices<T>(List<T> values, T selected, String Function(T) labelOf, ValueChanged<T> onSelected) => Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final v in values) PillChip(label: labelOf(v), selected: v == selected, onSelected: (_) => onSelected(v)),
+        ],
       );
 
   @override
   Widget build(BuildContext context) {
-    const gap = SizedBox(height: 20);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    const gap = SizedBox(height: 12);
     return PopScope(
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, _) {
@@ -175,28 +212,62 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.existing == null ? '새 대본' : '대본 편집'),
-          actions: [TextButton(onPressed: _saving ? null : _save, child: const Text('저장'))],
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Center(
+                child: FilledButton(
+                  onPressed: _saving ? null : _save,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 38),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text('저장'),
+                ),
+              ),
+            ),
+          ],
         ),
         // 모든 입력칸이 항상 만들어져 있어야 Form 검증이 빠지지 않는다(ListView는 화면 밖을 만들지 않음)
         body: Form(
           key: _form,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 48),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (widget.existing != null) ...[
                   OutlinedButton.icon(
                     onPressed: _appendFromPhotos,
-                    icon: const Icon(Icons.add_a_photo_outlined),
+                    icon: const Icon(Icons.add_a_photo_outlined, size: 20),
                     label: const Text('사진 추가로 이어쓰기'),
                   ),
                   const SizedBox(height: 12),
                 ],
                 if (_pendingImages.isNotEmpty) ...[
-                  Text('사진 ${_pendingImages.length}장이 원본으로 함께 보관돼요', style: Theme.of(context).textTheme.bodySmall),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: scheme.primaryContainer.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.photo_library_outlined, size: 18, color: scheme.onPrimaryContainer),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '사진 ${_pendingImages.length}장이 원본으로 함께 보관돼요',
+                            style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, color: scheme.onPrimaryContainer),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 12),
                 ],
+                _section('기본 정보', first: true),
                 TextFormField(
                   controller: _title,
                   decoration: const InputDecoration(labelText: '제목', hintText: '비워두면 본문 첫 줄로'),
@@ -209,30 +280,21 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     Expanded(child: TextFormField(controller: _character, decoration: const InputDecoration(labelText: '인물'))),
                   ],
                 ),
-                gap,
+                _section('배역'),
                 _label('성별'),
-                SegmentedButton<Gender>(
-                  segments: [for (final g in Gender.values) ButtonSegment(value: g, label: Text(g.label))],
-                  selected: {_gender},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (v) => setState(() {
-                    _gender = v.first;
-                    _dirty = true;
-                  }),
-                ),
-                gap,
-                DropdownButtonFormField<AgeRange>(
-                  initialValue: _ageRange,
-                  decoration: const InputDecoration(labelText: '나이대'),
-                  items: [for (final a in AgeRange.values) DropdownMenuItem(value: a, child: Text(a.label))],
-                  onChanged: (v) => setState(() {
-                    _ageRange = v ?? AgeRange.any;
-                    _dirty = true;
-                  }),
-                ),
-                gap,
-                _label('연습 상태'),
+                _choices<Gender>(Gender.values, _gender, (g) => g.label, (g) => setState(() {
+                      _gender = g;
+                      _dirty = true;
+                    })),
+                const SizedBox(height: 20),
+                _label('나이대'),
+                _choices<AgeRange>(AgeRange.values, _ageRange, (a) => a.label, (a) => setState(() {
+                      _ageRange = a;
+                      _dirty = true;
+                    })),
+                _section('연습'),
                 SegmentedButton<PracticeStatus>(
+                  expandedInsets: EdgeInsets.zero,
                   segments: [for (final st in PracticeStatus.values) ButtonSegment(value: st, label: Text(st.label))],
                   selected: {_status},
                   showSelectedIcon: false,
@@ -241,6 +303,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     _dirty = true;
                   }),
                 ),
+                const SizedBox(height: 4),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('즐겨찾기'),
@@ -260,16 +323,16 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     _dirty = true;
                   }),
                 ),
-                gap,
+                _section('본문'),
                 TextFormField(
                   controller: _body,
-                  minLines: 10,
+                  minLines: 12,
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
+                  style: const TextStyle(fontFamily: serifFamily, fontSize: 16, height: 1.75),
                   decoration: const InputDecoration(
-                    labelText: '본문',
-                    alignLabelWithHint: true,
-                    border: OutlineInputBorder(),
+                    hintText: '대본 내용을 입력하세요',
+                    contentPadding: EdgeInsets.all(18),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty) ? '본문을 입력해 주세요' : null,
                 ),

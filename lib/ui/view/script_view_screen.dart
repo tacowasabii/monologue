@@ -5,6 +5,7 @@ import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../settings/reading_settings.dart';
 import '../edit/script_edit_screen.dart';
+import '../theme.dart';
 import 'image_viewer_screen.dart';
 
 class ScriptViewScreen extends StatefulWidget {
@@ -33,7 +34,11 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         content: const Text('이 대본을 삭제할까요? 원본 사진도 함께 지워져요.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('삭제')),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('삭제'),
+          ),
         ],
       ),
     );
@@ -49,25 +54,56 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           child: ListenableBuilder(
             listenable: settings,
-            builder: (context, _) => Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('글자 크기', style: Theme.of(context).textTheme.titleMedium),
-                Slider(
-                  min: ReadingSettings.min,
-                  max: ReadingSettings.max,
-                  divisions: 9,
-                  value: settings.fontSize,
-                  label: settings.fontSize.round().toString(),
-                  onChanged: settings.setFontSize,
-                ),
-                Text('나는 늘 괜찮다고 말했어.', style: TextStyle(fontSize: settings.fontSize)),
-              ],
-            ),
+            builder: (context, _) {
+              final theme = Theme.of(context);
+              final scheme = theme.colorScheme;
+              TextStyle glyph(double size) => TextStyle(fontFamily: serifFamily, fontSize: size, color: scheme.onSurfaceVariant);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('글자 크기', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: scheme.outlineVariant),
+                    ),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 150),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        '나는 늘 괜찮다고 말했어.',
+                        style: TextStyle(fontFamily: serifFamily, fontSize: settings.fontSize, height: 1.6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text('가', style: glyph(14)),
+                      Expanded(
+                        child: Slider(
+                          min: ReadingSettings.min,
+                          max: ReadingSettings.max,
+                          divisions: 9,
+                          value: settings.fontSize,
+                          label: settings.fontSize.round().toString(),
+                          onChanged: settings.setFontSize,
+                        ),
+                      ),
+                      Text('가', style: glyph(24)),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -93,25 +129,24 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         }
         final s = d.script;
         final theme = Theme.of(context);
-        final meta = [
-          s.work,
-          s.character,
+        final scheme = theme.colorScheme;
+        final source = [s.work, s.character].whereType<String>().where((e) => e.isNotEmpty).join(' · ');
+        final traits = [
           if (s.gender != Gender.any) s.gender.label,
           if (s.ageRange != AgeRange.any) s.ageRange.label,
-        ].whereType<String>().join(' · ');
+        ];
         return Scaffold(
           appBar: AppBar(
-            title: Text(s.title, overflow: TextOverflow.ellipsis),
             actions: [
               IconButton(
                 tooltip: s.favorite ? '즐겨찾기 해제' : '즐겨찾기',
                 icon: Icon(s.favorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: s.favorite ? Colors.amber.shade600 : null),
+                    color: s.favorite ? favoriteColor(scheme) : null),
                 onPressed: () => services.repo.setFavorite(s.id, !s.favorite),
               ),
               IconButton(
                 tooltip: '글자 크기',
-                icon: const Icon(Icons.format_size),
+                icon: const Icon(Icons.format_size_rounded),
                 onPressed: () => _showFontSize(services.settings),
               ),
               IconButton(
@@ -122,6 +157,8 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 ),
               ),
               PopupMenuButton<String>(
+                icon: const Icon(Icons.more_horiz_rounded),
+                position: PopupMenuPosition.under,
                 onSelected: (v) {
                   if (v == 'images') {
                     Navigator.of(context).push(MaterialPageRoute<void>(
@@ -134,30 +171,43 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                   }
                 },
                 itemBuilder: (_) => [
-                  if (d.images.isNotEmpty) PopupMenuItem(value: 'images', child: Text('원본 보기 (${d.images.length})')),
-                  const PopupMenuItem(value: 'delete', child: Text('삭제')),
+                  if (d.images.isNotEmpty)
+                    PopupMenuItem(
+                      value: 'images',
+                      child: _MenuRow(icon: Icons.photo_library_outlined, text: '원본 보기 (${d.images.length})'),
+                    ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: _MenuRow(icon: Icons.delete_outline_rounded, text: '삭제', color: scheme.error),
+                  ),
                 ],
               ),
+              const SizedBox(width: 4),
             ],
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 48),
+            padding: const EdgeInsets.fromLTRB(24, 4, 24, 64),
             children: [
-              if (meta.isNotEmpty)
-                Text(meta, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              if (d.tags.isNotEmpty)
+              if (source.isNotEmpty) ...[
+                Text(source, style: theme.textTheme.labelLarge?.copyWith(color: scheme.primary)),
+                const SizedBox(height: 10),
+              ],
+              Text(s.title, style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
+              if (traits.isNotEmpty || d.tags.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: 14),
                   child: Wrap(
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      for (final t in d.tags) Chip(label: Text('#$t'), visualDensity: VisualDensity.compact),
+                      for (final t in traits) _Label(t),
+                      for (final t in d.tags) _Label('#$t', accent: true),
                     ],
                   ),
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               SegmentedButton<PracticeStatus>(
+                expandedInsets: EdgeInsets.zero,
                 segments: [
                   for (final st in PracticeStatus.values) ButtonSegment(value: st, label: Text(st.label)),
                 ],
@@ -165,18 +215,76 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 showSelectedIcon: false,
                 onSelectionChanged: (v) => services.repo.setStatus(s.id, v.first),
               ),
+              const SizedBox(height: 32),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(width: 28, height: 2, color: scheme.primary.withValues(alpha: 0.5)),
+              ),
               const SizedBox(height: 24),
               ListenableBuilder(
                 listenable: services.settings,
                 builder: (context, _) => SelectableText(
                   s.body,
-                  style: TextStyle(fontSize: services.settings.fontSize, height: 1.7),
+                  style: TextStyle(
+                    fontFamily: serifFamily,
+                    fontSize: services.settings.fontSize,
+                    height: 1.85,
+                    color: scheme.onSurface,
+                  ),
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.icon, required this.text, this.color});
+
+  final IconData icon;
+  final String text;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 20, color: color ?? Theme.of(context).colorScheme.onSurfaceVariant),
+        const SizedBox(width: 12),
+        Text(text, style: color == null ? null : TextStyle(color: color)),
+      ],
+    );
+  }
+}
+
+class _Label extends StatelessWidget {
+  const _Label(this.text, {this.accent = false});
+
+  final String text;
+  final bool accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent ? scheme.primaryContainer : Colors.transparent,
+        border: Border.all(color: accent ? Colors.transparent : scheme.outlineVariant),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: accent ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

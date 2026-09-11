@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app.dart';
 import 'app_scope.dart';
@@ -11,6 +13,9 @@ import 'settings/reading_settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(['Gowun Batang'], await rootBundle.loadString('assets/fonts/OFL.txt'));
+  });
   final db = AppDatabase();
   final images = await ImageStore.open();
   final repo = ScriptRepository(db, images);

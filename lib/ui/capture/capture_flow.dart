@@ -27,30 +27,46 @@ Future<CaptureResult?> runCapture(BuildContext context, {bool allowManual = true
   final source = await showModalBottomSheet<_Source>(
     context: context,
     showDragHandle: true,
-    builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
-            title: const Text('사진첩에서 선택'),
-            subtitle: const Text('여러 장을 골라 하나로 합칠 수 있어요'),
-            onTap: () => Navigator.pop(context, _Source.gallery),
+    builder: (context) {
+      final theme = Theme.of(context);
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(allowManual ? '대본 추가' : '사진으로 이어쓰기', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 4),
+              Text(
+                '대본이 담긴 사진을 고르면 글자를 읽어 와요',
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 18),
+              _SourceTile(
+                icon: Icons.photo_library_outlined,
+                title: '사진첩에서 선택',
+                subtitle: '여러 장을 골라 하나로 합칠 수 있어요',
+                onTap: () => Navigator.pop(context, _Source.gallery),
+              ),
+              _SourceTile(
+                icon: Icons.photo_camera_outlined,
+                title: '카메라로 촬영',
+                subtitle: '종이 대본을 바로 찍어요',
+                onTap: () => Navigator.pop(context, _Source.camera),
+              ),
+              if (allowManual)
+                _SourceTile(
+                  icon: Icons.edit_note_rounded,
+                  title: '직접 입력',
+                  subtitle: '사진 없이 글로 적어요',
+                  onTap: () => Navigator.pop(context, _Source.manual),
+                ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.photo_camera_outlined),
-            title: const Text('카메라로 촬영'),
-            onTap: () => Navigator.pop(context, _Source.camera),
-          ),
-          if (allowManual)
-            ListTile(
-              leading: const Icon(Icons.edit_note),
-              title: const Text('직접 입력'),
-              onTap: () => Navigator.pop(context, _Source.manual),
-            ),
-        ],
-      ),
-    ),
+        ),
+      );
+    },
   );
   if (source == null || !context.mounted) return null;
   if (source == _Source.manual) return const CaptureResult(text: '', imagePaths: []);
@@ -78,6 +94,44 @@ Future<List<String>> _pick(BuildContext context, _Source source) async {
       ));
     }
     return const [];
+  }
+}
+
+class _SourceTile extends StatelessWidget {
+  const _SourceTile({required this.icon, required this.title, required this.subtitle, required this.onTap});
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: scheme.surfaceContainerLowest,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, size: 22, color: scheme.onPrimaryContainer),
+          ),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          trailing: Icon(Icons.chevron_right_rounded, color: scheme.outline),
+          onTap: onTap,
+        ),
+      ),
+    );
   }
 }
 
@@ -112,13 +166,26 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
       builder: (_) => PopScope(
         canPop: false,
         child: AlertDialog(
+          title: const Text('글자를 읽는 중이에요'),
           content: ValueListenableBuilder<int>(
             valueListenable: progress,
-            builder: (_, done, _) => Row(
+            builder: (context, done, _) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircularProgressIndicator(),
-                const SizedBox(width: 20),
-                Text('글자 인식 중 ${min(done + 1, _paths.length)}/${_paths.length}'),
+                const SizedBox(height: 4),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(end: (done + 1) / _paths.length),
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, _) => LinearProgressIndicator(
+                    value: v,
+                    minHeight: 6,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text('${min(done + 1, _paths.length)} / ${_paths.length}장'),
               ],
             ),
           ),
@@ -150,17 +217,25 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final squareButton = IconButton.styleFrom(
+      fixedSize: const Size(52, 52),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      side: BorderSide(color: scheme.outline.withValues(alpha: 0.6)),
+    );
     return Scaffold(
       appBar: AppBar(title: Text('사진 ${_paths.length}장')),
       body: _paths.isEmpty
-          ? const Center(child: Text('사진을 추가해 주세요'))
+          ? Center(
+              child: Text('사진을 추가해 주세요', style: theme.textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant)),
+            )
           : ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
               header: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.fromLTRB(4, 0, 4, 14),
                 child: Text(
-                  '길게 눌러 끌면 순서를 바꿀 수 있어요. 위에서부터 차례로 이어붙여요.',
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  '오른쪽 손잡이를 끌거나 길게 눌러 순서를 바꿀 수 있어요. 위에서부터 차례로 이어붙여요.',
+                  style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant, fontSize: 13, height: 1.5),
                 ),
               ),
               itemCount: _paths.length,
@@ -168,56 +243,105 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
               onReorderItem: (oldIndex, newIndex) => setState(() {
                 _paths.insert(newIndex, _paths.removeAt(oldIndex));
               }),
-              itemBuilder: (context, i) => Card(
+              proxyDecorator: (child, _, animation) => AnimatedBuilder(
+                animation: animation,
+                builder: (context, child) => Material(
+                  color: Colors.transparent,
+                  elevation: 8 * Curves.easeOut.transform(animation.value),
+                  shadowColor: scheme.shadow.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(20),
+                  child: child,
+                ),
+                child: child,
+              ),
+              itemBuilder: (context, i) => Padding(
                 key: ValueKey(_paths[i]),
-                child: ListTile(
-                  minTileHeight: 104,
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    // 캡처는 글자가 위에서 시작하므로 위쪽을 보여줘야 순서를 알아볼 수 있다
-                    child: Image.file(
-                      File(_paths[i]),
-                      width: 60,
-                      height: 88,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                      cacheWidth: 180,
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+                    child: Row(
+                      children: [
+                        Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              // 캡처는 글자가 위에서 시작하므로 위쪽을 보여줘야 순서를 알아볼 수 있다
+                              child: Image.file(
+                                File(_paths[i]),
+                                width: 64,
+                                height: 88,
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                                cacheWidth: 192,
+                              ),
+                            ),
+                            Positioned(
+                              left: 6,
+                              top: 6,
+                              child: Container(
+                                width: 22,
+                                height: 22,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(color: scheme.onSurface, shape: BoxShape.circle),
+                                child: Text(
+                                  '${i + 1}',
+                                  style: theme.textTheme.labelSmall?.copyWith(color: scheme.surface, fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(child: Text('${i + 1}번째 사진', style: theme.textTheme.titleMedium)),
+                        IconButton(
+                          tooltip: '빼기',
+                          icon: Icon(Icons.close_rounded, color: scheme.onSurfaceVariant),
+                          onPressed: _busy ? null : () => setState(() => _paths.removeAt(i)),
+                        ),
+                        ReorderableDragStartListener(
+                          index: i,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Icon(Icons.drag_indicator_rounded, color: scheme.outline),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  title: Text('${i + 1}번째 사진'),
-                  trailing: IconButton(
-                    tooltip: '빼기',
-                    icon: const Icon(Icons.close),
-                    onPressed: _busy ? null : () => setState(() => _paths.removeAt(i)),
                   ),
                 ),
               ),
             ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: Row(
-            children: [
-              IconButton.outlined(
-                tooltip: '사진첩에서 추가',
-                onPressed: _busy ? null : () => _addMore(_Source.gallery),
-                icon: const Icon(Icons.photo_library_outlined),
-              ),
-              const SizedBox(width: 8),
-              IconButton.outlined(
-                tooltip: '카메라로 추가',
-                onPressed: _busy ? null : () => _addMore(_Source.camera),
-                icon: const Icon(Icons.photo_camera_outlined),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: _paths.isEmpty || _busy ? null : _recognize,
-                  icon: const Icon(Icons.text_fields),
-                  label: const Text('글자 인식'),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(border: Border(top: BorderSide(color: scheme.outlineVariant))),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Row(
+              children: [
+                IconButton.outlined(
+                  style: squareButton,
+                  tooltip: '사진첩에서 추가',
+                  onPressed: _busy ? null : () => _addMore(_Source.gallery),
+                  icon: const Icon(Icons.photo_library_outlined),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  style: squareButton,
+                  tooltip: '카메라로 추가',
+                  onPressed: _busy ? null : () => _addMore(_Source.camera),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _paths.isEmpty || _busy ? null : _recognize,
+                    icon: const Icon(Icons.document_scanner_outlined, size: 20),
+                    label: const Text('글자 인식'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

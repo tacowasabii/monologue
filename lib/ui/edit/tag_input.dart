@@ -35,6 +35,7 @@ class _TagInputState extends State<TagInput> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -46,11 +47,16 @@ class _TagInputState extends State<TagInput> {
               for (final t in widget.tags)
                 InputChip(
                   label: Text('#$t'),
+                  labelStyle: TextStyle(color: scheme.onPrimaryContainer, fontSize: 13, fontWeight: FontWeight.w600),
+                  backgroundColor: scheme.primaryContainer,
+                  side: BorderSide.none,
+                  deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                  deleteIconColor: scheme.onPrimaryContainer,
                   onDeleted: () => widget.onChanged([...widget.tags]..remove(t)),
                 ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
         ],
         RawAutocomplete<String>(
           textEditingController: _controller,
@@ -65,7 +71,10 @@ class _TagInputState extends State<TagInput> {
             controller: controller,
             focusNode: focusNode,
             textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(hintText: '예: 슬픔, 코미디 (입력 후 완료)'),
+            decoration: InputDecoration(
+              hintText: '예: 슬픔, 코미디 (입력 후 완료)',
+              prefixIcon: Icon(Icons.tag_rounded, size: 20, color: scheme.onSurfaceVariant),
+            ),
             onChanged: (v) {
               if (v.endsWith(',')) _add(v);
             },
@@ -76,17 +85,26 @@ class _TagInputState extends State<TagInput> {
           ),
           optionsViewBuilder: (context, onSelected, options) => Align(
             alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(12),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 220, maxWidth: 280),
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  children: [
-                    for (final o in options) ListTile(dense: true, title: Text('#$o'), onTap: () => onSelected(o)),
-                  ],
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Material(
+                color: scheme.surfaceContainerLowest,
+                elevation: 3,
+                shadowColor: scheme.shadow.withValues(alpha: 0.2),
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: scheme.outlineVariant),
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220, maxWidth: 280),
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    shrinkWrap: true,
+                    children: [
+                      for (final o in options) ListTile(dense: true, title: Text('#$o'), onTap: () => onSelected(o)),
+                    ],
+                  ),
                 ),
               ),
             ),

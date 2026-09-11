@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'ui/list/script_list_screen.dart';
-
-const seedColor = Color(0xFF7A4B5C);
+import 'ui/theme.dart';
 
 class MonologueApp extends StatelessWidget {
   const MonologueApp({super.key});
@@ -13,8 +12,8 @@ class MonologueApp extends StatelessWidget {
     return MaterialApp(
       title: '모노로그',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorSchemeSeed: seedColor, brightness: Brightness.light),
-      darkTheme: ThemeData(colorSchemeSeed: seedColor, brightness: Brightness.dark),
+      theme: buildTheme(Brightness.light),
+      darkTheme: buildTheme(Brightness.dark),
       locale: const Locale('ko'),
       supportedLocales: const [Locale('ko')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
