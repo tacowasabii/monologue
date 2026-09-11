@@ -1,7 +1,7 @@
 name: monologue
-description: "A new Flutter project."
+description: "모노로그 — 사진으로 모으는 독백 대본 노트"
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.13.3
@@ -37,3 +37,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+flutter_launcher_icons:
+  image_path: assets/icon/icon.png
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#7A4B5C"
+  adaptive_icon_foreground: assets/icon/icon_foreground.png

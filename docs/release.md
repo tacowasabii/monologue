@@ -1,0 +1,42 @@
+# 출시 절차
+
+## 준비된 것
+
+- 번들 ID / applicationId: `com.tacowasabii.monologue`, 버전 `1.0.0+1` (`pubspec.yaml`)
+- 앱 아이콘: `assets/icon/` → `dart run flutter_launcher_icons`
+- Android 업로드 키: `~/.monologue-keys/upload-keystore.jks` + `key.properties` (저장소 밖, `android/key.properties`는 gitignore).
+  **이 폴더를 안전한 곳(비밀번호 관리자, 외장 저장소)에 백업할 것.** 잃어버리면 Play Console에서 업로드 키 재설정을 요청해야 한다.
+- 개인정보처리방침: https://tacowasabii.vercel.app/monologue/privacy
+- 등록 문구: `docs/store-listing.md`
+
+## 빌드
+
+```bash
+flutter test
+flutter build appbundle --release          # build/app/outputs/bundle/release/app-release.aab
+flutter build ipa --release                 # Apple 계정·서명 설정 후
+```
+
+## Apple App Store
+
+1. [Apple Developer Program](https://developer.apple.com/programs/) 가입 (연 $99, 본인 인증에 며칠 걸릴 수 있음)
+2. Certificates, Identifiers & Profiles → Identifiers에서 `com.tacowasabii.monologue` 등록
+3. Xcode에서 `ios/Runner.xcworkspace` 열기 → Runner 타깃 → Signing & Capabilities → Team 선택, Automatically manage signing
+4. App Store Connect → 새 앱 (이름 "모노로그", 기본 언어 한국어, 번들 ID 선택)
+5. `flutter build ipa --release` → Transporter 앱 또는 `xcrun altool`로 업로드
+6. TestFlight에서 내 아이폰에 설치해 확인
+7. 등록 정보·스크린샷·개인정보 라벨("데이터를 수집하지 않음") 입력 → 심사 제출
+   - 심사 메모: "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 모든 데이터는 기기에만 저장."
+
+## Google Play
+
+1. [Play Console](https://play.google.com/console) 개인 개발자 계정 생성 ($25 1회, 신원 확인)
+2. 앱 만들기 → 이름 "모노로그", 무료, 앱
+3. 앱 콘텐츠: 개인정보처리방침 URL, 광고 없음, 데이터 보안(수집 없음), 콘텐츠 등급 설문, 타깃 연령
+4. **Play 앱 서명** 사용(기본값). `app-release.aab` 업로드 → 업로드 키 인증서 자동 등록
+5. 개인 계정은 프로덕션 출시 전에 **비공개 테스트** 요건이 있다(작성 시점 기준 테스터 12명 이상이 14일 연속 참여). 제출 시점의 Play Console 안내를 다시 확인할 것
+6. 비공개 테스트 트랙에 테스터 초대 → 기간 충족 후 프로덕션 신청
+
+## 버전 올리기
+
+`pubspec.yaml`의 `version: 1.0.1+2`처럼 이름과 빌드 번호를 함께 올린다(빌드 번호는 스토어마다 항상 증가).
