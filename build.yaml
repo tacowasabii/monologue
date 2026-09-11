@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # 기본값(유닉스 초)은 1초 안의 수정 순서를 잃는다. ISO-8601 텍스트는 밀리초까지 보존한다.
+          store_date_time_values_as_text: true
