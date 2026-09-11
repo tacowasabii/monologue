@@ -1,0 +1,39 @@
+name: monologue
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  archive: ^4.2.0
+  drift: ^2.35.0
+  drift_flutter: ^0.3.1
+  file_picker: ^12.2.0
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  google_mlkit_text_recognition: ^0.17.1
+  image_picker: ^1.2.3
+  intl: ^0.20.3
+  package_info_plus: ^10.2.1
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  share_plus: ^13.3.0
+  shared_preferences: ^2.5.5
+  sqlite3: ^3.5.2
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.35.0
+  build_runner: ^2.16.1
+  flutter_launcher_icons: ^0.14.4
+  shared_preferences_platform_interface: ^2.4.2
+
+flutter:
+  uses-material-design: true
