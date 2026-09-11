@@ -37,6 +37,20 @@ flutter build ipa --release                 # Apple 계정·서명 설정 후
 5. 개인 계정은 프로덕션 출시 전에 **비공개 테스트** 요건이 있다(작성 시점 기준 테스터 12명 이상이 14일 연속 참여). 제출 시점의 Play Console 안내를 다시 확인할 것
 6. 비공개 테스트 트랙에 테스터 초대 → 기간 충족 후 프로덕션 신청
 
+## 참고
+
+- 최소 버전: iOS 16.0(Apple Vision 한글 인식), Android는 Flutter 기본 minSdk.
+- `app-release.aab`는 모든 CPU용이 들어 있어 약 76MB지만, Play가 기기별로 나눠 배포하므로 실제 다운로드는 훨씬 작다. iOS 앱은 약 21MB.
+- 글자 인식은 네이티브 채널 `monologue/ocr`: Android `MainActivity.kt`(ML Kit 한글), iOS `AppDelegate.swift`(Vision). 실제 기기 확인은
+  `flutter test integration_test/ocr_test.dart -d <기기 ID>`.
+
+## 문제 해결
+
+- iOS 시뮬레이터에서 "Unable to find a destination matching the provided destination specifier"가 나오면
+  `ios/Flutter/Generated.xcconfig`에 `EXCLUDED_ARCHS[sdk=iphonesimulator*]=i386 arm64`가 남아 있는지 본다.
+  arm64를 지원하지 않던 플러그인을 뺀 뒤 생기는 낡은 설정이다. `flutter build ios --simulator --debug --config-only`로 다시 만든다.
+- Xcode가 "iOS 26.x is not installed"라고 하면 `xcodebuild -downloadPlatform iOS`.
+
 ## 버전 올리기
 
 `pubspec.yaml`의 `version: 1.0.1+2`처럼 이름과 빌드 번호를 함께 올린다(빌드 번호는 스토어마다 항상 증가).
