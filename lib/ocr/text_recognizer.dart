@@ -1,4 +1,4 @@
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:flutter/services.dart';
 
 import 'assemble_text.dart';
 
@@ -6,20 +6,22 @@ abstract interface class TextRecognizing {
   Future<List<OcrBlock>> recognize(String imagePath);
 }
 
-/// ML Kit 한글 모델로 기기 안에서 인식한다(한글 모델은 라틴 문자도 인식).
-class MlKitTextRecognizer implements TextRecognizing {
-  final _recognizer = TextRecognizer(script: TextRecognitionScript.korean);
+/// 기기 안에서 인식한다. Android: ML Kit 한글 모델(MainActivity.kt), iOS: Apple Vision(AppDelegate.swift).
+/// 두 플랫폼 모두 줄 목록만 주고, 문단 묶기는 [groupLines]가 같은 규칙으로 한다.
+class PlatformTextRecognizer implements TextRecognizing {
+  static const _channel = MethodChannel('monologue/ocr');
 
   @override
   Future<List<OcrBlock>> recognize(String imagePath) async {
-    final result = await _recognizer.processImage(InputImage.fromFilePath(imagePath));
-    return [
-      for (final block in result.blocks)
-        OcrBlock(
-          top: block.boundingBox.top,
-          left: block.boundingBox.left,
-          lines: [for (final line in block.lines) line.text],
+    final raw = await _channel.invokeListMethod<Map<Object?, Object?>>('recognize', {'path': imagePath}) ?? const [];
+    return groupLines([
+      for (final m in raw)
+        OcrLine(
+          text: m['text']! as String,
+          top: (m['top']! as num).toDouble(),
+          left: (m['left']! as num).toDouble(),
+          height: (m['height']! as num).toDouble(),
         ),
-    ];
+    ]);
   }
 }

@@ -12,12 +12,13 @@
 | 항목 | 결정 |
 |---|---|
 | 저장 | 기기 로컬만. 로그인·서버·네트워크 통신 없음 |
-| 텍스트 인식 | Google ML Kit Text Recognition v2, 한글 스크립트 모델, 기기 내 처리 |
+| 텍스트 인식 | 기기 내 처리. Android: Google ML Kit Text Recognition v2 한글 모델(Kotlin에서 직접 호출). iOS: Apple Vision `VNRecognizeTextRequest`(ko-KR, en-US). 두 플랫폼 모두 `MethodChannel('monologue/ocr')`로 줄 목록(text, top, left, height)을 돌려주고 Dart의 `groupLines`가 문단으로 묶는다 |
+| 인식 방식 변경 (2026-09-11) | 처음엔 Flutter 플러그인 `google_mlkit_text_recognition`을 썼으나, ML Kit iOS에 arm64 시뮬레이터 바이너리가 없어 iOS 26 시뮬레이터(arm64 전용)에서 빌드·실행 불가, 플러그인이 SPM 미지원(향후 Flutter에서 오류 예정)이라 사용자 결정으로 iOS는 Vision으로 교체. 플러그인이 있으면 iOS에 ML Kit pod이 딸려오므로 플러그인을 제거하고 양쪽을 네이티브 채널로 구현 |
 | 여러 장 | 여러 장을 한 대본으로 합침. 사용자가 순서 조정 |
 | 입력 | 사진첩 다중 선택 + 카메라 촬영(연속 여러 장) |
 | 앱 이름 / 번들 ID | 모노로그 / `com.tacowasabii.monologue` |
 | UI 언어 | 한국어만 |
-| 플랫폼 | iOS 15.5+ (ML Kit 최소), Android minSdk = `flutter.minSdkVersion`과 ML Kit·플러그인 요구치 중 큰 값 |
+| 플랫폼 | iOS 16.0+ (Vision 한글 인식 최소), Android minSdk = `flutter.minSdkVersion` |
 | 스택 | Flutter 3.47.3, Dart 3.13, drift + drift_flutter + sqlite3, google_mlkit_text_recognition, image_picker |
 
 ## 데이터 모델

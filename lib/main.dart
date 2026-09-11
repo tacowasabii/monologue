@@ -18,7 +18,7 @@ Future<void> main() async {
     services: AppServices(
       repo: repo,
       images: images,
-      ocr: MlKitTextRecognizer(),
+      ocr: PlatformTextRecognizer(),
       backup: BackupService(db, repo, images),
       settings: await ReadingSettings.load(),
     ),

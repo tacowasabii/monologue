@@ -65,6 +65,6 @@ flutter {
 }
 
 dependencies {
-    // google_mlkit_text_recognition은 한글 모델을 compileOnly로만 참조한다
+    // MainActivity.kt의 기기 내 글자 인식(한글 모델)
     implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 }
