@@ -119,6 +119,8 @@ class _ChoiceChip<T> extends StatelessWidget {
       selected: selected,
       showCheckmark: false,
       deleteIcon: Icon(selected ? Icons.close : Icons.arrow_drop_down, size: 18),
+      // 기본 안내 문구는 "삭제"라서, ▾(목록 열기)도 삭제로 읽힌다
+      deleteButtonTooltipMessage: selected ? '$label 해제' : '$label 선택',
       onDeleted: selected ? () => onChanged(null) : () => _open(context),
       onSelected: (_) => _open(context),
     );

@@ -171,9 +171,18 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
               itemBuilder: (context, i) => Card(
                 key: ValueKey(_paths[i]),
                 child: ListTile(
+                  minTileHeight: 104,
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: Image.file(File(_paths[i]), width: 44, height: 64, fit: BoxFit.cover, cacheWidth: 132),
+                    // 캡처는 글자가 위에서 시작하므로 위쪽을 보여줘야 순서를 알아볼 수 있다
+                    child: Image.file(
+                      File(_paths[i]),
+                      width: 60,
+                      height: 88,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      cacheWidth: 180,
+                    ),
                   ),
                   title: Text('${i + 1}번째 사진'),
                   trailing: IconButton(
