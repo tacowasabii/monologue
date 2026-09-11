@@ -1,9 +1,62 @@
 import 'package:flutter/material.dart';
 
+import '../../app_scope.dart';
+import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_filter.dart';
 import '../common/pill_chip.dart';
+import '../theme.dart';
 
+/// 시트에서 고르는 필터(성별·나이대·태그) 중 적용된 개수
+int sheetFilterCount(ScriptFilter f) => [f.gender, f.ageRange, f.tag].where((v) => v != null).length;
+
+ScriptFilter _clearSheetFilters(ScriptFilter f) =>
+    f.copyWith(gender: () => null, ageRange: () => null, tag: () => null);
+
+/// 성별·나이대·태그를 한 시트에서 고른다. 그냥 닫으면 바뀌지 않는다.
+Future<void> openFilterSheet(
+  BuildContext context, {
+  required ScriptFilter filter,
+  required List<String> tags,
+  required ValueChanged<ScriptFilter> onChanged,
+}) async {
+  final picked = await showModalBottomSheet<ScriptFilter>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (_) => _FilterSheet(initial: filter, tags: tags),
+  );
+  if (picked != null) onChanged(picked);
+}
+
+/// 검색창 오른쪽의 필터 버튼. 적용된 필터 수를 배지로 보여준다.
+class FilterButton extends StatelessWidget {
+  const FilterButton({super.key, required this.filter, required this.tags, required this.onChanged});
+
+  final ScriptFilter filter;
+  final List<String> tags;
+  final ValueChanged<ScriptFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final count = sheetFilterCount(filter);
+    return IconButton(
+      tooltip: count == 0 ? '필터' : '필터 · $count개 적용',
+      onPressed: () => openFilterSheet(context, filter: filter, tags: tags, onChanged: onChanged),
+      icon: Badge(
+        isLabelVisible: count > 0,
+        label: Text('$count'),
+        backgroundColor: scheme.primary,
+        textColor: scheme.onPrimary,
+        child: Icon(Icons.tune_rounded, color: count > 0 ? scheme.onSurface : scheme.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+/// 연습 상태 탭과 즐겨찾기 토글, 그 아래로 시트에서 고른 필터를 알약으로 보여준다.
 class FilterBar extends StatelessWidget {
   const FilterBar({super.key, required this.filter, required this.tags, required this.onChanged});
 
@@ -13,133 +66,301 @@ class FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chips = <Widget>[
-      PillChip(
-        label: '즐겨찾기',
-        icon: filter.favoritesOnly ? Icons.star_rounded : Icons.star_outline_rounded,
-        selected: filter.favoritesOnly,
-        onSelected: (v) => onChanged(filter.copyWith(favoritesOnly: v)),
-      ),
-      _ChoiceChip<Gender>(
-        label: '성별',
-        value: filter.gender,
-        options: Gender.values.where((g) => g != Gender.any).toList(),
-        labelOf: (g) => g.label,
-        onChanged: (g) => onChanged(filter.copyWith(gender: () => g)),
-      ),
-      _ChoiceChip<AgeRange>(
-        label: '나이대',
-        value: filter.ageRange,
-        options: AgeRange.values.where((a) => a != AgeRange.any).toList(),
-        labelOf: (a) => a.label,
-        onChanged: (a) => onChanged(filter.copyWith(ageRange: () => a)),
-      ),
-      _ChoiceChip<PracticeStatus>(
-        label: '연습 상태',
-        value: filter.status,
-        options: PracticeStatus.values,
-        labelOf: (s) => s.label,
-        onChanged: (s) => onChanged(filter.copyWith(status: () => s)),
-      ),
-      if (tags.isNotEmpty || filter.tag != null)
-        _ChoiceChip<String>(
-          label: '태그',
-          value: filter.tag,
-          options: tags,
-          labelOf: (t) => '#$t',
-          onChanged: (t) => onChanged(filter.copyWith(tag: () => t)),
-        ),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final pills = <({String label, ScriptFilter without})>[
+      if (filter.gender case final g?) (label: '성별 ${g.label}', without: filter.copyWith(gender: () => null)),
+      if (filter.ageRange case final a?) (label: a.label, without: filter.copyWith(ageRange: () => null)),
+      if (filter.tag case final t?) (label: '#$t', without: filter.copyWith(tag: () => null)),
     ];
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: chips.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => Center(child: chips[i]),
+    return Column(
+      children: [
+        _StatusTabs(filter: filter, onChanged: onChanged),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: pills.isEmpty
+              ? const SizedBox(width: double.infinity)
+              : SizedBox(
+                  height: 52,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                    children: [
+                      for (final p in pills)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Center(
+                            child: InputChip(
+                              label: Text(p.label),
+                              labelStyle: TextStyle(
+                                color: scheme.onPrimaryContainer,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              backgroundColor: scheme.primaryContainer,
+                              side: BorderSide.none,
+                              deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                              deleteIconColor: scheme.onPrimaryContainer,
+                              deleteButtonTooltipMessage: '${p.label} 해제',
+                              onDeleted: () => onChanged(p.without),
+                              onPressed: () =>
+                                  openFilterSheet(context, filter: filter, tags: tags, onChanged: onChanged),
+                            ),
+                          ),
+                        ),
+                      Center(
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: scheme.onSurfaceVariant,
+                            minimumSize: const Size(0, 36),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+                          ),
+                          onPressed: () => onChanged(_clearSheetFilters(filter)),
+                          child: const Text('초기화'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusTabs extends StatelessWidget {
+  const _StatusTabs({required this.filter, required this.onChanged});
+
+  final ScriptFilter filter;
+  final ValueChanged<ScriptFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget tab(String label, PracticeStatus? value) => _Tab(
+          label: label,
+          selected: filter.status == value,
+          onTap: () => onChanged(filter.copyWith(status: () => value)),
+        );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          const Divider(height: 1),
+          Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      tab('전체', null),
+                      for (final s in PracticeStatus.values) ...[const SizedBox(width: 20), tab(s.label, s)],
+                    ],
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: filter.favoritesOnly ? '즐겨찾기 필터 해제' : '즐겨찾기만 보기',
+                isSelected: filter.favoritesOnly,
+                icon: Icon(Icons.star_outline_rounded, color: scheme.onSurfaceVariant),
+                selectedIcon: Icon(Icons.star_rounded, color: favoriteColor(scheme)),
+                onPressed: () => onChanged(filter.copyWith(favoritesOnly: !filter.favoritesOnly)),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Pick<T> {
-  const _Pick(this.value);
-
-  final T? value;
-}
-
-/// 탭하면 바텀시트에서 `전체` 또는 값 하나를 고르는 칩.
-class _ChoiceChip<T> extends StatelessWidget {
-  const _ChoiceChip({
-    required this.label,
-    required this.value,
-    required this.options,
-    required this.labelOf,
-    required this.onChanged,
-  });
+class _Tab extends StatelessWidget {
+  const _Tab({required this.label, required this.selected, required this.onTap});
 
   final String label;
-  final T? value;
-  final List<T> options;
-  final String Function(T) labelOf;
-  final ValueChanged<T?> onChanged;
+  final bool selected;
+  final VoidCallback onTap;
 
-  Future<void> _open(BuildContext context) async {
-    final picked = await showModalBottomSheet<_Pick<T>>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        final theme = Theme.of(context);
-        final accent = theme.colorScheme.primary;
-        Widget option(String text, T? v) {
-          final on = v == value;
-          return ListTile(
-            title: Text(text, style: on ? TextStyle(color: accent, fontWeight: FontWeight.w700) : null),
-            trailing: on ? Icon(Icons.check_rounded, color: accent) : null,
-            onTap: () => Navigator.pop(context, _Pick<T>(v)),
-          );
-        }
-
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                child: Text(label, style: theme.textTheme.titleLarge),
-              ),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.only(bottom: 8),
-                  children: [
-                    option('전체', null),
-                    for (final o in options) option(labelOf(o), o),
-                  ],
-                ),
-              ),
-            ],
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: selected ? scheme.onSurface : Colors.transparent, width: 2),
+            ),
           ),
-        );
-      },
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 180),
+            style: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
+              fontSize: 15,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+            ),
+            child: Text(label),
+          ),
+        ),
+      ),
     );
-    if (picked != null) onChanged(picked.value);
+  }
+}
+
+class _FilterSheet extends StatefulWidget {
+  const _FilterSheet({required this.initial, required this.tags});
+
+  final ScriptFilter initial;
+  final List<String> tags;
+
+  @override
+  State<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<_FilterSheet> {
+  late ScriptFilter _draft = widget.initial;
+
+  /// 적용 전에 결과 수를 보여주려고 초안 조건으로 따로 조회한다
+  Stream<List<ScriptSummary>>? _matches;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _matches ??= AppScope.of(context).repo.watchScripts(_draft);
+  }
+
+  void _set(ScriptFilter f) => setState(() {
+        _draft = f;
+        _matches = AppScope.of(context).repo.watchScripts(f);
+      });
+
+  /// `전체` + 선택지. 고른 칩을 다시 누르면 `전체`로 돌아간다.
+  /// [apply]는 누른 시점의 초안에 적용해서, 빌드 이후 바뀐 다른 조건을 덮어쓰지 않는다.
+  List<Widget> _choices<T>(
+    List<T> options,
+    T? value,
+    String Function(T) labelOf,
+    ScriptFilter Function(ScriptFilter draft, T? v) apply,
+  ) =>
+      [
+        PillChip(label: '전체', selected: value == null, onSelected: (_) => _set(apply(_draft, null))),
+        for (final o in options)
+          PillChip(
+            label: labelOf(o),
+            selected: o == value,
+            onSelected: (_) => _set(apply(_draft, o == value ? null : o)),
+          ),
+      ];
+
+  Widget _group(String title, List<Widget> chips) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 6),
+          Wrap(spacing: 8, runSpacing: 4, children: chips),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final current = value;
-    final selected = current != null;
-    return PillChip(
-      label: current != null ? labelOf(current) : label,
-      selected: selected,
-      trailingIcon: selected ? Icons.close_rounded : Icons.expand_more_rounded,
-      // 기본 안내 문구는 "삭제"라서, ▾(목록 열기)도 삭제로 읽힌다
-      trailingTooltip: selected ? '$label 해제' : '$label 선택',
-      onTrailing: selected ? () => onChanged(null) : () => _open(context),
-      onSelected: (_) => _open(context),
+    final theme = Theme.of(context);
+    final d = _draft;
+    // 목록에서 태그가 지워졌어도 걸려 있는 태그는 해제할 수 있게 남긴다
+    final tags = [...widget.tags, if (d.tag case final t? when !widget.tags.contains(t)) t];
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text('필터', style: theme.textTheme.titleLarge)),
+                TextButton(
+                  onPressed: sheetFilterCount(d) == 0 ? null : () => _set(_clearSheetFilters(d)),
+                  child: const Text('초기화'),
+                ),
+              ],
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _group(
+                      '성별',
+                      _choices<Gender>(
+                        Gender.values.where((g) => g != Gender.any).toList(),
+                        d.gender,
+                        (g) => g.label,
+                        (f, g) => f.copyWith(gender: () => g),
+                      ),
+                    ),
+                    _group(
+                      '나이대',
+                      _choices<AgeRange>(
+                        AgeRange.values.where((a) => a != AgeRange.any).toList(),
+                        d.ageRange,
+                        (a) => a.label,
+                        (f, a) => f.copyWith(ageRange: () => a),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        '성별이나 나이대를 ‘무관’으로 둔 대본은 어느 조건에서나 함께 보여요',
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                    if (tags.isNotEmpty)
+                      _group('태그', _choices<String>(tags, d.tag, (t) => '#$t', (f, t) => f.copyWith(tag: () => t))),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            StreamBuilder<List<ScriptSummary>>(
+              stream: _matches,
+              builder: (context, snap) {
+                final n = snap.data?.length;
+                return FilledButton(
+                  onPressed: n == 0 ? null : () => Navigator.pop(context, _draft),
+                  child: Text(switch (n) {
+                    null => '적용',
+                    0 => '맞는 대본이 없어요',
+                    _ => '대본 $n편 보기',
+                  }),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

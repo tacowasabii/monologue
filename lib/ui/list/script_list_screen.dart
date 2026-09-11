@@ -67,51 +67,56 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-            child: SearchBar(
-              hintText: '제목, 작품, 인물, 본문 검색',
-              leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
-              elevation: const WidgetStatePropertyAll(0),
-              onChanged: (q) => _setFilter(_filter.copyWith(query: q)),
-            ),
-          ),
-          StreamBuilder<List<String>>(
-            stream: _tags,
-            builder: (context, snap) => FilterBar(filter: _filter, tags: snap.data ?? const [], onChanged: _setFilter),
-          ),
-          Expanded(
-            child: StreamBuilder<List<ScriptSummary>>(
-              stream: _scripts,
-              builder: (context, snap) {
-                if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-                final items = snap.data!;
-                if (items.isEmpty) return _EmptyMessage(filtered: _filter.isActive);
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 112),
-                  itemCount: items.length + 1,
-                  itemBuilder: (context, i) {
-                    if (i == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
-                        child: Text(
-                          _filter.isActive ? '찾은 대본 ${items.length}편' : '대본 ${items.length}편',
-                          style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                        ),
-                      );
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _ScriptCard(summary: items[i - 1]),
+      body: StreamBuilder<List<String>>(
+        stream: _tags,
+        builder: (context, tagSnap) {
+          final tags = tagSnap.data ?? const <String>[];
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                child: SearchBar(
+                  hintText: '제목, 작품, 인물, 본문 검색',
+                  leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
+                  trailing: [FilterButton(filter: _filter, tags: tags, onChanged: _setFilter)],
+                  padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.only(start: 16, end: 4)),
+                  elevation: const WidgetStatePropertyAll(0),
+                  onChanged: (q) => _setFilter(_filter.copyWith(query: q)),
+                ),
+              ),
+              FilterBar(filter: _filter, tags: tags, onChanged: _setFilter),
+              Expanded(
+                child: StreamBuilder<List<ScriptSummary>>(
+                  stream: _scripts,
+                  builder: (context, snap) {
+                    if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+                    final items = snap.data!;
+                    if (items.isEmpty) return _EmptyMessage(filtered: _filter.isActive);
+                    return ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 112),
+                      itemCount: items.length + 1,
+                      itemBuilder: (context, i) {
+                        if (i == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+                            child: Text(
+                              _filter.isActive ? '찾은 대본 ${items.length}편' : '대본 ${items.length}편',
+                              style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          );
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _ScriptCard(summary: items[i - 1]),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _add,

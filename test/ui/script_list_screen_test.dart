@@ -32,4 +32,61 @@ void main() {
     expect(find.text('갈매기'), findsNothing);
     await tester.runAsync(h.db.close);
   });
+
+  testWidgets('연습 상태 탭과 필터 시트로 목록을 거른다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() async {
+      final r = h.services.repo;
+      await r.create(const ScriptDraft(
+        title: '햄릿',
+        body: '사느냐 죽느냐',
+        gender: Gender.male,
+        ageRange: AgeRange.twenties,
+        status: PracticeStatus.practicing,
+      ));
+      await r.create(const ScriptDraft(
+        title: '갈매기',
+        body: '나는 갈매기',
+        gender: Gender.female,
+        ageRange: AgeRange.twenties,
+        status: PracticeStatus.memorized,
+      ));
+      await r.create(const ScriptDraft(
+        title: '벚꽃 동산',
+        body: '안녕, 나의 동산',
+        gender: Gender.female,
+        ageRange: AgeRange.fiftiesPlus,
+      ));
+    });
+    await tester.pumpWidget(h.wrap(const ScriptListScreen()));
+    await tester.pumpAndSettle();
+
+    // 탭 행이 카드의 상태 표시보다 위에 있다
+    await tester.tap(find.text('다 외움').first);
+    await tester.pumpAndSettle();
+    expect(find.text('갈매기'), findsOneWidget);
+    expect(find.text('햄릿'), findsNothing);
+
+    await tester.tap(find.text('전체'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('필터'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('여'));
+    await tester.pumpAndSettle();
+    expect(find.text('대본 2편 보기'), findsOneWidget);
+    await tester.tap(find.text('50대 이상'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('대본 1편 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('벚꽃 동산'), findsOneWidget);
+    expect(find.text('갈매기'), findsNothing);
+    expect(find.text('성별 여'), findsOneWidget);
+
+    await tester.tap(find.text('초기화'));
+    await tester.pumpAndSettle();
+    expect(find.text('햄릿'), findsOneWidget);
+    expect(find.text('갈매기'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
 }
