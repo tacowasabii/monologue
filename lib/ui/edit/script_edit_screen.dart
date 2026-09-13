@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
+import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
@@ -38,6 +39,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   // 연습 상태는 화면에서 고르지 않지만, 저장된 값은 덮어쓰지 않고 그대로 넘긴다
   late final PracticeStatus _status;
   late bool _favorite;
+  late bool _dialogue;
   late List<String> _tags;
   late final List<String> _pendingImages = [...widget.newImagePaths];
   List<String> _suggestions = const [];
@@ -59,6 +61,8 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     _ageRange = s?.ageRange ?? AgeRange.any;
     _status = s?.status ?? PracticeStatus.notStarted;
     _favorite = s?.favorite ?? false;
+    // 새 대본은 '이름:' 줄이 두 줄 이상이면 대화 형식으로 시작한다
+    _dialogue = s?.dialogue ?? looksLikeDialogue(widget.initialBody);
     _tags = [...?widget.existing?.tags];
     for (final c in _controllers) {
       c.addListener(_markDirty);
@@ -128,6 +132,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
       status: _status,
       favorite: _favorite,
       tags: _tags,
+      dialogue: _dialogue,
     );
     try {
       final existing = widget.existing;
@@ -219,6 +224,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     const gap = SizedBox(height: 12);
     return PopScope(
       canPop: !_dirty,
@@ -308,15 +314,37 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   }),
                 ),
                 _section('본문'),
+                SegmentedButton<bool>(
+                  expandedInsets: EdgeInsets.zero,
+                  segments: const [
+                    ButtonSegment(value: false, label: Text('독백')),
+                    ButtonSegment(value: true, label: Text('대화')),
+                  ],
+                  selected: {_dialogue},
+                  showSelectedIcon: false,
+                  onSelectionChanged: (v) => setState(() {
+                    _dialogue = v.first;
+                    _dirty = true;
+                  }),
+                ),
+                if (_dialogue)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      keepWords('줄 앞에 이름과 콜론을 쓰면 인물 대사로 보여요. 괄호로만 된 줄은 지문이에요.'),
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _body,
                   minLines: 12,
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
                   style: const TextStyle(fontFamily: serifFamily, fontSize: 16, height: 1.75),
-                  decoration: const InputDecoration(
-                    hintText: '대본 내용을 입력하세요',
-                    contentPadding: EdgeInsets.all(18),
+                  decoration: InputDecoration(
+                    hintText: _dialogue ? '민수: 왜 그랬어?\n지영: 몰라.' : '대본 내용을 입력하세요',
+                    contentPadding: const EdgeInsets.all(18),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty) ? '본문을 입력해 주세요' : null,
                 ),

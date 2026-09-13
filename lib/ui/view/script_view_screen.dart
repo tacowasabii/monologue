@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
+import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
 import '../../settings/reading_settings.dart';
 import '../common/korean_text.dart';
+import '../common/pill_chip.dart';
 import '../edit/script_edit_screen.dart';
 import '../theme.dart';
 import 'image_viewer_screen.dart';
+import 'script_body.dart';
 
 class ScriptViewScreen extends StatefulWidget {
   const ScriptViewScreen({super.key, required this.scriptId});
@@ -139,6 +141,9 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
           if (s.ageRange != AgeRange.any) s.ageRange.label,
         ];
         final hasLabels = traits.isNotEmpty || d.tags.isNotEmpty;
+        final speakers = s.dialogue ? speakersOf(parseDialogue(s.body)) : const <String>[];
+        // 본문을 고쳐 저장된 역할이 사라졌으면 강조하지 않는다
+        final focus = speakers.contains(s.myRole) ? s.myRole : null;
         return Scaffold(
           appBar: AppBar(
             actions: [
@@ -213,8 +218,31 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
                   ),
                 ),
+              if (speakers.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: source != null || hasLabels || memo != null ? 20 : 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('내 역할', style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          for (final name in speakers)
+                            PillChip(
+                              label: name,
+                              selected: name == focus,
+                              onSelected: (_) => services.repo.setMyRole(s.id, name == focus ? null : name),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               // 위에 보여 줄 정보가 없으면 구분선 없이 본문부터 시작한다
-              if (source != null || hasLabels || memo != null) ...[
+              if (source != null || hasLabels || memo != null || speakers.isNotEmpty) ...[
                 const SizedBox(height: 28),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -224,31 +252,11 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
               ],
               ListenableBuilder(
                 listenable: services.settings,
-                builder: (context, _) => SelectableText(
-                  keepWords(s.body),
-                  // 줄바꿈 때문에 넣은 보이지 않는 문자는 복사할 때 뺀다
-                  contextMenuBuilder: (context, editable) => AdaptiveTextSelectionToolbar.buttonItems(
-                    anchors: editable.contextMenuAnchors,
-                    buttonItems: [
-                      for (final item in editable.contextMenuButtonItems)
-                        if (item.type == ContextMenuButtonType.copy)
-                          item.copyWith(onPressed: () {
-                            final value = editable.textEditingValue;
-                            Clipboard.setData(
-                              ClipboardData(text: withoutWordJoiners(value.selection.textInside(value.text))),
-                            );
-                            editable.hideToolbar();
-                          })
-                        else
-                          item,
-                    ],
-                  ),
-                  style: TextStyle(
-                    fontFamily: serifFamily,
-                    fontSize: services.settings.fontSize,
-                    height: 1.85,
-                    color: scheme.onSurface,
-                  ),
+                builder: (context, _) => ScriptBody(
+                  body: s.body,
+                  dialogue: s.dialogue,
+                  fontSize: services.settings.fontSize,
+                  focusSpeaker: focus,
                 ),
               ),
             ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_draft.dart';
+import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/view/script_view_screen.dart';
 
 import 'test_harness.dart';
@@ -29,6 +30,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(copied, body);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('대화 대본은 저장된 내 역할을 강조하고, 칩을 누르면 역할이 바뀌어 저장된다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    final id = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(
+          work: '장면',
+          body: '민수: 왜 그랬어?\n지영: 몰라.',
+          dialogue: true,
+          myRole: '지영',
+        ))))!;
+    await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: id)));
+    await tester.pumpAndSettle();
+
+    double alphaOf(String text) => tester
+        .widget<SelectableText>(find.byWidgetPredicate((w) => w is SelectableText && w.data == keepWords(text)))
+        .style!
+        .color!
+        .a;
+    expect(alphaOf('왜 그랬어?'), lessThan(0.5));
+
+    await tester.tap(find.widgetWithText(FilterChip, '민수'));
+    await tester.pumpAndSettle();
+    expect(alphaOf('왜 그랬어?'), 1.0);
+    expect(alphaOf('몰라.'), lessThan(0.5));
+    final saved = await tester.runAsync(() => h.services.repo.watchScript(id).first);
+    expect(saved!.script.myRole, '민수');
     await tester.runAsync(h.db.close);
   });
 }

@@ -98,4 +98,16 @@ void main() {
     expect(find.text('사진도 함께 보관했어요'), findsNothing);
     await tester.runAsync(h.db.close);
   });
+
+  testWidgets('인물 대사가 두 줄 이상인 새 대본은 대화 형식으로 시작해 저장된다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '민수: 왜 그랬어?\n지영: 몰라.')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<SegmentedButton<bool>>(find.byType(SegmentedButton<bool>)).selected, {true});
+    await tester.tap(find.text('저장'));
+    await tester.pumpAndSettle();
+    final list = await tester.runAsync(() => h.services.repo.watchScripts(const ScriptFilter()).first);
+    expect(list!.single.script.dialogue, isTrue);
+    await tester.runAsync(h.db.close);
+  });
 }
