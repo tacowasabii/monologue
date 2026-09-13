@@ -7,6 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_scope.dart';
 import '../../backup/backup_service.dart';
+import '../common/format.dart';
+import '../common/korean_text.dart';
 import 'how_to_screen.dart';
 
 const privacyPolicyUrl = 'https://tacowasabii.vercel.app/monologue/privacy';
@@ -32,12 +34,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _snack(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
+  /// 연습 기록을 백업에 넣을지 묻는다. 크기가 커서 기본은 넣지 않는다. 취소하면 null.
+  Future<bool?> _askIncludeMedia(int mediaBytes) {
+    var include = false;
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('백업 내보내기'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(keepWords('대본과 원본 사진은 항상 들어가요.')),
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                value: include,
+                onChanged: (v) => setDialogState(() => include = v ?? false),
+                title: const Text('녹음·영상도 넣기'),
+                subtitle: Text(keepWords('약 ${formatBytes(mediaBytes)} · 파일이 커서 만들고 옮기는 데 오래 걸릴 수 있어요')),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+            TextButton(onPressed: () => Navigator.pop(context, include), child: const Text('내보내기')),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _export() async {
-    final backup = AppScope.of(context).backup;
+    final services = AppScope.of(context);
     final box = context.findRenderObject() as RenderBox?;
+    final mediaBytes = await services.repo.mediaSizeBytes();
+    if (!mounted) return;
+    var includeMedia = false;
+    if (mediaBytes > 0) {
+      final choice = await _askIncludeMedia(mediaBytes);
+      if (choice == null || !mounted) return;
+      includeMedia = choice;
+    }
     setState(() => _busy = true);
     try {
-      final file = await backup.export(await getTemporaryDirectory());
+      final file = await services.backup.export(await getTemporaryDirectory(), includeMedia: includeMedia);
       await SharePlus.instance.share(ShareParams(
         files: [XFile(file.path, mimeType: 'application/zip')],
         // iPad는 공유 시트 위치가 필요하다
@@ -54,6 +97,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final backup = AppScope.of(context).backup;
     final file = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: ['zip']);
     if (file == null || !mounted) return;
+    // 백업이 수 GB일 수 있어서 내용을 메모리에 올리지 않고 경로로 넘긴다
+    final path = file.path;
+    if (path == null) {
+      _snack('이 위치의 파일은 가져올 수 없어요. 파일 앱에 저장한 뒤 다시 골라 주세요.');
+      return;
+    }
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -68,7 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (ok != true || !mounted) return;
     setState(() => _busy = true);
     try {
-      final count = await backup.restore(await file.readAsBytes());
+      final count = await backup.restore(path);
       if (mounted) _snack('대본 $count개를 가져왔어요');
     } on BackupFormatException {
       if (mounted) _snack('백업 파일이 아니거나 손상됐어요');
