@@ -19,6 +19,18 @@ const _v1Schema = [
       '"script_id" INTEGER NOT NULL REFERENCES scripts (id), "file_name" TEXT NOT NULL, "position" INTEGER NOT NULL);',
 ];
 
+// 메모 칸이 생긴 버전 3의 테이블 정의
+const _v3Schema = [
+  'CREATE TABLE IF NOT EXISTS "scripts" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "work" TEXT NULL, '
+      '"memo" TEXT NULL, "gender" TEXT NOT NULL, "age_range" TEXT NOT NULL, "status" TEXT NOT NULL, '
+      '"favorite" INTEGER NOT NULL CHECK ("favorite" IN (0, 1)), "body" TEXT NOT NULL, '
+      '"created_at" TEXT NOT NULL, "updated_at" TEXT NOT NULL);',
+  'CREATE TABLE IF NOT EXISTS "script_tags" ("script_id" INTEGER NOT NULL REFERENCES scripts (id), '
+      '"tag" TEXT NOT NULL, PRIMARY KEY ("script_id", "tag"));',
+  'CREATE TABLE IF NOT EXISTS "script_images" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, '
+      '"script_id" INTEGER NOT NULL REFERENCES scripts (id), "file_name" TEXT NOT NULL, "position" INTEGER NOT NULL);',
+];
+
 void main() {
   late Directory tmp;
 
@@ -59,6 +71,33 @@ void main() {
         ));
     expect((await db.select(db.scripts).getSingle()).memo, '메모');
 
+    await db.close();
+  });
+
+  test('버전 3 DB는 대본을 그대로 두고 형식·역할·노트 칸을 더한다', () async {
+    final file = File('${tmp.path}/monologue.sqlite');
+    final v3 = sqlite3.open(file.path);
+    for (final sql in _v3Schema) {
+      v3.execute(sql);
+    }
+    v3.execute(
+      'INSERT INTO scripts (work, memo, gender, age_range, status, favorite, body, created_at, updated_at) '
+      "VALUES ('햄릿', '1차 오디션', 'any', 'any', 'notStarted', 0, '사느냐 죽느냐', "
+      "'2026-09-13T10:00:00.000+09:00', '2026-09-13T10:00:00.000+09:00')",
+    );
+    v3.execute("INSERT INTO script_tags (script_id, tag) VALUES (1, '고뇌')");
+    v3.execute('PRAGMA user_version = 3');
+    v3.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final row = await db.select(db.scripts).getSingle();
+    expect(row.work, '햄릿');
+    expect(row.memo, '1차 오디션');
+    expect(row.dialogue, isFalse);
+    expect(row.myRole, isNull);
+    expect(row.situation, isNull);
+    expect(row.medium, isNull);
+    expect((await db.select(db.scriptTags).getSingle()).tag, '고뇌');
     await db.close();
   });
 }

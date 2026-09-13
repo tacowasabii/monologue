@@ -3,8 +3,22 @@ import 'package:drift/drift.dart';
 import '../domain/enums.dart';
 import '../domain/script_draft.dart';
 import '../domain/script_filter.dart';
+import '../domain/script_notes.dart';
 import 'database.dart';
 import 'image_store.dart';
+
+extension ScriptRowNotes on Script {
+  ScriptNotes get notes => ScriptNotes(
+        situation: situation,
+        objective: objective,
+        obstacle: obstacle,
+        author: author,
+        medium: medium,
+        sourceUrl: sourceUrl,
+        synopsis: synopsis,
+        sceneContext: sceneContext,
+      );
+}
 
 class ScriptSummary {
   const ScriptSummary(this.script, this.tags);
@@ -34,7 +48,7 @@ class ScriptRepository {
         final text = f.query.trim();
         if (text.isNotEmpty) {
           final pattern = '%$text%';
-          e = e & (s.work.like(pattern) | s.memo.like(pattern) | s.body.like(pattern));
+          e = e & (s.work.like(pattern) | s.memo.like(pattern) | s.body.like(pattern) | s.author.like(pattern));
         }
         // 성별·나이대가 '무관'인 대본은 어느 조건에도 맞는다
         if (f.gender != null) e = e & s.gender.isIn([f.gender!.name, Gender.any.name]);
@@ -121,15 +135,19 @@ class ScriptRepository {
             status: d.status,
             favorite: d.favorite,
             body: d.body,
+            dialogue: Value(d.dialogue),
+            myRole: Value(d.myRole),
             createdAt: createdAt,
             updatedAt: updatedAt,
           ));
+      await (db.update(db.scripts)..where((s) => s.id.equals(id))).write(_notesCompanion(d.notes));
       await _replaceTags(id, d.tags);
       await _appendImages(id, storedImageFileNames);
       return id;
     });
   }
 
+  /// 대본 내용과 형식을 바꾼다. 노트는 [updateNotes], 내 역할은 [setMyRole]로만 바꾼다.
   Future<void> update(int id, ScriptDraft draft, {List<String> newImagePaths = const []}) async {
     final stored = await _importAll(newImagePaths);
     final d = draft.normalized();
@@ -138,6 +156,7 @@ class ScriptRepository {
         await (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(
               work: Value(d.work),
               memo: Value(d.memo),
+              dialogue: Value(d.dialogue),
               gender: Value(d.gender),
               ageRange: Value(d.ageRange),
               status: Value(d.status),
@@ -175,6 +194,25 @@ class ScriptRepository {
             ScriptImagesCompanion.insert(scriptId: id, fileName: fileNames[i], position: start + i),
         ]));
   }
+
+  Future<void> updateNotes(int id, ScriptNotes notes) =>
+      (db.update(db.scripts)..where((s) => s.id.equals(id)))
+          .write(_notesCompanion(notes.normalized()).copyWith(updatedAt: Value(DateTime.now())));
+
+  /// 보기 화면에서 칩을 누를 때 바로 저장한다. 목록 순서가 바뀌지 않게 수정 시각은 그대로 둔다.
+  Future<void> setMyRole(int id, String? role) =>
+      (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(myRole: Value(role)));
+
+  ScriptsCompanion _notesCompanion(ScriptNotes n) => ScriptsCompanion(
+        situation: Value(n.situation),
+        objective: Value(n.objective),
+        obstacle: Value(n.obstacle),
+        author: Value(n.author),
+        medium: Value(n.medium),
+        sourceUrl: Value(n.sourceUrl),
+        synopsis: Value(n.synopsis),
+        sceneContext: Value(n.sceneContext),
+      );
 
   Future<void> setFavorite(int id, bool value) =>
       (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(favorite: Value(value)));

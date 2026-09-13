@@ -9,6 +9,7 @@ import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
+import 'package:monologue/domain/script_notes.dart';
 
 void main() {
   late AppDatabase db;
@@ -128,5 +129,43 @@ void main() {
     );
     expect(await works(const ScriptFilter()), isEmpty);
     expect(images.dir.listSync(), isEmpty);
+  });
+
+  test('create는 형식·역할·노트를 저장하고 update는 형식만 바꾼다', () async {
+    final id = await repo.create(const ScriptDraft(
+      body: '민수: 안녕\n지영: 응',
+      dialogue: true,
+      myRole: '지영',
+      notes: ScriptNotes(situation: '새벽', medium: ScriptMedium.play),
+    ));
+    await repo.update(id, const ScriptDraft(body: '민수: 안녕\n지영: 응', dialogue: false));
+    final s = (await repo.watchScript(id).first)!.script;
+    expect(s.dialogue, isFalse);
+    expect(s.myRole, '지영');
+    expect(s.notes, const ScriptNotes(situation: '새벽', medium: ScriptMedium.play));
+  });
+
+  test('updateNotes는 노트를 정리해 저장하고 수정 시각을 바꾼다', () async {
+    final id = await repo.create(const ScriptDraft(body: 'x'));
+    final before = (await repo.watchScript(id).first)!.script.updatedAt;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await repo.updateNotes(id, const ScriptNotes(objective: '  용서받기 ', obstacle: ''));
+    final s = (await repo.watchScript(id).first)!.script;
+    expect(s.notes, const ScriptNotes(objective: '용서받기'));
+    expect(s.updatedAt.isAfter(before), isTrue);
+  });
+
+  test('setMyRole은 역할을 저장하고 null이면 지운다', () async {
+    final id = await repo.create(const ScriptDraft(body: '민수: 안녕', dialogue: true));
+    await repo.setMyRole(id, '민수');
+    expect((await repo.watchScript(id).first)!.script.myRole, '민수');
+    await repo.setMyRole(id, null);
+    expect((await repo.watchScript(id).first)!.script.myRole, isNull);
+  });
+
+  test('작가로도 검색된다', () async {
+    await repo.create(const ScriptDraft(work: '갈매기', body: 'x', notes: ScriptNotes(author: '체호프')));
+    await repo.create(const ScriptDraft(work: '햄릿', body: 'x'));
+    expect(await works(const ScriptFilter(query: '체호프')), ['갈매기']);
   });
 }

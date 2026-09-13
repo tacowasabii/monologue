@@ -17,6 +17,16 @@ class Scripts extends Table {
   TextColumn get body => text()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
+  BoolColumn get dialogue => boolean().withDefault(const Constant(false))();
+  TextColumn get myRole => text().nullable()();
+  TextColumn get situation => text().nullable()();
+  TextColumn get objective => text().nullable()();
+  TextColumn get obstacle => text().nullable()();
+  TextColumn get author => text().nullable()();
+  TextColumn get medium => textEnum<ScriptMedium>().nullable()();
+  TextColumn get sourceUrl => text().nullable()();
+  TextColumn get synopsis => text().nullable()();
+  TextColumn get sceneContext => text().nullable()();
 }
 
 class ScriptTags extends Table {
@@ -39,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +60,24 @@ class AppDatabase extends _$AppDatabase {
               await m.deleteTable(table.actualTableName);
             }
             await m.createAll();
+            return;
+          }
+          // 버전 4: 대화 형식·내 역할·대본 노트. 칸만 더하므로 대본은 그대로 남는다
+          if (from < 4) {
+            for (final column in <GeneratedColumn>[
+              scripts.dialogue,
+              scripts.myRole,
+              scripts.situation,
+              scripts.objective,
+              scripts.obstacle,
+              scripts.author,
+              scripts.medium,
+              scripts.sourceUrl,
+              scripts.synopsis,
+              scripts.sceneContext,
+            ]) {
+              await m.addColumn(scripts, column);
+            }
           }
         },
       );

@@ -111,6 +111,114 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _dialogueMeta = const VerificationMeta(
+    'dialogue',
+  );
+  @override
+  late final GeneratedColumn<bool> dialogue = GeneratedColumn<bool>(
+    'dialogue',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dialogue" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _myRoleMeta = const VerificationMeta('myRole');
+  @override
+  late final GeneratedColumn<String> myRole = GeneratedColumn<String>(
+    'my_role',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _situationMeta = const VerificationMeta(
+    'situation',
+  );
+  @override
+  late final GeneratedColumn<String> situation = GeneratedColumn<String>(
+    'situation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _objectiveMeta = const VerificationMeta(
+    'objective',
+  );
+  @override
+  late final GeneratedColumn<String> objective = GeneratedColumn<String>(
+    'objective',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _obstacleMeta = const VerificationMeta(
+    'obstacle',
+  );
+  @override
+  late final GeneratedColumn<String> obstacle = GeneratedColumn<String>(
+    'obstacle',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _authorMeta = const VerificationMeta('author');
+  @override
+  late final GeneratedColumn<String> author = GeneratedColumn<String>(
+    'author',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<ScriptMedium?, String> medium =
+      GeneratedColumn<String>(
+        'medium',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<ScriptMedium?>($ScriptsTable.$convertermediumn);
+  static const VerificationMeta _sourceUrlMeta = const VerificationMeta(
+    'sourceUrl',
+  );
+  @override
+  late final GeneratedColumn<String> sourceUrl = GeneratedColumn<String>(
+    'source_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _synopsisMeta = const VerificationMeta(
+    'synopsis',
+  );
+  @override
+  late final GeneratedColumn<String> synopsis = GeneratedColumn<String>(
+    'synopsis',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sceneContextMeta = const VerificationMeta(
+    'sceneContext',
+  );
+  @override
+  late final GeneratedColumn<String> sceneContext = GeneratedColumn<String>(
+    'scene_context',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -123,6 +231,16 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     body,
     createdAt,
     updatedAt,
+    dialogue,
+    myRole,
+    situation,
+    objective,
+    obstacle,
+    author,
+    medium,
+    sourceUrl,
+    synopsis,
+    sceneContext,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -183,6 +301,63 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('dialogue')) {
+      context.handle(
+        _dialogueMeta,
+        dialogue.isAcceptableOrUnknown(data['dialogue']!, _dialogueMeta),
+      );
+    }
+    if (data.containsKey('my_role')) {
+      context.handle(
+        _myRoleMeta,
+        myRole.isAcceptableOrUnknown(data['my_role']!, _myRoleMeta),
+      );
+    }
+    if (data.containsKey('situation')) {
+      context.handle(
+        _situationMeta,
+        situation.isAcceptableOrUnknown(data['situation']!, _situationMeta),
+      );
+    }
+    if (data.containsKey('objective')) {
+      context.handle(
+        _objectiveMeta,
+        objective.isAcceptableOrUnknown(data['objective']!, _objectiveMeta),
+      );
+    }
+    if (data.containsKey('obstacle')) {
+      context.handle(
+        _obstacleMeta,
+        obstacle.isAcceptableOrUnknown(data['obstacle']!, _obstacleMeta),
+      );
+    }
+    if (data.containsKey('author')) {
+      context.handle(
+        _authorMeta,
+        author.isAcceptableOrUnknown(data['author']!, _authorMeta),
+      );
+    }
+    if (data.containsKey('source_url')) {
+      context.handle(
+        _sourceUrlMeta,
+        sourceUrl.isAcceptableOrUnknown(data['source_url']!, _sourceUrlMeta),
+      );
+    }
+    if (data.containsKey('synopsis')) {
+      context.handle(
+        _synopsisMeta,
+        synopsis.isAcceptableOrUnknown(data['synopsis']!, _synopsisMeta),
+      );
+    }
+    if (data.containsKey('scene_context')) {
+      context.handle(
+        _sceneContextMeta,
+        sceneContext.isAcceptableOrUnknown(
+          data['scene_context']!,
+          _sceneContextMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -238,6 +413,48 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      dialogue: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dialogue'],
+      )!,
+      myRole: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}my_role'],
+      ),
+      situation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}situation'],
+      ),
+      objective: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}objective'],
+      ),
+      obstacle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}obstacle'],
+      ),
+      author: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author'],
+      ),
+      medium: $ScriptsTable.$convertermediumn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}medium'],
+        ),
+      ),
+      sourceUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_url'],
+      ),
+      synopsis: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}synopsis'],
+      ),
+      sceneContext: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scene_context'],
+      ),
     );
   }
 
@@ -252,6 +469,10 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
       const EnumNameConverter<AgeRange>(AgeRange.values);
   static JsonTypeConverter2<PracticeStatus, String, String> $converterstatus =
       const EnumNameConverter<PracticeStatus>(PracticeStatus.values);
+  static JsonTypeConverter2<ScriptMedium, String, String> $convertermedium =
+      const EnumNameConverter<ScriptMedium>(ScriptMedium.values);
+  static JsonTypeConverter2<ScriptMedium?, String?, String?> $convertermediumn =
+      JsonTypeConverter2.asNullable($convertermedium);
 }
 
 class Script extends DataClass implements Insertable<Script> {
@@ -265,6 +486,16 @@ class Script extends DataClass implements Insertable<Script> {
   final String body;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool dialogue;
+  final String? myRole;
+  final String? situation;
+  final String? objective;
+  final String? obstacle;
+  final String? author;
+  final ScriptMedium? medium;
+  final String? sourceUrl;
+  final String? synopsis;
+  final String? sceneContext;
   const Script({
     required this.id,
     this.work,
@@ -276,6 +507,16 @@ class Script extends DataClass implements Insertable<Script> {
     required this.body,
     required this.createdAt,
     required this.updatedAt,
+    required this.dialogue,
+    this.myRole,
+    this.situation,
+    this.objective,
+    this.obstacle,
+    this.author,
+    this.medium,
+    this.sourceUrl,
+    this.synopsis,
+    this.sceneContext,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -306,6 +547,36 @@ class Script extends DataClass implements Insertable<Script> {
     map['body'] = Variable<String>(body);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['dialogue'] = Variable<bool>(dialogue);
+    if (!nullToAbsent || myRole != null) {
+      map['my_role'] = Variable<String>(myRole);
+    }
+    if (!nullToAbsent || situation != null) {
+      map['situation'] = Variable<String>(situation);
+    }
+    if (!nullToAbsent || objective != null) {
+      map['objective'] = Variable<String>(objective);
+    }
+    if (!nullToAbsent || obstacle != null) {
+      map['obstacle'] = Variable<String>(obstacle);
+    }
+    if (!nullToAbsent || author != null) {
+      map['author'] = Variable<String>(author);
+    }
+    if (!nullToAbsent || medium != null) {
+      map['medium'] = Variable<String>(
+        $ScriptsTable.$convertermediumn.toSql(medium),
+      );
+    }
+    if (!nullToAbsent || sourceUrl != null) {
+      map['source_url'] = Variable<String>(sourceUrl);
+    }
+    if (!nullToAbsent || synopsis != null) {
+      map['synopsis'] = Variable<String>(synopsis);
+    }
+    if (!nullToAbsent || sceneContext != null) {
+      map['scene_context'] = Variable<String>(sceneContext);
+    }
     return map;
   }
 
@@ -321,6 +592,34 @@ class Script extends DataClass implements Insertable<Script> {
       body: Value(body),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      dialogue: Value(dialogue),
+      myRole: myRole == null && nullToAbsent
+          ? const Value.absent()
+          : Value(myRole),
+      situation: situation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(situation),
+      objective: objective == null && nullToAbsent
+          ? const Value.absent()
+          : Value(objective),
+      obstacle: obstacle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(obstacle),
+      author: author == null && nullToAbsent
+          ? const Value.absent()
+          : Value(author),
+      medium: medium == null && nullToAbsent
+          ? const Value.absent()
+          : Value(medium),
+      sourceUrl: sourceUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceUrl),
+      synopsis: synopsis == null && nullToAbsent
+          ? const Value.absent()
+          : Value(synopsis),
+      sceneContext: sceneContext == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sceneContext),
     );
   }
 
@@ -346,6 +645,18 @@ class Script extends DataClass implements Insertable<Script> {
       body: serializer.fromJson<String>(json['body']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      dialogue: serializer.fromJson<bool>(json['dialogue']),
+      myRole: serializer.fromJson<String?>(json['myRole']),
+      situation: serializer.fromJson<String?>(json['situation']),
+      objective: serializer.fromJson<String?>(json['objective']),
+      obstacle: serializer.fromJson<String?>(json['obstacle']),
+      author: serializer.fromJson<String?>(json['author']),
+      medium: $ScriptsTable.$convertermediumn.fromJson(
+        serializer.fromJson<String?>(json['medium']),
+      ),
+      sourceUrl: serializer.fromJson<String?>(json['sourceUrl']),
+      synopsis: serializer.fromJson<String?>(json['synopsis']),
+      sceneContext: serializer.fromJson<String?>(json['sceneContext']),
     );
   }
   @override
@@ -368,6 +679,18 @@ class Script extends DataClass implements Insertable<Script> {
       'body': serializer.toJson<String>(body),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'dialogue': serializer.toJson<bool>(dialogue),
+      'myRole': serializer.toJson<String?>(myRole),
+      'situation': serializer.toJson<String?>(situation),
+      'objective': serializer.toJson<String?>(objective),
+      'obstacle': serializer.toJson<String?>(obstacle),
+      'author': serializer.toJson<String?>(author),
+      'medium': serializer.toJson<String?>(
+        $ScriptsTable.$convertermediumn.toJson(medium),
+      ),
+      'sourceUrl': serializer.toJson<String?>(sourceUrl),
+      'synopsis': serializer.toJson<String?>(synopsis),
+      'sceneContext': serializer.toJson<String?>(sceneContext),
     };
   }
 
@@ -382,6 +705,16 @@ class Script extends DataClass implements Insertable<Script> {
     String? body,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? dialogue,
+    Value<String?> myRole = const Value.absent(),
+    Value<String?> situation = const Value.absent(),
+    Value<String?> objective = const Value.absent(),
+    Value<String?> obstacle = const Value.absent(),
+    Value<String?> author = const Value.absent(),
+    Value<ScriptMedium?> medium = const Value.absent(),
+    Value<String?> sourceUrl = const Value.absent(),
+    Value<String?> synopsis = const Value.absent(),
+    Value<String?> sceneContext = const Value.absent(),
   }) => Script(
     id: id ?? this.id,
     work: work.present ? work.value : this.work,
@@ -393,6 +726,16 @@ class Script extends DataClass implements Insertable<Script> {
     body: body ?? this.body,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    dialogue: dialogue ?? this.dialogue,
+    myRole: myRole.present ? myRole.value : this.myRole,
+    situation: situation.present ? situation.value : this.situation,
+    objective: objective.present ? objective.value : this.objective,
+    obstacle: obstacle.present ? obstacle.value : this.obstacle,
+    author: author.present ? author.value : this.author,
+    medium: medium.present ? medium.value : this.medium,
+    sourceUrl: sourceUrl.present ? sourceUrl.value : this.sourceUrl,
+    synopsis: synopsis.present ? synopsis.value : this.synopsis,
+    sceneContext: sceneContext.present ? sceneContext.value : this.sceneContext,
   );
   Script copyWithCompanion(ScriptsCompanion data) {
     return Script(
@@ -406,6 +749,18 @@ class Script extends DataClass implements Insertable<Script> {
       body: data.body.present ? data.body.value : this.body,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      dialogue: data.dialogue.present ? data.dialogue.value : this.dialogue,
+      myRole: data.myRole.present ? data.myRole.value : this.myRole,
+      situation: data.situation.present ? data.situation.value : this.situation,
+      objective: data.objective.present ? data.objective.value : this.objective,
+      obstacle: data.obstacle.present ? data.obstacle.value : this.obstacle,
+      author: data.author.present ? data.author.value : this.author,
+      medium: data.medium.present ? data.medium.value : this.medium,
+      sourceUrl: data.sourceUrl.present ? data.sourceUrl.value : this.sourceUrl,
+      synopsis: data.synopsis.present ? data.synopsis.value : this.synopsis,
+      sceneContext: data.sceneContext.present
+          ? data.sceneContext.value
+          : this.sceneContext,
     );
   }
 
@@ -421,7 +776,17 @@ class Script extends DataClass implements Insertable<Script> {
           ..write('favorite: $favorite, ')
           ..write('body: $body, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('dialogue: $dialogue, ')
+          ..write('myRole: $myRole, ')
+          ..write('situation: $situation, ')
+          ..write('objective: $objective, ')
+          ..write('obstacle: $obstacle, ')
+          ..write('author: $author, ')
+          ..write('medium: $medium, ')
+          ..write('sourceUrl: $sourceUrl, ')
+          ..write('synopsis: $synopsis, ')
+          ..write('sceneContext: $sceneContext')
           ..write(')'))
         .toString();
   }
@@ -438,6 +803,16 @@ class Script extends DataClass implements Insertable<Script> {
     body,
     createdAt,
     updatedAt,
+    dialogue,
+    myRole,
+    situation,
+    objective,
+    obstacle,
+    author,
+    medium,
+    sourceUrl,
+    synopsis,
+    sceneContext,
   );
   @override
   bool operator ==(Object other) =>
@@ -452,7 +827,17 @@ class Script extends DataClass implements Insertable<Script> {
           other.favorite == this.favorite &&
           other.body == this.body &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.dialogue == this.dialogue &&
+          other.myRole == this.myRole &&
+          other.situation == this.situation &&
+          other.objective == this.objective &&
+          other.obstacle == this.obstacle &&
+          other.author == this.author &&
+          other.medium == this.medium &&
+          other.sourceUrl == this.sourceUrl &&
+          other.synopsis == this.synopsis &&
+          other.sceneContext == this.sceneContext);
 }
 
 class ScriptsCompanion extends UpdateCompanion<Script> {
@@ -466,6 +851,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   final Value<String> body;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<bool> dialogue;
+  final Value<String?> myRole;
+  final Value<String?> situation;
+  final Value<String?> objective;
+  final Value<String?> obstacle;
+  final Value<String?> author;
+  final Value<ScriptMedium?> medium;
+  final Value<String?> sourceUrl;
+  final Value<String?> synopsis;
+  final Value<String?> sceneContext;
   const ScriptsCompanion({
     this.id = const Value.absent(),
     this.work = const Value.absent(),
@@ -477,6 +872,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     this.body = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.dialogue = const Value.absent(),
+    this.myRole = const Value.absent(),
+    this.situation = const Value.absent(),
+    this.objective = const Value.absent(),
+    this.obstacle = const Value.absent(),
+    this.author = const Value.absent(),
+    this.medium = const Value.absent(),
+    this.sourceUrl = const Value.absent(),
+    this.synopsis = const Value.absent(),
+    this.sceneContext = const Value.absent(),
   });
   ScriptsCompanion.insert({
     this.id = const Value.absent(),
@@ -489,6 +894,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     required String body,
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.dialogue = const Value.absent(),
+    this.myRole = const Value.absent(),
+    this.situation = const Value.absent(),
+    this.objective = const Value.absent(),
+    this.obstacle = const Value.absent(),
+    this.author = const Value.absent(),
+    this.medium = const Value.absent(),
+    this.sourceUrl = const Value.absent(),
+    this.synopsis = const Value.absent(),
+    this.sceneContext = const Value.absent(),
   }) : gender = Value(gender),
        ageRange = Value(ageRange),
        status = Value(status),
@@ -507,6 +922,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     Expression<String>? body,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? dialogue,
+    Expression<String>? myRole,
+    Expression<String>? situation,
+    Expression<String>? objective,
+    Expression<String>? obstacle,
+    Expression<String>? author,
+    Expression<String>? medium,
+    Expression<String>? sourceUrl,
+    Expression<String>? synopsis,
+    Expression<String>? sceneContext,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -519,6 +944,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
       if (body != null) 'body': body,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (dialogue != null) 'dialogue': dialogue,
+      if (myRole != null) 'my_role': myRole,
+      if (situation != null) 'situation': situation,
+      if (objective != null) 'objective': objective,
+      if (obstacle != null) 'obstacle': obstacle,
+      if (author != null) 'author': author,
+      if (medium != null) 'medium': medium,
+      if (sourceUrl != null) 'source_url': sourceUrl,
+      if (synopsis != null) 'synopsis': synopsis,
+      if (sceneContext != null) 'scene_context': sceneContext,
     });
   }
 
@@ -533,6 +968,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     Value<String>? body,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<bool>? dialogue,
+    Value<String?>? myRole,
+    Value<String?>? situation,
+    Value<String?>? objective,
+    Value<String?>? obstacle,
+    Value<String?>? author,
+    Value<ScriptMedium?>? medium,
+    Value<String?>? sourceUrl,
+    Value<String?>? synopsis,
+    Value<String?>? sceneContext,
   }) {
     return ScriptsCompanion(
       id: id ?? this.id,
@@ -545,6 +990,16 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
       body: body ?? this.body,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      dialogue: dialogue ?? this.dialogue,
+      myRole: myRole ?? this.myRole,
+      situation: situation ?? this.situation,
+      objective: objective ?? this.objective,
+      obstacle: obstacle ?? this.obstacle,
+      author: author ?? this.author,
+      medium: medium ?? this.medium,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      synopsis: synopsis ?? this.synopsis,
+      sceneContext: sceneContext ?? this.sceneContext,
     );
   }
 
@@ -587,6 +1042,38 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (dialogue.present) {
+      map['dialogue'] = Variable<bool>(dialogue.value);
+    }
+    if (myRole.present) {
+      map['my_role'] = Variable<String>(myRole.value);
+    }
+    if (situation.present) {
+      map['situation'] = Variable<String>(situation.value);
+    }
+    if (objective.present) {
+      map['objective'] = Variable<String>(objective.value);
+    }
+    if (obstacle.present) {
+      map['obstacle'] = Variable<String>(obstacle.value);
+    }
+    if (author.present) {
+      map['author'] = Variable<String>(author.value);
+    }
+    if (medium.present) {
+      map['medium'] = Variable<String>(
+        $ScriptsTable.$convertermediumn.toSql(medium.value),
+      );
+    }
+    if (sourceUrl.present) {
+      map['source_url'] = Variable<String>(sourceUrl.value);
+    }
+    if (synopsis.present) {
+      map['synopsis'] = Variable<String>(synopsis.value);
+    }
+    if (sceneContext.present) {
+      map['scene_context'] = Variable<String>(sceneContext.value);
+    }
     return map;
   }
 
@@ -602,7 +1089,17 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
           ..write('favorite: $favorite, ')
           ..write('body: $body, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('dialogue: $dialogue, ')
+          ..write('myRole: $myRole, ')
+          ..write('situation: $situation, ')
+          ..write('objective: $objective, ')
+          ..write('obstacle: $obstacle, ')
+          ..write('author: $author, ')
+          ..write('medium: $medium, ')
+          ..write('sourceUrl: $sourceUrl, ')
+          ..write('synopsis: $synopsis, ')
+          ..write('sceneContext: $sceneContext')
           ..write(')'))
         .toString();
   }
@@ -1155,6 +1652,16 @@ typedef $$ScriptsTableCreateCompanionBuilder = ScriptsCompanion Function({
   required String body,
   required DateTime createdAt,
   required DateTime updatedAt,
+  Value<bool> dialogue,
+  Value<String?> myRole,
+  Value<String?> situation,
+  Value<String?> objective,
+  Value<String?> obstacle,
+  Value<String?> author,
+  Value<ScriptMedium?> medium,
+  Value<String?> sourceUrl,
+  Value<String?> synopsis,
+  Value<String?> sceneContext,
 });
 typedef $$ScriptsTableUpdateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
@@ -1167,6 +1674,16 @@ typedef $$ScriptsTableUpdateCompanionBuilder = ScriptsCompanion Function({
   Value<String> body,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
+  Value<bool> dialogue,
+  Value<String?> myRole,
+  Value<String?> situation,
+  Value<String?> objective,
+  Value<String?> obstacle,
+  Value<String?> author,
+  Value<ScriptMedium?> medium,
+  Value<String?> sourceUrl,
+  Value<String?> synopsis,
+  Value<String?> sceneContext,
 });
 
 final class $$ScriptsTableReferences
@@ -1269,6 +1786,57 @@ class $$ScriptsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get dialogue => $composableBuilder(
+    column: $table.dialogue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get myRole => $composableBuilder(
+    column: $table.myRole,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get situation => $composableBuilder(
+    column: $table.situation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get objective => $composableBuilder(
+    column: $table.objective,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get obstacle => $composableBuilder(
+    column: $table.obstacle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ScriptMedium?, ScriptMedium, String>
+  get medium => $composableBuilder(
+    column: $table.medium,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get sourceUrl => $composableBuilder(
+    column: $table.sourceUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get synopsis => $composableBuilder(
+    column: $table.synopsis,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sceneContext => $composableBuilder(
+    column: $table.sceneContext,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1381,6 +1949,56 @@ class $$ScriptsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get dialogue => $composableBuilder(
+    column: $table.dialogue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get myRole => $composableBuilder(
+    column: $table.myRole,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get situation => $composableBuilder(
+    column: $table.situation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get objective => $composableBuilder(
+    column: $table.objective,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get obstacle => $composableBuilder(
+    column: $table.obstacle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get medium => $composableBuilder(
+    column: $table.medium,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceUrl => $composableBuilder(
+    column: $table.sourceUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get synopsis => $composableBuilder(
+    column: $table.synopsis,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sceneContext => $composableBuilder(
+    column: $table.sceneContext,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ScriptsTableAnnotationComposer
@@ -1421,6 +2039,38 @@ class $$ScriptsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get dialogue =>
+      $composableBuilder(column: $table.dialogue, builder: (column) => column);
+
+  GeneratedColumn<String> get myRole =>
+      $composableBuilder(column: $table.myRole, builder: (column) => column);
+
+  GeneratedColumn<String> get situation =>
+      $composableBuilder(column: $table.situation, builder: (column) => column);
+
+  GeneratedColumn<String> get objective =>
+      $composableBuilder(column: $table.objective, builder: (column) => column);
+
+  GeneratedColumn<String> get obstacle =>
+      $composableBuilder(column: $table.obstacle, builder: (column) => column);
+
+  GeneratedColumn<String> get author =>
+      $composableBuilder(column: $table.author, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ScriptMedium?, String> get medium =>
+      $composableBuilder(column: $table.medium, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceUrl =>
+      $composableBuilder(column: $table.sourceUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get synopsis =>
+      $composableBuilder(column: $table.synopsis, builder: (column) => column);
+
+  GeneratedColumn<String> get sceneContext => $composableBuilder(
+    column: $table.sceneContext,
+    builder: (column) => column,
+  );
 
   Expression<T> scriptTagsRefs<T extends Object>(
     Expression<T> Function($$ScriptTagsTableAnnotationComposer a) f,
@@ -1511,6 +2161,16 @@ class $$ScriptsTableTableManager
                 Value<String> body = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> dialogue = const Value.absent(),
+                Value<String?> myRole = const Value.absent(),
+                Value<String?> situation = const Value.absent(),
+                Value<String?> objective = const Value.absent(),
+                Value<String?> obstacle = const Value.absent(),
+                Value<String?> author = const Value.absent(),
+                Value<ScriptMedium?> medium = const Value.absent(),
+                Value<String?> sourceUrl = const Value.absent(),
+                Value<String?> synopsis = const Value.absent(),
+                Value<String?> sceneContext = const Value.absent(),
               }) => ScriptsCompanion(
                 id: id,
                 work: work,
@@ -1522,6 +2182,16 @@ class $$ScriptsTableTableManager
                 body: body,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                dialogue: dialogue,
+                myRole: myRole,
+                situation: situation,
+                objective: objective,
+                obstacle: obstacle,
+                author: author,
+                medium: medium,
+                sourceUrl: sourceUrl,
+                synopsis: synopsis,
+                sceneContext: sceneContext,
               ),
           createCompanionCallback:
               ({
@@ -1535,6 +2205,16 @@ class $$ScriptsTableTableManager
                 required String body,
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<bool> dialogue = const Value.absent(),
+                Value<String?> myRole = const Value.absent(),
+                Value<String?> situation = const Value.absent(),
+                Value<String?> objective = const Value.absent(),
+                Value<String?> obstacle = const Value.absent(),
+                Value<String?> author = const Value.absent(),
+                Value<ScriptMedium?> medium = const Value.absent(),
+                Value<String?> sourceUrl = const Value.absent(),
+                Value<String?> synopsis = const Value.absent(),
+                Value<String?> sceneContext = const Value.absent(),
               }) => ScriptsCompanion.insert(
                 id: id,
                 work: work,
@@ -1546,6 +2226,16 @@ class $$ScriptsTableTableManager
                 body: body,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                dialogue: dialogue,
+                myRole: myRole,
+                situation: situation,
+                objective: objective,
+                obstacle: obstacle,
+                author: author,
+                medium: medium,
+                sourceUrl: sourceUrl,
+                synopsis: synopsis,
+                sceneContext: sceneContext,
               ),
           withReferenceMapper: (p0) => p0
               .map(
