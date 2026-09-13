@@ -9,6 +9,7 @@ import 'data/database.dart';
 import 'data/image_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
+import 'platform/screen_awake.dart';
 import 'settings/app_tips.dart';
 import 'settings/reading_settings.dart';
 
@@ -28,6 +29,7 @@ Future<void> main() async {
       backup: BackupService(db, repo, images),
       settings: await ReadingSettings.load(),
       tips: await AppTips.load(),
+      screen: PlatformScreenAwake(),
     ),
     child: const MonologueApp(),
   ));

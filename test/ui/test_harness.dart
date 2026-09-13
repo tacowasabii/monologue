@@ -11,6 +11,7 @@ import 'package:monologue/data/image_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/ocr/assemble_text.dart';
 import 'package:monologue/ocr/text_recognizer.dart';
+import 'package:monologue/platform/screen_awake.dart';
 import 'package:monologue/settings/app_tips.dart';
 import 'package:monologue/settings/reading_settings.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
@@ -21,17 +22,26 @@ class FakeRecognizer implements TextRecognizing {
   Future<List<OcrBlock>> recognize(String imagePath) async => const [];
 }
 
+class FakeScreenAwake implements ScreenAwake {
+  final calls = <bool>[];
+
+  @override
+  Future<void> keepOn(bool on) async => calls.add(on);
+}
+
 class Harness {
-  Harness._(this.db, this.services);
+  Harness._(this.db, this.services, this.screen);
 
   final AppDatabase db;
   final AppServices services;
+  final FakeScreenAwake screen;
 
   static Future<Harness> create() async {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     final db = AppDatabase(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
     final images = ImageStore(Directory.systemTemp.createTempSync('monologue_ui'));
     final repo = ScriptRepository(db, images);
+    final screen = FakeScreenAwake();
     return Harness._(
       db,
       AppServices(
@@ -41,7 +51,9 @@ class Harness {
         backup: BackupService(db, repo, images),
         settings: await ReadingSettings.load(),
         tips: await AppTips.load(),
+        screen: screen,
       ),
+      screen,
     );
   }
 

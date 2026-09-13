@@ -4,6 +4,7 @@ import 'backup/backup_service.dart';
 import 'data/image_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
+import 'platform/screen_awake.dart';
 import 'settings/app_tips.dart';
 import 'settings/reading_settings.dart';
 
@@ -15,6 +16,7 @@ class AppServices {
     required this.backup,
     required this.settings,
     required this.tips,
+    required this.screen,
   });
 
   final ScriptRepository repo;
@@ -23,6 +25,7 @@ class AppServices {
   final BackupService backup;
   final ReadingSettings settings;
   final AppTips tips;
+  final ScreenAwake screen;
 }
 
 class AppScope extends InheritedWidget {

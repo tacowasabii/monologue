@@ -1,6 +1,7 @@
 package com.tacowasabii.monologue
 
 import android.net.Uri
+import android.view.WindowManager
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
@@ -52,6 +53,19 @@ class MainActivity : FlutterActivity() {
                     result.success(lines)
                 }
                 .addOnFailureListener { e -> result.error("ocr_failed", e.message, null) }
+        }
+        // 몰입 읽기 동안 화면이 꺼지지 않게 한다. Dart의 PlatformScreenAwake와 짝을 이룬다.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "monologue/screen").setMethodCallHandler { call, result ->
+            if (call.method != "keepOn") {
+                result.notImplemented()
+                return@setMethodCallHandler
+            }
+            if (call.argument<Boolean>("on") == true) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            result.success(null)
         }
     }
 

@@ -4,12 +4,15 @@ import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
+import '../../domain/script_notes.dart';
 import '../../settings/reading_settings.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../edit/script_edit_screen.dart';
+import '../notes/notes_screen.dart';
 import '../theme.dart';
 import 'image_viewer_screen.dart';
+import 'immersive_reader_screen.dart';
 import 'script_body.dart';
 
 class ScriptViewScreen extends StatefulWidget {
@@ -144,6 +147,8 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         final speakers = s.dialogue ? speakersOf(parseDialogue(s.body)) : const <String>[];
         // 본문을 고쳐 저장된 역할이 사라졌으면 강조하지 않는다
         final focus = speakers.contains(s.myRole) ? s.myRole : null;
+        final notes = s.notes;
+        final showNotes = notes.situation != null || notes.objective != null;
         return Scaffold(
           appBar: AppBar(
             actions: [
@@ -154,9 +159,11 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 onPressed: () => services.repo.setFavorite(s.id, !s.favorite),
               ),
               IconButton(
-                tooltip: '글자 크기',
-                icon: const Icon(Icons.format_size_rounded),
-                onPressed: () => _showFontSize(services.settings),
+                tooltip: '노트',
+                icon: const Icon(Icons.sticky_note_2_outlined),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => NotesScreen(script: s)),
+                ),
               ),
               IconButton(
                 tooltip: '편집',
@@ -175,6 +182,8 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                         paths: [for (final i in d.images) services.images.pathOf(i.fileName)],
                       ),
                     ));
+                  } else if (v == 'fontSize') {
+                    _showFontSize(services.settings);
                   } else if (v == 'delete') {
                     _delete(d);
                   }
@@ -185,6 +194,10 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                       value: 'images',
                       child: _MenuRow(icon: Icons.photo_library_outlined, text: '원본 보기 (${d.images.length})'),
                     ),
+                  const PopupMenuItem(
+                    value: 'fontSize',
+                    child: _MenuRow(icon: Icons.format_size_rounded, text: '글자 크기'),
+                  ),
                   PopupMenuItem(
                     value: 'delete',
                     child: _MenuRow(icon: Icons.delete_outline_rounded, text: '삭제', color: scheme.error),
@@ -194,8 +207,16 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
               const SizedBox(width: 4),
             ],
           ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => ImmersiveReaderScreen(script: s, focusSpeaker: focus),
+            )),
+            icon: const Icon(Icons.menu_book_rounded),
+            label: const Text('몰입 읽기'),
+          ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 4, 24, 64),
+            // 몰입 읽기 버튼이 본문 끝을 가리지 않게 아래를 넉넉히 둔다
+            padding: const EdgeInsets.fromLTRB(24, 4, 24, 112),
             children: [
               if (source != null) Text(keepWords(source), style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
               if (hasLabels)
@@ -241,8 +262,20 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     ],
                   ),
                 ),
+              if (showNotes)
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: source != null || hasLabels || memo != null || speakers.isNotEmpty ? 20 : 0,
+                  ),
+                  child: _NotesSummary(
+                    notes: notes,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => NotesScreen(script: s)),
+                    ),
+                  ),
+                ),
               // 위에 보여 줄 정보가 없으면 구분선 없이 본문부터 시작한다
-              if (source != null || hasLabels || memo != null || speakers.isNotEmpty) ...[
+              if (source != null || hasLabels || memo != null || speakers.isNotEmpty || showNotes) ...[
                 const SizedBox(height: 28),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -309,6 +342,54 @@ class _Label extends StatelessWidget {
         style: theme.textTheme.labelMedium?.copyWith(
           color: accent ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// 본문 위에 상황·원하는 것을 짧게 보여 주고, 누르면 노트 화면을 연다.
+class _NotesSummary extends StatelessWidget {
+  const _NotesSummary({required this.notes, required this.onTap});
+
+  final ScriptNotes notes;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    Widget row(String label, String value) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text(
+                keepWords(value),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+              ),
+            ],
+          ),
+        );
+    return Material(
+      color: scheme.surfaceContainerLowest,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: scheme.outlineVariant)),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (notes.situation case final v?) row('상황', v),
+              if (notes.objective case final v?) row('원하는 것', v),
+            ],
+          ),
         ),
       ),
     );

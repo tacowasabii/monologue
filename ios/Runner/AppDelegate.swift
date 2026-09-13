@@ -17,6 +17,9 @@ import Vision
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MonologueOcrPlugin") {
       OcrPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MonologueScreenPlugin") {
+      ScreenPlugin.register(with: registrar)
+    }
   }
 }
 
@@ -77,5 +80,22 @@ final class OcrPlugin: NSObject, FlutterPlugin {
         "confidence": candidate.confidence,
       ]
     }
+  }
+}
+
+/// 몰입 읽기 동안 화면이 꺼지지 않게 한다. Dart의 `PlatformScreenAwake`와 짝을 이룬다.
+final class ScreenPlugin: NSObject, FlutterPlugin {
+  static func register(with registrar: FlutterPluginRegistrar) {
+    let channel = FlutterMethodChannel(name: "monologue/screen", binaryMessenger: registrar.messenger())
+    registrar.addMethodCallDelegate(ScreenPlugin(), channel: channel)
+  }
+
+  func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard call.method == "keepOn", let args = call.arguments as? [String: Any], let on = args["on"] as? Bool else {
+      result(FlutterMethodNotImplemented)
+      return
+    }
+    UIApplication.shared.isIdleTimerDisabled = on
+    result(nil)
   }
 }

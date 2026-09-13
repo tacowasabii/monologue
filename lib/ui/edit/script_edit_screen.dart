@@ -8,6 +8,7 @@ import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
+import '../common/section_header.dart';
 import '../theme.dart';
 import 'tag_input.dart';
 
@@ -184,24 +185,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     if (leave == true && mounted) _leave();
   }
 
-  /// 구역 제목과 오른쪽으로 이어지는 가는 선
-  Widget _section(String text, {bool first = false}) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(top: first ? 4 : 32, bottom: 14),
-      child: Row(
-        children: [
-          Text(
-            text,
-            style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(child: Divider()),
-        ],
-      ),
-    );
-  }
-
   Widget _label(String text) {
     final theme = Theme.of(context);
     return Padding(
@@ -267,7 +250,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                _section('기본 정보', first: true),
+                const SectionHeader('기본 정보', first: true),
                 TextFormField(controller: _work, decoration: const InputDecoration(labelText: '작품명')),
                 gap,
                 TextFormField(
@@ -281,7 +264,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     alignLabelWithHint: true,
                   ),
                 ),
-                _section('배역'),
+                const SectionHeader('배역'),
                 _label('성별'),
                 _choices<Gender>(Gender.values, _gender, (g) => g.label, (g) => setState(() {
                       _gender = g;
@@ -293,7 +276,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                       _ageRange = a;
                       _dirty = true;
                     })),
-                _section('즐겨찾기 · 태그'),
+                const SectionHeader('즐겨찾기 · 태그'),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('즐겨찾기'),
@@ -313,7 +296,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     _dirty = true;
                   }),
                 ),
-                _section('본문'),
+                const SectionHeader('본문'),
                 SegmentedButton<bool>(
                   expandedInsets: EdgeInsets.zero,
                   segments: const [
