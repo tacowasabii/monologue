@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
+import '../../data/database.dart';
 import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
+import '../home/collection_name_dialog.dart';
 import '../theme.dart';
 import 'tag_input.dart';
 
@@ -17,12 +19,16 @@ class ScriptEditScreen extends StatefulWidget {
     this.initialBody = '',
     this.newImagePaths = const [],
     this.failedImages = 0,
+    this.initialCollectionIds = const [],
   });
 
   final ScriptDetail? existing;
   final String initialBody;
   final List<String> newImagePaths;
   final int failedImages;
+
+  /// 모음 안에서 새 대본을 만들 때 미리 골라 둘 모음
+  final List<int> initialCollectionIds;
 
   @override
   State<ScriptEditScreen> createState() => _ScriptEditScreenState();
@@ -35,11 +41,14 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   late final TextEditingController _body;
   late Gender _gender;
   late AgeRange _ageRange;
-  // 연습 상태는 화면에서 고르지 않지만, 저장된 값은 덮어쓰지 않고 그대로 넘긴다
+  // 연습 상태와 즐겨찾기는 이 화면에서 고르지 않지만(즐겨찾기는 목록·대본 화면의 별로 바꾼다),
+  // 저장된 값은 덮어쓰지 않고 그대로 넘긴다
   late final PracticeStatus _status;
-  late bool _favorite;
+  late final bool _favorite;
   late List<String> _tags;
+  late final List<int> _collectionIds;
   late final List<String> _pendingImages = [...widget.newImagePaths];
+  Stream<List<Collection>>? _collections;
   List<String> _suggestions = const [];
   bool _suggestionsLoaded = false;
   // 인식 결과처럼 아직 저장하지 않은 내용이 있으면 나갈 때 확인한다
@@ -60,6 +69,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     _status = s?.status ?? PracticeStatus.notStarted;
     _favorite = s?.favorite ?? false;
     _tags = [...?widget.existing?.tags];
+    _collectionIds = [...(widget.existing?.collectionIds ?? widget.initialCollectionIds)];
     for (final c in _controllers) {
       c.addListener(_markDirty);
     }
@@ -73,9 +83,11 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final repo = AppScope.of(context).repo;
+    _collections ??= repo.watchAllCollections();
     if (_suggestionsLoaded) return;
     _suggestionsLoaded = true;
-    AppScope.of(context).repo.allTags().then((t) {
+    repo.allTags().then((t) {
       if (mounted) setState(() => _suggestions = t);
     });
   }
@@ -104,6 +116,28 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
         ),
       );
 
+  void _toggleCollection(int id) => setState(() {
+        if (!_collectionIds.remove(id)) _collectionIds.add(id);
+        _dirty = true;
+      });
+
+  Future<void> _newCollection(List<Collection> existing) async {
+    final repo = AppScope.of(context).repo;
+    final name = await askCollectionName(
+      context,
+      title: '새 모음',
+      confirmLabel: '만들기',
+      takenNames: {for (final c in existing) c.name},
+    );
+    if (name == null) return;
+    final id = await repo.createCollection(name);
+    if (!mounted) return;
+    setState(() {
+      _collectionIds.add(id);
+      _dirty = true;
+    });
+  }
+
   /// PopScope가 새 상태를 읽은 뒤에 닫히도록 다음 프레임에 pop한다.
   void _leave([Object? result]) {
     setState(() => _dirty = false);
@@ -128,6 +162,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
       status: _status,
       favorite: _favorite,
       tags: _tags,
+      collectionIds: _collectionIds,
     );
     try {
       final existing = widget.existing;
@@ -287,17 +322,33 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                       _ageRange = a;
                       _dirty = true;
                     })),
-                _section('즐겨찾기 · 태그'),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('즐겨찾기'),
-                  value: _favorite,
-                  onChanged: (v) => setState(() {
-                    _favorite = v;
-                    _dirty = true;
-                  }),
+                _section('모음 · 태그'),
+                _label('모음'),
+                StreamBuilder<List<Collection>>(
+                  stream: _collections,
+                  builder: (context, snap) {
+                    final all = snap.data ?? const <Collection>[];
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final c in all)
+                          PillChip(
+                            label: c.name,
+                            selected: _collectionIds.contains(c.id),
+                            onSelected: (_) => _toggleCollection(c.id),
+                          ),
+                        PillChip(
+                          label: '새 모음',
+                          icon: Icons.add_rounded,
+                          selected: false,
+                          onSelected: (_) => _newCollection(all),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 20),
                 _label('분위기 태그'),
                 TagInput(
                   tags: _tags,

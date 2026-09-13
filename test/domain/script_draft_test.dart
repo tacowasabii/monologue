@@ -17,6 +17,7 @@ void main() {
     expect(r.memo, '오디션용');
     expect(r.tags, ['분노', '슬픔']);
     expect(const ScriptDraft(body: 'x', memo: '   ').normalized().memo, isNull);
+    expect(const ScriptDraft(body: 'x', collectionIds: [3, 1, 3]).normalized().collectionIds, [1, 3]);
   });
 
   test('enum 라벨', () {

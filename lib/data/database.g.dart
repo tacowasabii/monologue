@@ -1124,12 +1124,495 @@ class ScriptImagesCompanion extends UpdateCompanion<ScriptImage> {
   }
 }
 
+class $CollectionsTable extends Collections
+    with TableInfo<$CollectionsTable, Collection> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CollectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'collections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Collection> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Collection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Collection(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CollectionsTable createAlias(String alias) {
+    return $CollectionsTable(attachedDatabase, alias);
+  }
+}
+
+class Collection extends DataClass implements Insertable<Collection> {
+  final int id;
+  final String name;
+  final DateTime createdAt;
+  const Collection({
+    required this.id,
+    required this.name,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CollectionsCompanion toCompanion(bool nullToAbsent) {
+    return CollectionsCompanion(
+      id: Value(id),
+      name: Value(name),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Collection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Collection(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Collection copyWith({int? id, String? name, DateTime? createdAt}) =>
+      Collection(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  Collection copyWithCompanion(CollectionsCompanion data) {
+    return Collection(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Collection(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Collection &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt);
+}
+
+class CollectionsCompanion extends UpdateCompanion<Collection> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<DateTime> createdAt;
+  const CollectionsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  CollectionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required DateTime createdAt,
+  }) : name = Value(name),
+       createdAt = Value(createdAt);
+  static Insertable<Collection> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  CollectionsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? createdAt,
+  }) {
+    return CollectionsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CollectionsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ScriptCollectionsTable extends ScriptCollections
+    with TableInfo<$ScriptCollectionsTable, ScriptCollection> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ScriptCollectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scriptIdMeta = const VerificationMeta(
+    'scriptId',
+  );
+  @override
+  late final GeneratedColumn<int> scriptId = GeneratedColumn<int>(
+    'script_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES scripts (id)',
+    ),
+  );
+  static const VerificationMeta _collectionIdMeta = const VerificationMeta(
+    'collectionId',
+  );
+  @override
+  late final GeneratedColumn<int> collectionId = GeneratedColumn<int>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [scriptId, collectionId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'script_collections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ScriptCollection> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('script_id')) {
+      context.handle(
+        _scriptIdMeta,
+        scriptId.isAcceptableOrUnknown(data['script_id']!, _scriptIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scriptIdMeta);
+    }
+    if (data.containsKey('collection_id')) {
+      context.handle(
+        _collectionIdMeta,
+        collectionId.isAcceptableOrUnknown(
+          data['collection_id']!,
+          _collectionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_collectionIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scriptId, collectionId};
+  @override
+  ScriptCollection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ScriptCollection(
+      scriptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}script_id'],
+      )!,
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}collection_id'],
+      )!,
+    );
+  }
+
+  @override
+  $ScriptCollectionsTable createAlias(String alias) {
+    return $ScriptCollectionsTable(attachedDatabase, alias);
+  }
+}
+
+class ScriptCollection extends DataClass
+    implements Insertable<ScriptCollection> {
+  final int scriptId;
+  final int collectionId;
+  const ScriptCollection({required this.scriptId, required this.collectionId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['script_id'] = Variable<int>(scriptId);
+    map['collection_id'] = Variable<int>(collectionId);
+    return map;
+  }
+
+  ScriptCollectionsCompanion toCompanion(bool nullToAbsent) {
+    return ScriptCollectionsCompanion(
+      scriptId: Value(scriptId),
+      collectionId: Value(collectionId),
+    );
+  }
+
+  factory ScriptCollection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ScriptCollection(
+      scriptId: serializer.fromJson<int>(json['scriptId']),
+      collectionId: serializer.fromJson<int>(json['collectionId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scriptId': serializer.toJson<int>(scriptId),
+      'collectionId': serializer.toJson<int>(collectionId),
+    };
+  }
+
+  ScriptCollection copyWith({int? scriptId, int? collectionId}) =>
+      ScriptCollection(
+        scriptId: scriptId ?? this.scriptId,
+        collectionId: collectionId ?? this.collectionId,
+      );
+  ScriptCollection copyWithCompanion(ScriptCollectionsCompanion data) {
+    return ScriptCollection(
+      scriptId: data.scriptId.present ? data.scriptId.value : this.scriptId,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScriptCollection(')
+          ..write('scriptId: $scriptId, ')
+          ..write('collectionId: $collectionId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(scriptId, collectionId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ScriptCollection &&
+          other.scriptId == this.scriptId &&
+          other.collectionId == this.collectionId);
+}
+
+class ScriptCollectionsCompanion extends UpdateCompanion<ScriptCollection> {
+  final Value<int> scriptId;
+  final Value<int> collectionId;
+  final Value<int> rowid;
+  const ScriptCollectionsCompanion({
+    this.scriptId = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ScriptCollectionsCompanion.insert({
+    required int scriptId,
+    required int collectionId,
+    this.rowid = const Value.absent(),
+  }) : scriptId = Value(scriptId),
+       collectionId = Value(collectionId);
+  static Insertable<ScriptCollection> custom({
+    Expression<int>? scriptId,
+    Expression<int>? collectionId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scriptId != null) 'script_id': scriptId,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ScriptCollectionsCompanion copyWith({
+    Value<int>? scriptId,
+    Value<int>? collectionId,
+    Value<int>? rowid,
+  }) {
+    return ScriptCollectionsCompanion(
+      scriptId: scriptId ?? this.scriptId,
+      collectionId: collectionId ?? this.collectionId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scriptId.present) {
+      map['script_id'] = Variable<int>(scriptId.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<int>(collectionId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScriptCollectionsCompanion(')
+          ..write('scriptId: $scriptId, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ScriptsTable scripts = $ScriptsTable(this);
   late final $ScriptTagsTable scriptTags = $ScriptTagsTable(this);
   late final $ScriptImagesTable scriptImages = $ScriptImagesTable(this);
+  late final $CollectionsTable collections = $CollectionsTable(this);
+  late final $ScriptCollectionsTable scriptCollections =
+      $ScriptCollectionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1138,6 +1621,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     scripts,
     scriptTags,
     scriptImages,
+    collections,
+    scriptCollections,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -1204,6 +1689,27 @@ final class $$ScriptsTableReferences
     ).filter((f) => f.scriptId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_scriptImagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ScriptCollectionsTable, List<ScriptCollection>>
+  _scriptCollectionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.scriptCollections,
+        aliasName: 'scripts__id__script_collections__script_id',
+      );
+
+  $$ScriptCollectionsTableProcessedTableManager get scriptCollectionsRefs {
+    final manager = $$ScriptCollectionsTableTableManager(
+      $_db,
+      $_db.scriptCollections,
+    ).filter((f) => f.scriptId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _scriptCollectionsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1313,6 +1819,31 @@ class $$ScriptsTableFilterComposer
           }) => $$ScriptImagesTableFilterComposer(
             $db: $db,
             $table: $db.scriptImages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> scriptCollectionsRefs(
+    Expression<bool> Function($$ScriptCollectionsTableFilterComposer f) f,
+  ) {
+    final $$ScriptCollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.scriptCollections,
+      getReferencedColumn: (t) => t.scriptId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptCollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.scriptCollections,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1471,6 +2002,32 @@ class $$ScriptsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> scriptCollectionsRefs<T extends Object>(
+    Expression<T> Function($$ScriptCollectionsTableAnnotationComposer a) f,
+  ) {
+    final $$ScriptCollectionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.scriptCollections,
+          getReferencedColumn: (t) => t.scriptId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ScriptCollectionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.scriptCollections,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ScriptsTableTableManager
@@ -1486,7 +2043,11 @@ class $$ScriptsTableTableManager
           $$ScriptsTableUpdateCompanionBuilder,
           (Script, $$ScriptsTableReferences),
           Script,
-          PrefetchHooks Function({bool scriptTagsRefs, bool scriptImagesRefs})
+          PrefetchHooks Function({
+            bool scriptTagsRefs,
+            bool scriptImagesRefs,
+            bool scriptCollectionsRefs,
+          })
         > {
   $$ScriptsTableTableManager(_$AppDatabase db, $ScriptsTable table)
     : super(
@@ -1556,12 +2117,17 @@ class $$ScriptsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({scriptTagsRefs = false, scriptImagesRefs = false}) {
+              ({
+                scriptTagsRefs = false,
+                scriptImagesRefs = false,
+                scriptCollectionsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (scriptTagsRefs) db.scriptTags,
                     if (scriptImagesRefs) db.scriptImages,
+                    if (scriptCollectionsRefs) db.scriptCollections,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -1608,6 +2174,27 @@ class $$ScriptsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (scriptCollectionsRefs)
+                        await $_getPrefetchedData<
+                          Script,
+                          $ScriptsTable,
+                          ScriptCollection
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ScriptsTableReferences
+                              ._scriptCollectionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ScriptsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).scriptCollectionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.scriptId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -1628,7 +2215,11 @@ typedef $$ScriptsTableProcessedTableManager =
       $$ScriptsTableUpdateCompanionBuilder,
       (Script, $$ScriptsTableReferences),
       Script,
-      PrefetchHooks Function({bool scriptTagsRefs, bool scriptImagesRefs})
+      PrefetchHooks Function({
+        bool scriptTagsRefs,
+        bool scriptImagesRefs,
+        bool scriptCollectionsRefs,
+      })
     >;
 typedef $$ScriptTagsTableCreateCompanionBuilder = ScriptTagsCompanion Function({
   required int scriptId,
@@ -2171,6 +2762,623 @@ typedef $$ScriptImagesTableProcessedTableManager =
       ScriptImage,
       PrefetchHooks Function({bool scriptId})
     >;
+typedef $$CollectionsTableCreateCompanionBuilder =
+    CollectionsCompanion Function({
+      Value<int> id,
+      required String name,
+      required DateTime createdAt,
+    });
+typedef $$CollectionsTableUpdateCompanionBuilder =
+    CollectionsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<DateTime> createdAt,
+    });
+
+final class $$CollectionsTableReferences
+    extends BaseReferences<_$AppDatabase, $CollectionsTable, Collection> {
+  $$CollectionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ScriptCollectionsTable, List<ScriptCollection>>
+  _scriptCollectionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.scriptCollections,
+        aliasName: 'collections__id__script_collections__collection_id',
+      );
+
+  $$ScriptCollectionsTableProcessedTableManager get scriptCollectionsRefs {
+    final manager = $$ScriptCollectionsTableTableManager(
+      $_db,
+      $_db.scriptCollections,
+    ).filter((f) => f.collectionId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _scriptCollectionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$CollectionsTableFilterComposer
+    extends Composer<_$AppDatabase, $CollectionsTable> {
+  $$CollectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> scriptCollectionsRefs(
+    Expression<bool> Function($$ScriptCollectionsTableFilterComposer f) f,
+  ) {
+    final $$ScriptCollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.scriptCollections,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptCollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.scriptCollections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$CollectionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CollectionsTable> {
+  $$CollectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CollectionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CollectionsTable> {
+  $$CollectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> scriptCollectionsRefs<T extends Object>(
+    Expression<T> Function($$ScriptCollectionsTableAnnotationComposer a) f,
+  ) {
+    final $$ScriptCollectionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.scriptCollections,
+          getReferencedColumn: (t) => t.collectionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ScriptCollectionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.scriptCollections,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$CollectionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CollectionsTable,
+          Collection,
+          $$CollectionsTableFilterComposer,
+          $$CollectionsTableOrderingComposer,
+          $$CollectionsTableAnnotationComposer,
+          $$CollectionsTableCreateCompanionBuilder,
+          $$CollectionsTableUpdateCompanionBuilder,
+          (Collection, $$CollectionsTableReferences),
+          Collection,
+          PrefetchHooks Function({bool scriptCollectionsRefs})
+        > {
+  $$CollectionsTableTableManager(_$AppDatabase db, $CollectionsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CollectionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CollectionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CollectionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) => CollectionsCompanion(id: id, name: name, createdAt: createdAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required DateTime createdAt,
+              }) => CollectionsCompanion.insert(
+                id: id,
+                name: name,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$CollectionsTable, Collection>(table),
+                  $$CollectionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({scriptCollectionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (scriptCollectionsRefs) db.scriptCollections,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (scriptCollectionsRefs)
+                    await $_getPrefetchedData<
+                      Collection,
+                      $CollectionsTable,
+                      ScriptCollection
+                    >(
+                      currentTable: table,
+                      referencedTable: $$CollectionsTableReferences
+                          ._scriptCollectionsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$CollectionsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).scriptCollectionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.collectionId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CollectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CollectionsTable,
+      Collection,
+      $$CollectionsTableFilterComposer,
+      $$CollectionsTableOrderingComposer,
+      $$CollectionsTableAnnotationComposer,
+      $$CollectionsTableCreateCompanionBuilder,
+      $$CollectionsTableUpdateCompanionBuilder,
+      (Collection, $$CollectionsTableReferences),
+      Collection,
+      PrefetchHooks Function({bool scriptCollectionsRefs})
+    >;
+typedef $$ScriptCollectionsTableCreateCompanionBuilder =
+    ScriptCollectionsCompanion Function({
+      required int scriptId,
+      required int collectionId,
+      Value<int> rowid,
+    });
+typedef $$ScriptCollectionsTableUpdateCompanionBuilder =
+    ScriptCollectionsCompanion Function({
+      Value<int> scriptId,
+      Value<int> collectionId,
+      Value<int> rowid,
+    });
+
+final class $$ScriptCollectionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $ScriptCollectionsTable,
+          ScriptCollection
+        > {
+  $$ScriptCollectionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ScriptsTable _scriptIdTable(_$AppDatabase db) =>
+      db.scripts.createAlias('script_collections__script_id__scripts__id');
+
+  $$ScriptsTableProcessedTableManager get scriptId {
+    final $_column = $_itemColumn<int>('script_id')!;
+
+    final manager = $$ScriptsTableTableManager(
+      $_db,
+      $_db.scripts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_scriptIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CollectionsTable _collectionIdTable(_$AppDatabase db) => db
+      .collections
+      .createAlias('script_collections__collection_id__collections__id');
+
+  $$CollectionsTableProcessedTableManager get collectionId {
+    final $_column = $_itemColumn<int>('collection_id')!;
+
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ScriptCollectionsTableFilterComposer
+    extends Composer<_$AppDatabase, $ScriptCollectionsTable> {
+  $$ScriptCollectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$ScriptsTableFilterComposer get scriptId {
+    final $$ScriptsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scriptId,
+      referencedTable: $db.scripts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptsTableFilterComposer(
+            $db: $db,
+            $table: $db.scripts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CollectionsTableFilterComposer get collectionId {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ScriptCollectionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ScriptCollectionsTable> {
+  $$ScriptCollectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$ScriptsTableOrderingComposer get scriptId {
+    final $$ScriptsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scriptId,
+      referencedTable: $db.scripts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptsTableOrderingComposer(
+            $db: $db,
+            $table: $db.scripts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CollectionsTableOrderingComposer get collectionId {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ScriptCollectionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ScriptCollectionsTable> {
+  $$ScriptCollectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$ScriptsTableAnnotationComposer get scriptId {
+    final $$ScriptsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scriptId,
+      referencedTable: $db.scripts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.scripts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CollectionsTableAnnotationComposer get collectionId {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ScriptCollectionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ScriptCollectionsTable,
+          ScriptCollection,
+          $$ScriptCollectionsTableFilterComposer,
+          $$ScriptCollectionsTableOrderingComposer,
+          $$ScriptCollectionsTableAnnotationComposer,
+          $$ScriptCollectionsTableCreateCompanionBuilder,
+          $$ScriptCollectionsTableUpdateCompanionBuilder,
+          (ScriptCollection, $$ScriptCollectionsTableReferences),
+          ScriptCollection,
+          PrefetchHooks Function({bool scriptId, bool collectionId})
+        > {
+  $$ScriptCollectionsTableTableManager(
+    _$AppDatabase db,
+    $ScriptCollectionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ScriptCollectionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ScriptCollectionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ScriptCollectionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> scriptId = const Value.absent(),
+                Value<int> collectionId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ScriptCollectionsCompanion(
+                scriptId: scriptId,
+                collectionId: collectionId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int scriptId,
+                required int collectionId,
+                Value<int> rowid = const Value.absent(),
+              }) => ScriptCollectionsCompanion.insert(
+                scriptId: scriptId,
+                collectionId: collectionId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ScriptCollectionsTable, ScriptCollection>(table),
+                  $$ScriptCollectionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({scriptId = false, collectionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (scriptId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.scriptId,
+                        referencedTable: $$ScriptCollectionsTableReferences
+                            ._scriptIdTable(db),
+                        referencedColumn: $$ScriptCollectionsTableReferences
+                            ._scriptIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (collectionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.collectionId,
+                        referencedTable: $$ScriptCollectionsTableReferences
+                            ._collectionIdTable(db),
+                        referencedColumn: $$ScriptCollectionsTableReferences
+                            ._collectionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ScriptCollectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ScriptCollectionsTable,
+      ScriptCollection,
+      $$ScriptCollectionsTableFilterComposer,
+      $$ScriptCollectionsTableOrderingComposer,
+      $$ScriptCollectionsTableAnnotationComposer,
+      $$ScriptCollectionsTableCreateCompanionBuilder,
+      $$ScriptCollectionsTableUpdateCompanionBuilder,
+      (ScriptCollection, $$ScriptCollectionsTableReferences),
+      ScriptCollection,
+      PrefetchHooks Function({bool scriptId, bool collectionId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2181,4 +3389,8 @@ class $AppDatabaseManager {
       $$ScriptTagsTableTableManager(_db, _db.scriptTags);
   $$ScriptImagesTableTableManager get scriptImages =>
       $$ScriptImagesTableTableManager(_db, _db.scriptImages);
+  $$CollectionsTableTableManager get collections =>
+      $$CollectionsTableTableManager(_db, _db.collections);
+  $$ScriptCollectionsTableTableManager get scriptCollections =>
+      $$ScriptCollectionsTableTableManager(_db, _db.scriptCollections);
 }

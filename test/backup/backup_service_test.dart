@@ -85,6 +85,39 @@ void main() {
     expect(File(dst.images.pathOf(detail.images.single.fileName)).readAsBytesSync(), [9, 8, 7]);
   });
 
+  test('모음도 함께 백업하고, 복원할 때 같은 이름의 모음에 합친다', () async {
+    final src = await newEnv('src');
+    final audition = await src.repo.createCollection('1차 오디션');
+    final exam = await src.repo.createCollection('입시');
+    await src.repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition, exam]));
+    await src.repo.create(const ScriptDraft(work: 'B', body: 'x'));
+    final zip = await src.backup.export(tmp);
+
+    final dst = await newEnv('dst');
+    final existing = await dst.repo.createCollection('1차 오디션');
+    expect(await dst.backup.restore(await zip.readAsBytes()), 2);
+
+    final counts = {for (final c in await dst.repo.watchCollections().first) c.collection.name: c.scriptCount};
+    expect(counts, {'1차 오디션': 1, '입시': 1});
+    expect((await dst.repo.findCollection('1차 오디션'))!.id, existing);
+  });
+
+  test('모음 정보가 없는 예전 백업도 복원한다', () async {
+    final src = await newEnv('src');
+    await src.repo.create(const ScriptDraft(work: 'A', body: 'x'));
+    final bytes = await (await src.backup.export(tmp)).readAsBytes();
+    final old = BackupService.debugRewriteManifest(bytes, (m) {
+      for (final e in (m['scripts'] as List).cast<Map<String, Object?>>()) {
+        e.remove('collections');
+      }
+      return m;
+    });
+
+    final dst = await newEnv('dst');
+    expect(await dst.backup.restore(old), 1);
+    expect(await dst.repo.watchCollections().first, isEmpty);
+  });
+
   test('백업 파일이 아니면 거부하고 아무것도 바꾸지 않는다', () async {
     final dst = await newEnv('dst');
     await expectLater(dst.backup.restore([1, 2, 3, 4]), throwsA(isA<BackupFormatException>()));

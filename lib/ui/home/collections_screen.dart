@@ -1,0 +1,298 @@
+import 'package:flutter/material.dart';
+
+import '../../app_scope.dart';
+import '../../data/database.dart';
+import '../../data/script_repository.dart';
+import '../common/korean_text.dart';
+import '../edit/add_script.dart';
+import '../list/script_list_screen.dart';
+import '../settings/settings_screen.dart';
+import 'collection_name_dialog.dart';
+
+/// 첫 화면. 전체 대본과 직접 만든 모음을 카드로 보여 준다.
+class CollectionsScreen extends StatefulWidget {
+  const CollectionsScreen({super.key});
+
+  @override
+  State<CollectionsScreen> createState() => _CollectionsScreenState();
+}
+
+enum _Action { rename, delete }
+
+class _CollectionsScreenState extends State<CollectionsScreen> {
+  // 검색창은 누르면 목록 화면으로 넘어가기만 하므로 여기서는 키보드를 띄우지 않는다
+  final _searchFocus = FocusNode(canRequestFocus: false);
+  Stream<List<CollectionSummary>>? _collections;
+  Stream<int>? _total;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final repo = AppScope.of(context).repo;
+    _collections ??= repo.watchCollections();
+    _total ??= repo.watchScriptCount();
+  }
+
+  @override
+  void dispose() {
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  void _open(Collection? collection, {bool search = false}) => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => ScriptListScreen(collection: collection, autofocusSearch: search)),
+      );
+
+  Future<void> _create(List<CollectionSummary> all) async {
+    final repo = AppScope.of(context).repo;
+    final name = await askCollectionName(
+      context,
+      title: '새 모음',
+      confirmLabel: '만들기',
+      takenNames: {for (final c in all) c.collection.name},
+    );
+    if (name != null) await repo.createCollection(name);
+  }
+
+  Future<void> _manage(CollectionSummary item, List<CollectionSummary> all) async {
+    final repo = AppScope.of(context).repo;
+    final collection = item.collection;
+    final action = await showModalBottomSheet<_Action>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        final theme = Theme.of(context);
+        final scheme = theme.colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(collection.name, style: theme.textTheme.titleLarge),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('이름 바꾸기'),
+                  onTap: () => Navigator.pop(context, _Action.rename),
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete_outline_rounded, color: scheme.error),
+                  title: Text('삭제', style: TextStyle(color: scheme.error)),
+                  onTap: () => Navigator.pop(context, _Action.delete),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (action == null || !mounted) return;
+    switch (action) {
+      case _Action.rename:
+        final name = await askCollectionName(
+          context,
+          title: '이름 바꾸기',
+          confirmLabel: '바꾸기',
+          initial: collection.name,
+          takenNames: {for (final c in all) if (c.collection.id != collection.id) c.collection.name},
+        );
+        if (name != null && name != collection.name) await repo.renameCollection(collection.id, name);
+      case _Action.delete:
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('모음 삭제'),
+            content: Text(keepWords("'${collection.name}' 모음을 삭제할까요? 모음만 지워지고 안에 있던 대본은 그대로 남아요.")),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('삭제'),
+              ),
+            ],
+          ),
+        );
+        if (ok == true) await repo.deleteCollection(collection.id);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 72,
+        titleSpacing: 20,
+        title: Text('모노로그', style: theme.textTheme.headlineMedium),
+        actions: [
+          IconButton(
+            tooltip: '설정',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: StreamBuilder<int>(
+        stream: _total,
+        builder: (context, totalSnap) => StreamBuilder<List<CollectionSummary>>(
+          stream: _collections,
+          builder: (context, snap) {
+            final total = totalSnap.data;
+            final collections = snap.data ?? const <CollectionSummary>[];
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  sliver: SliverToBoxAdapter(
+                    child: SearchBar(
+                      focusNode: _searchFocus,
+                      hintText: '모든 대본에서 검색',
+                      leading: Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
+                      padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.only(start: 16, end: 16)),
+                      elevation: const WidgetStatePropertyAll(0),
+                      onTap: () => _open(null, search: true),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverGrid.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _CollectionCard(
+                        icon: Icons.library_books_outlined,
+                        name: '전체',
+                        count: total,
+                        onTap: () => _open(null),
+                      ),
+                      for (final c in collections)
+                        _CollectionCard(
+                          icon: Icons.folder_outlined,
+                          name: c.collection.name,
+                          count: c.scriptCount,
+                          onTap: () => _open(c.collection),
+                          onLongPress: () => _manage(c, collections),
+                        ),
+                      _NewCollectionCard(onTap: () => _create(collections)),
+                    ],
+                  ),
+                ),
+                if (total == 0)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        '아직 대본이 없어요\n대본 추가를 눌러 사진이나 글로 첫 대본을 넣어 보세요',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
+                      ),
+                    ),
+                  ),
+                const SliverToBoxAdapter(child: SizedBox(height: 112)),
+              ],
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => addScript(context),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('대본 추가'),
+      ),
+    );
+  }
+}
+
+class _CollectionCard extends StatelessWidget {
+  const _CollectionCard({
+    required this.icon,
+    required this.name,
+    required this.count,
+    required this.onTap,
+    this.onLongPress,
+  });
+
+  final IconData icon;
+  final String name;
+  final int? count;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 22, color: scheme.primary),
+              const Spacer(),
+              Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, height: 1.3),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                count == null ? '' : '$count편',
+                style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NewCollectionCard extends StatelessWidget {
+  const _NewCollectionCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Material(
+      color: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add_rounded, color: scheme.onSurfaceVariant),
+              const SizedBox(height: 6),
+              Text('새 모음', style: theme.textTheme.titleSmall?.copyWith(color: scheme.onSurfaceVariant)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

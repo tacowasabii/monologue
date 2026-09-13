@@ -7,6 +7,7 @@ class ScriptFilter {
     this.ageRange,
     this.tag,
     this.favoritesOnly = false,
+    this.collectionId,
   });
 
   final String query;
@@ -14,6 +15,9 @@ class ScriptFilter {
   final AgeRange? ageRange;
   final String? tag;
   final bool favoritesOnly;
+
+  /// 이 모음에 든 대본만 본다. 모음 화면의 범위라서 걸어 둔 조건([isActive])으로 치지 않는다.
+  final int? collectionId;
 
   bool get isActive =>
       query.trim().isNotEmpty || gender != null || ageRange != null || tag != null || favoritesOnly;
@@ -32,5 +36,6 @@ class ScriptFilter {
         ageRange: ageRange != null ? ageRange() : this.ageRange,
         tag: tag != null ? tag() : this.tag,
         favoritesOnly: favoritesOnly ?? this.favoritesOnly,
+        collectionId: collectionId,
       );
 }

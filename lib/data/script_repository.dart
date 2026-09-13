@@ -14,11 +14,19 @@ class ScriptSummary {
 }
 
 class ScriptDetail {
-  const ScriptDetail(this.script, this.tags, this.images);
+  const ScriptDetail(this.script, this.tags, this.images, this.collectionIds);
 
   final Script script;
   final List<String> tags;
   final List<ScriptImage> images;
+  final List<int> collectionIds;
+}
+
+class CollectionSummary {
+  const CollectionSummary(this.collection, this.scriptCount);
+
+  final Collection collection;
+  final int scriptCount;
 }
 
 class ScriptRepository {
@@ -45,10 +53,20 @@ class ScriptRepository {
               existsQuery(db.select(db.scriptTags)
                 ..where((t) => t.scriptId.equalsExp(s.id) & t.tag.equals(f.tag!)));
         }
+        if (f.collectionId != null) {
+          e = e &
+              existsQuery(db.select(db.scriptCollections)
+                ..where((sc) => sc.scriptId.equalsExp(s.id) & sc.collectionId.equals(f.collectionId!)));
+        }
         return e;
       })
       ..orderBy([(s) => OrderingTerm.desc(s.updatedAt), (s) => OrderingTerm.desc(s.id)]);
     return q.watch().asyncMap(_withTags);
+  }
+
+  Stream<int> watchScriptCount() {
+    final count = db.scripts.id.count();
+    return (db.selectOnly(db.scripts)..addColumns([count])).watchSingle().map((r) => r.read(count) ?? 0);
   }
 
   Future<List<ScriptSummary>> _withTags(List<Script> rows) async {
@@ -70,7 +88,13 @@ class ScriptRepository {
             ..where((i) => i.scriptId.equals(id))
             ..orderBy([(i) => OrderingTerm.asc(i.position)]))
           .get();
-      return ScriptDetail(script, tags.map((t) => t.tag).toList()..sort(), imgs);
+      final links = await (db.select(db.scriptCollections)..where((sc) => sc.scriptId.equals(id))).get();
+      return ScriptDetail(
+        script,
+        tags.map((t) => t.tag).toList()..sort(),
+        imgs,
+        links.map((l) => l.collectionId).toList()..sort(),
+      );
     });
   }
 
@@ -125,6 +149,7 @@ class ScriptRepository {
             updatedAt: updatedAt,
           ));
       await _replaceTags(id, d.tags);
+      await _replaceCollections(id, d.collectionIds);
       await _appendImages(id, storedImageFileNames);
       return id;
     });
@@ -146,6 +171,7 @@ class ScriptRepository {
               updatedAt: Value(DateTime.now()),
             ));
         await _replaceTags(id, d.tags);
+        await _replaceCollections(id, d.collectionIds);
         await _appendImages(id, stored);
       });
     } catch (_) {
@@ -159,6 +185,14 @@ class ScriptRepository {
     await db.batch((b) => b.insertAll(
           db.scriptTags,
           [for (final t in tags) ScriptTagsCompanion.insert(scriptId: id, tag: t)],
+        ));
+  }
+
+  Future<void> _replaceCollections(int id, List<int> collectionIds) async {
+    await (db.delete(db.scriptCollections)..where((sc) => sc.scriptId.equals(id))).go();
+    await db.batch((b) => b.insertAll(
+          db.scriptCollections,
+          [for (final c in collectionIds) ScriptCollectionsCompanion.insert(scriptId: id, collectionId: c)],
         ));
   }
 
@@ -184,6 +218,7 @@ class ScriptRepository {
     await db.transaction(() async {
       await (db.delete(db.scriptTags)..where((t) => t.scriptId.equals(id))).go();
       await (db.delete(db.scriptImages)..where((i) => i.scriptId.equals(id))).go();
+      await (db.delete(db.scriptCollections)..where((sc) => sc.scriptId.equals(id))).go();
       await (db.delete(db.scripts)..where((s) => s.id.equals(id))).go();
     });
     await _deleteFiles([for (final img in imgs) img.fileName]);
@@ -197,4 +232,43 @@ class ScriptRepository {
   Future<List<String>> allTags() async => _readTags(await _distinctTags().get());
 
   Stream<List<String>> watchAllTags() => _distinctTags().watch().map(_readTags);
+
+  // ── 모음 ──
+
+  OrderingTerm _collectionOrder($CollectionsTable c) => OrderingTerm.asc(c.createdAt);
+
+  /// 만든 순서대로, 모음마다 든 대본 수와 함께.
+  Stream<List<CollectionSummary>> watchCollections() {
+    final count = db.scriptCollections.scriptId.count();
+    final q = db.select(db.collections).join([
+      leftOuterJoin(db.scriptCollections, db.scriptCollections.collectionId.equalsExp(db.collections.id)),
+    ])
+      ..addColumns([count])
+      ..groupBy([db.collections.id])
+      ..orderBy([_collectionOrder(db.collections), OrderingTerm.asc(db.collections.id)]);
+    return q.watch().map((rows) => [
+          for (final r in rows) CollectionSummary(r.readTable(db.collections), r.read(count) ?? 0),
+        ]);
+  }
+
+  Stream<List<Collection>> watchAllCollections() =>
+      (db.select(db.collections)..orderBy([(c) => _collectionOrder(c), (c) => OrderingTerm.asc(c.id)])).watch();
+
+  Future<Collection?> findCollection(String name) =>
+      (db.select(db.collections)..where((c) => c.name.equals(name.trim()))).getSingleOrNull();
+
+  Future<int> createCollection(String name) =>
+      db.into(db.collections).insert(CollectionsCompanion.insert(name: name.trim(), createdAt: DateTime.now()));
+
+  /// 같은 이름의 모음이 있으면 그 모음을, 없으면 새로 만들어 id를 준다(백업 복원에서 사용).
+  Future<int> collectionIdFor(String name) async => (await findCollection(name))?.id ?? await createCollection(name);
+
+  Future<void> renameCollection(int id, String name) =>
+      (db.update(db.collections)..where((c) => c.id.equals(id))).write(CollectionsCompanion(name: Value(name.trim())));
+
+  /// 모음만 지우고 안에 든 대본은 남긴다.
+  Future<void> deleteCollection(int id) => db.transaction(() async {
+        await (db.delete(db.scriptCollections)..where((sc) => sc.collectionId.equals(id))).go();
+        await (db.delete(db.collections)..where((c) => c.id.equals(id))).go();
+      });
 }

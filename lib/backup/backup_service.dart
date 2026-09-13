@@ -37,6 +37,8 @@ class BackupService {
     final scripts = await db.select(db.scripts).get();
     final tags = await db.select(db.scriptTags).get();
     final imgs = await (db.select(db.scriptImages)..orderBy([(i) => OrderingTerm.asc(i.position)])).get();
+    final collectionNames = {for (final c in await db.select(db.collections).get()) c.id: c.name};
+    final links = await db.select(db.scriptCollections).get();
 
     final archive = Archive();
     final entries = <Map<String, Object?>>[];
@@ -56,6 +58,8 @@ class BackupService {
         'createdAt': s.createdAt.toIso8601String(),
         'updatedAt': s.updatedAt.toIso8601String(),
         'tags': tags.where((t) => t.scriptId == s.id).map((t) => t.tag).toList(),
+        // 모음은 기기마다 id가 달라서 이름으로 옮긴다
+        'collections': [for (final l in links) if (l.scriptId == s.id) collectionNames[l.collectionId]!],
         'images': myImages,
       });
     }
@@ -68,11 +72,12 @@ class BackupService {
   }
 
   /// 백업의 대본을 현재 데이터에 추가하고 추가한 개수를 돌려준다. 실패하면 아무것도 바꾸지 않는다.
+  /// 같은 이름의 모음이 이미 있으면 그 모음에 넣는다.
   Future<int> restore(List<int> zipBytes) async {
     final (archive, entries) = _parse(zipBytes);
     final stored = <String>[];
     try {
-      final plans = <(ScriptDraft, DateTime, DateTime, List<String>)>[];
+      final plans = <(ScriptDraft, List<String>, DateTime, DateTime, List<String>)>[];
       for (final e in entries) {
         final names = <String>[];
         for (final name in (e['images'] as List).cast<String>()) {
@@ -84,14 +89,21 @@ class BackupService {
         }
         plans.add((
           _draftOf(e),
+          _collectionNamesOf(e),
           DateTime.parse(e['createdAt'] as String),
           DateTime.parse(e['updatedAt'] as String),
           names,
         ));
       }
       await db.transaction(() async {
-        for (final (draft, created, updated, names) in plans) {
-          await repo.insertRestored(draft, createdAt: created, updatedAt: updated, storedImageFileNames: names);
+        for (final (draft, collectionNames, created, updated, names) in plans) {
+          final ids = [for (final n in collectionNames) await repo.collectionIdFor(n)];
+          await repo.insertRestored(
+            draft.withCollectionIds(ids),
+            createdAt: created,
+            updatedAt: updated,
+            storedImageFileNames: names,
+          );
         }
       });
       return plans.length;
@@ -114,7 +126,11 @@ class BackupService {
       final v = m['version'];
       if (v is! int || v > version) throw const BackupFormatException('unsupported version');
       final entries = (m['scripts'] as List).cast<Map<String, Object?>>();
-      entries.forEach(_draftOf); // 쓰기 전에 전체를 검증한다
+      // 쓰기 전에 전체를 검증한다
+      for (final e in entries) {
+        _draftOf(e);
+        _collectionNamesOf(e);
+      }
       return (archive, entries);
     } on BackupFormatException {
       rethrow;
@@ -133,6 +149,10 @@ class BackupService {
         favorite: e['favorite'] as bool,
         tags: (e['tags'] as List).cast<String>(),
       );
+
+  /// 대본이 든 모음 이름들. 모음 기능이 생기기 전에 만든 백업에는 없다.
+  List<String> _collectionNamesOf(Map<String, Object?> e) =>
+      [for (final n in (e['collections'] as List?) ?? const []) (n as String).trim()]..removeWhere((n) => n.isEmpty);
 
   @visibleForTesting
   static List<int> debugRewriteManifest(

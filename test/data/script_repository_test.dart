@@ -121,6 +121,52 @@ void main() {
     expect(await repo.allTags(), isEmpty);
   });
 
+  group('모음', () {
+    test('대본을 여러 모음에 넣고, 모음으로 거르고, 대본 수를 센다', () async {
+      final audition = await repo.createCollection(' 1차 오디션 ');
+      final exam = await repo.createCollection('입시');
+      final a = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition, exam]));
+      await repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [audition]));
+      await repo.create(const ScriptDraft(work: 'C', body: 'x'));
+
+      expect((await works(ScriptFilter(collectionId: audition)))..sort(), ['A', 'B']);
+      expect(await works(ScriptFilter(collectionId: exam)), ['A']);
+      expect((await repo.watchScript(a).first)!.collectionIds, [audition, exam]..sort());
+      final summaries = await repo.watchCollections().first;
+      expect([for (final c in summaries) (c.collection.name, c.scriptCount)], [('1차 오디션', 2), ('입시', 1)]);
+      expect(await repo.watchScriptCount().first, 3);
+    });
+
+    test('update는 모음 연결을 바꾸고, 대본을 지우면 연결도 지운다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      final exam = await repo.createCollection('입시');
+      final id = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition]));
+      await repo.update(id, ScriptDraft(work: 'A', body: 'x', collectionIds: [exam]));
+      expect((await repo.watchScript(id).first)!.collectionIds, [exam]);
+
+      await repo.delete(id);
+      expect([for (final c in await repo.watchCollections().first) c.scriptCount], [0, 0]);
+    });
+
+    test('모음 이름을 바꿀 수 있고, 모음을 지워도 대본은 남는다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition]));
+      await repo.renameCollection(audition, '2차 오디션');
+      expect((await repo.findCollection('2차 오디션'))?.id, audition);
+
+      await repo.deleteCollection(audition);
+      expect(await repo.watchCollections().first, isEmpty);
+      expect(await works(const ScriptFilter()), ['A']);
+    });
+
+    test('collectionIdFor는 같은 이름이면 있는 모음을 쓴다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      expect(await repo.collectionIdFor('1차 오디션'), audition);
+      expect(await repo.collectionIdFor('입시'), isNot(audition));
+      expect(await repo.watchCollections().first, hasLength(2));
+    });
+  });
+
   test('이미지 복사 실패 시 아무것도 저장하지 않는다', () async {
     await expectLater(
       repo.create(const ScriptDraft(work: 'A', body: 'x'), imagePaths: [await fakeImage('ok.png'), '${tmp.path}/missing.png']),

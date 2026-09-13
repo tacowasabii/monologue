@@ -38,6 +38,19 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
+  testWidgets('모음 안에서는 모음 이름이 제목이고, 비어 있으면 넣는 방법을 알려 준다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    final exam = (await tester.runAsync(() async {
+      await h.services.repo.createCollection('입시');
+      return h.services.repo.findCollection('입시');
+    }))!;
+    await tester.pumpWidget(h.wrap(ScriptListScreen(collection: exam)));
+    await tester.pumpAndSettle();
+    expect(find.text('입시'), findsOneWidget);
+    expect(find.text('이 모음에 아직 대본이 없어요'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
   testWidgets('검색어로 목록을 거른다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {

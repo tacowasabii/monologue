@@ -34,12 +34,28 @@ class ScriptImages extends Table {
   IntColumn get position => integer()();
 }
 
-@DriftDatabase(tables: [Scripts, ScriptTags, ScriptImages])
+/// '1차 오디션', '입시'처럼 사용자가 만든 대본 묶음.
+class Collections extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().unique()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+/// 대본은 여러 모음에 들어갈 수 있다.
+class ScriptCollections extends Table {
+  IntColumn get scriptId => integer().references(Scripts, #id)();
+  IntColumn get collectionId => integer().references(Collections, #id)();
+
+  @override
+  Set<Column> get primaryKey => {scriptId, collectionId};
+}
+
+@DriftDatabase(tables: [Scripts, ScriptTags, ScriptImages, Collections, ScriptCollections])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +66,12 @@ class AppDatabase extends _$AppDatabase {
               await m.deleteTable(table.actualTableName);
             }
             await m.createAll();
+            return;
+          }
+          // 4: 모음. 기존 대본은 그대로 두고 표만 더한다.
+          if (from < 4) {
+            await m.createTable(collections);
+            await m.createTable(scriptCollections);
           }
         },
       );
