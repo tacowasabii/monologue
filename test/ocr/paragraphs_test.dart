@@ -66,6 +66,26 @@ void main() {
       expect(groupLines([l('확신도 없음', 10)]).single.confidence, isNull);
     });
 
+    // 실제 캡처에서 잰 값: 같은 문단은 줄 높이의 0.87~1.16배, 다른 문단은 1.26배 이상 벌어졌다
+    test('줄 높이의 1.16배까지는 같은 문단으로 본다', () {
+      final blocks = groupLines([
+        l('나는 늘 괜찮다고 말했어. 아침에 눈을 뜰 때도,', 100, height: 25),
+        l('버스에서 창밖을 볼 때도.', 154, height: 25), // 간격 29 = 1.16배
+      ]);
+      expect(blocks.single.lines.length, 2);
+    });
+
+    test('줄 높이의 1.2배를 넘으면 새 문단으로 나눈다', () {
+      final blocks = groupLines([
+        l('첫 문단', 100, height: 25),
+        l('둘째 문단', 157, height: 25), // 간격 32 = 1.28배
+      ]);
+      expect(blocks.map((x) => x.lines), [
+        ['첫 문단'],
+        ['둘째 문단'],
+      ]);
+    });
+
     // 인스타 캡처에서는 좋아요 수·해시태그가 본문·캡션과 바싹 붙어 있어 그냥 두면 한 문단이 된다
     test('앱 화면 글자 줄은 간격이 좁아도 본문과 다른 문단으로 나뉜다', () {
       final blocks = groupLines([

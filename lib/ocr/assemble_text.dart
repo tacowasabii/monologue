@@ -107,7 +107,12 @@ bool looksLikeChrome(String text) {
 
 bool _isChromeRow(List<OcrLine> row) => looksLikeChrome(row.map((l) => l.text).join(' '));
 
-/// 줄을 읽는 순서로 정렬하고, 앞 줄과의 간격이 줄 높이(중앙값)보다 크면 새 문단으로 나눈다.
+/// 문단을 나누는 줄 간격 기준(줄 높이의 배수).
+/// 실제 캡처에서 잰 값으로 정했다: 같은 문단의 줄 간격은 줄 높이의 0.87~1.16배,
+/// 문단 사이는 1.26배 이상이었다(블로그형 2장, 인스타형 1장, 간격 18곳).
+const paragraphGapRatio = 1.2;
+
+/// 줄을 읽는 순서로 정렬하고, 앞 줄과의 간격이 줄 높이의 [paragraphGapRatio]배를 넘으면 새 문단으로 나눈다.
 List<OcrBlock> groupLines(List<OcrLine> lines) {
   final kept = lines.where((l) => l.text.trim().isNotEmpty).toList()..sort((a, b) => a.top.compareTo(b.top));
   if (kept.isEmpty) return const [];
@@ -141,7 +146,7 @@ List<OcrBlock> groupLines(List<OcrLine> lines) {
   for (final row in rows.skip(1)) {
     final rowTop = row.map((l) => l.top).reduce(min);
     final rowChrome = _isChromeRow(row);
-    if (rowTop - currentBottom > medianHeight || rowChrome != currentChrome) {
+    if (rowTop - currentBottom > medianHeight * paragraphGapRatio || rowChrome != currentChrome) {
       blocks.add(_toBlock(current, currentChrome));
       current = [...row];
       currentChrome = rowChrome;
