@@ -91,6 +91,18 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
 
   void _snack(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
+  Future<void> _showPhotoKeptTip() => showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('사진도 함께 보관했어요'),
+          content: const Text(
+            '대본에 쓴 사진은 앱 안에 따로 저장돼요. 사진첩에서 캡처를 지워도 대본 화면의 ⋯ 메뉴 → 원본 보기로 다시 볼 수 있어요.\n\n'
+            '이 안내는 설정 → 사용 방법에서 다시 볼 수 있어요.',
+          ),
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('확인'))],
+        ),
+      );
+
   /// PopScope가 새 상태를 읽은 뒤에 닫히도록 다음 프레임에 pop한다.
   void _leave([Object? result]) {
     setState(() => _dirty = false);
@@ -104,7 +116,8 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   Future<void> _save() async {
     if (_saving || !_form.currentState!.validate()) return;
     setState(() => _saving = true);
-    final repo = AppScope.of(context).repo;
+    final services = AppScope.of(context);
+    final repo = services.repo;
     final draft = ScriptDraft(
       body: _body.text,
       work: _work.text,
@@ -123,6 +136,10 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
       } else {
         id = existing.script.id;
         await repo.update(id, draft, newImagePaths: _pendingImages);
+      }
+      // 사진으로 만든 대본을 처음 저장했을 때 한 번만, 사진첩의 캡처를 지워도 된다고 알려 준다
+      if (_pendingImages.isNotEmpty && await services.tips.takePhotoKept() && mounted) {
+        await _showPhotoKeptTip();
       }
       if (!mounted) return;
       _leave(id);
@@ -201,8 +218,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     const gap = SizedBox(height: 12);
     return PopScope(
       canPop: !_dirty,
@@ -242,28 +257,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     onPressed: _appendFromPhotos,
                     icon: const Icon(Icons.add_a_photo_outlined, size: 20),
                     label: const Text('사진 추가로 이어쓰기'),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                if (_pendingImages.isNotEmpty) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.photo_library_outlined, size: 18, color: scheme.onPrimaryContainer),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            "사진 ${_pendingImages.length}장이 대본과 함께 보관돼요. 사진첩에서 캡처를 지워도 '원본 보기'로 다시 볼 수 있어요",
-                            style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, color: scheme.onPrimaryContainer),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(height: 12),
                 ],

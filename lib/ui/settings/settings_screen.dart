@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_scope.dart';
 import '../../backup/backup_service.dart';
+import 'how_to_screen.dart';
 
 const privacyPolicyUrl = 'https://tacowasabii.vercel.app/monologue/privacy';
 
@@ -95,6 +96,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
         children: [
+          section('도움말'),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: _SettingTile(
+              icon: Icons.menu_book_outlined,
+              title: '사용 방법',
+              subtitle: '사진 보관, 문단 고르기, 백업 같은 기능 안내',
+              trailing: Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HowToScreen())),
+            ),
+          ),
           section('백업'),
           Card(
             clipBehavior: Clip.antiAlias,

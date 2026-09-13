@@ -1,9 +1,27 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_filter.dart';
 import 'package:monologue/ui/edit/script_edit_screen.dart';
 
 import 'test_harness.dart';
+
+Future<String> makePhoto() async {
+  final dir = await Directory.systemTemp.createTemp('monologue_photo');
+  final f = File('${dir.path}/shot.png');
+  await f.writeAsBytes([1, 2, 3]);
+  return f.path;
+}
+
+/// 사진 복사는 실제 파일 입출력이라, 가짜 시간 대신 실제로 기다렸다가 화면을 갱신한다.
+Future<void> tapSaveAndWait(WidgetTester tester) async {
+  await tester.tap(find.text('저장'));
+  for (var i = 0; i < 10; i++) {
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester.pump();
+  }
+}
 
 void main() {
   testWidgets('본문이 비면 저장하지 않는다', (tester) async {
@@ -40,11 +58,43 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('사진으로 만든 대본은 사진도 함께 저장된다고 알려 준다', (tester) async {
+  testWidgets('사진으로 만든 대본을 처음 저장하면 사진 보관 안내를 보여 준다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
-    await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '본문', newImagePaths: ['a.png'])));
+    final photo = (await tester.runAsync(makePhoto))!;
+    await tester.pumpWidget(h.wrap(ScriptEditScreen(initialBody: '본문', newImagePaths: [photo])));
     await tester.pumpAndSettle();
-    expect(find.text("사진 1장이 대본과 함께 보관돼요. 사진첩에서 캡처를 지워도 '원본 보기'로 다시 볼 수 있어요"), findsOneWidget);
+
+    await tapSaveAndWait(tester);
+    expect(find.text('사진도 함께 보관했어요'), findsOneWidget);
+    expect(find.textContaining('설정 → 사용 방법'), findsOneWidget);
+
+    await tester.tap(find.text('확인'));
+    await tester.pumpAndSettle();
+    expect(find.text('사진도 함께 보관했어요'), findsNothing);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('사진 보관 안내를 이미 봤으면 다시 보여 주지 않는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    final photo = (await tester.runAsync(makePhoto))!;
+    await tester.runAsync(h.services.tips.takePhotoKept);
+    await tester.pumpWidget(h.wrap(ScriptEditScreen(initialBody: '본문', newImagePaths: [photo])));
+    await tester.pumpAndSettle();
+
+    await tapSaveAndWait(tester);
+    // 저장은 끝났는데 안내는 뜨지 않아야 한다
+    final list = await tester.runAsync(() => h.services.repo.watchScripts(const ScriptFilter()).first);
+    expect(list!.single.script.body, '본문');
+    expect(find.text('사진도 함께 보관했어요'), findsNothing);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('사진 없이 저장하면 사진 보관 안내를 보여 주지 않는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '본문')));
+    await tester.pumpAndSettle();
+    await tapSaveAndWait(tester);
+    expect(find.text('사진도 함께 보관했어요'), findsNothing);
     await tester.runAsync(h.db.close);
   });
 }

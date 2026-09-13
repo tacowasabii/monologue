@@ -11,6 +11,7 @@ import 'package:monologue/data/image_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/ocr/assemble_text.dart';
 import 'package:monologue/ocr/text_recognizer.dart';
+import 'package:monologue/settings/app_tips.dart';
 import 'package:monologue/settings/reading_settings.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -39,6 +40,7 @@ class Harness {
         ocr: FakeRecognizer(),
         backup: BackupService(db, repo, images),
         settings: await ReadingSettings.load(),
+        tips: await AppTips.load(),
       ),
     );
   }

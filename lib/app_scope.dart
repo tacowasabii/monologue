@@ -4,6 +4,7 @@ import 'backup/backup_service.dart';
 import 'data/image_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
+import 'settings/app_tips.dart';
 import 'settings/reading_settings.dart';
 
 class AppServices {
@@ -13,6 +14,7 @@ class AppServices {
     required this.ocr,
     required this.backup,
     required this.settings,
+    required this.tips,
   });
 
   final ScriptRepository repo;
@@ -20,6 +22,7 @@ class AppServices {
   final TextRecognizing ocr;
   final BackupService backup;
   final ReadingSettings settings;
+  final AppTips tips;
 }
 
 class AppScope extends InheritedWidget {

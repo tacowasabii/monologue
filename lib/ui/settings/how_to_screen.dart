@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+
+/// 설정 → 사용 방법. 한 번 보고 지나치기 쉬운 기능을 모아 둔다.
+class HowToScreen extends StatelessWidget {
+  const HowToScreen({super.key});
+
+  static const items = [
+    (
+      Icons.photo_library_outlined,
+      '사진으로 대본 만들기',
+      "대본 추가 → 사진첩에서 선택으로 여러 장을 고르면 하나의 대본으로 이어붙여요. 순서는 사진 오른쪽 손잡이를 끌어서 바꿀 수 있어요. "
+          "종이 대본은 카메라로 찍으면 되고, 이미 만든 대본에는 편집 화면의 '사진 추가로 이어쓰기'로 뒤에 붙일 수 있어요.",
+    ),
+    (
+      Icons.checklist_rounded,
+      '대본에 넣을 문단 고르기',
+      '사진에서 문단이 여러 개 나오면 문단 고르기 화면이 열려요. 좋아요 수나 해시태그처럼 앱 화면 글자로 보이는 문단은 '
+          '체크가 꺼진 채로 시작하니, 대본에 넣을 문단만 남기고 계속을 눌러 주세요.',
+    ),
+    (
+      Icons.error_outline_rounded,
+      '확인 필요 표시',
+      "손글씨처럼 글자를 확실히 읽지 못했을 수 있는 문단에는 '확인 필요'가 붙어요. 저장하기 전에 본문에서 그 부분이 맞는지 한 번 봐 주세요.",
+    ),
+    (
+      Icons.image_outlined,
+      '원본 사진 보관',
+      '대본에 쓴 사진은 앱 안에 따로 보관돼요. 사진첩에서 캡처를 지워도 대본 화면의 ⋯ 메뉴 → 원본 보기로 다시 볼 수 있어요. '
+          '대본을 지우면 보관한 사진도 함께 지워져요.',
+    ),
+    (
+      Icons.ios_share_rounded,
+      '폰을 바꿀 때는 백업',
+      '대본은 이 폰에만 저장돼요. 설정 → 백업 내보내기로 대본과 사진을 파일 하나로 만들어 두고, 새 폰에서 백업에서 복원으로 가져오세요.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Scaffold(
+      appBar: AppBar(title: const Text('사용 방법')),
+      body: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        itemCount: items.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, i) {
+          final (icon, title, body) = items[i];
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 18, 18),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(11)),
+                    child: Icon(icon, size: 20, color: scheme.onPrimaryContainer),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(body, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

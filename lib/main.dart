@@ -9,6 +9,7 @@ import 'data/database.dart';
 import 'data/image_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
+import 'settings/app_tips.dart';
 import 'settings/reading_settings.dart';
 
 Future<void> main() async {
@@ -26,6 +27,7 @@ Future<void> main() async {
       ocr: PlatformTextRecognizer(),
       backup: BackupService(db, repo, images),
       settings: await ReadingSettings.load(),
+      tips: await AppTips.load(),
     ),
     child: const MonologueApp(),
   ));
