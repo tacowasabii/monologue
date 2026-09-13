@@ -10,6 +10,7 @@ import 'data/image_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
 import 'settings/app_tips.dart';
+import 'settings/home_view_settings.dart';
 import 'settings/reading_settings.dart';
 
 Future<void> main() async {
@@ -28,6 +29,7 @@ Future<void> main() async {
       backup: BackupService(db, repo, images),
       settings: await ReadingSettings.load(),
       tips: await AppTips.load(),
+      homeView: await HomeViewSettings.load(),
     ),
     child: const MonologueApp(),
   ));

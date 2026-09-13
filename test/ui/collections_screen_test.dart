@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_draft.dart';
+import 'package:monologue/settings/home_view_settings.dart';
 import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/home/collections_screen.dart';
 
@@ -85,6 +86,32 @@ void main() {
 
     expect(find.text('1차 오디션'), findsNothing);
     expect(find.text('1편'), findsOneWidget); // 전체
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('목록으로 바꾸면 같은 모음을 줄로 보여 주고, 고른 방식을 기억한다', (tester) async {
+    usePhoneSize(tester);
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() async {
+      final audition = await h.services.repo.createCollection('1차 오디션');
+      await h.services.repo.create(ScriptDraft(work: '햄릿', body: 'x', collectionIds: [audition]));
+    });
+    await tester.pumpWidget(h.wrap(const CollectionsScreen()));
+    await tester.pumpAndSettle();
+    expect(find.byType(SliverGrid), findsOneWidget);
+
+    await tester.tap(find.byTooltip('목록으로 보기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SliverGrid), findsNothing);
+    expect(find.widgetWithText(ListTile, '전체'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, '1차 오디션'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, '새 모음'), findsOneWidget);
+    expect(find.text('1편'), findsNWidgets(2)); // 전체, 1차 오디션
+    expect(h.services.homeView.layout, HomeLayout.list);
+
+    await tester.tap(find.widgetWithText(ListTile, '1차 오디션'));
+    await tester.pumpAndSettle();
+    expect(find.text('햄릿'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 

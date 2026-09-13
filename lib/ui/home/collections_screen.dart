@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../../data/script_repository.dart';
+import '../../settings/home_view_settings.dart';
 import '../common/korean_text.dart';
 import '../edit/add_script.dart';
 import '../list/script_list_screen.dart';
 import '../settings/settings_screen.dart';
 import 'collection_name_dialog.dart';
 
-/// 첫 화면. 전체 대본과 직접 만든 모음을 카드로 보여 준다.
+/// 첫 화면. 전체 대본과 직접 만든 모음을 그리드나 목록으로 보여 준다.
 class CollectionsScreen extends StatefulWidget {
   const CollectionsScreen({super.key});
 
@@ -18,6 +19,9 @@ class CollectionsScreen extends StatefulWidget {
 }
 
 enum _Action { rename, delete }
+
+/// 전체·모음 한 칸. 그리드 카드와 목록 줄이 같은 내용을 쓴다.
+typedef _Entry = ({IconData icon, String name, int? count, VoidCallback onTap, VoidCallback? onLongPress});
 
 class _CollectionsScreenState extends State<CollectionsScreen> {
   // 검색창은 누르면 목록 화면으로 넘어가기만 하므로 여기서는 키보드를 띄우지 않는다
@@ -125,108 +129,112 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 72,
-        titleSpacing: 20,
-        title: Text('모노로그', style: theme.textTheme.headlineMedium),
-        actions: [
-          IconButton(
-            tooltip: '설정',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+    final homeView = AppScope.of(context).homeView;
+    return ListenableBuilder(
+      listenable: homeView,
+      builder: (context, _) {
+        final grid = homeView.layout == HomeLayout.grid;
+        return Scaffold(
+          appBar: AppBar(
+            toolbarHeight: 72,
+            titleSpacing: 20,
+            title: Text('모노로그', style: theme.textTheme.headlineMedium),
+            actions: [
+              IconButton(
+                tooltip: grid ? '목록으로 보기' : '그리드로 보기',
+                icon: Icon(grid ? Icons.view_list_rounded : Icons.grid_view_rounded),
+                onPressed: () => homeView.setLayout(grid ? HomeLayout.list : HomeLayout.grid),
+              ),
+              IconButton(
+                tooltip: '설정',
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () =>
+                    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: StreamBuilder<int>(
-        stream: _total,
-        builder: (context, totalSnap) => StreamBuilder<List<CollectionSummary>>(
-          stream: _collections,
-          builder: (context, snap) {
-            final total = totalSnap.data;
-            final collections = snap.data ?? const <CollectionSummary>[];
-            return CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                  sliver: SliverToBoxAdapter(
-                    child: SearchBar(
-                      focusNode: _searchFocus,
-                      hintText: '모든 대본에서 검색',
-                      leading: Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
-                      padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.only(start: 16, end: 16)),
-                      elevation: const WidgetStatePropertyAll(0),
-                      onTap: () => _open(null, search: true),
+          body: StreamBuilder<int>(
+            stream: _total,
+            builder: (context, totalSnap) => StreamBuilder<List<CollectionSummary>>(
+              stream: _collections,
+              builder: (context, snap) {
+                final total = totalSnap.data;
+                final collections = snap.data ?? const <CollectionSummary>[];
+                final entries = <_Entry>[
+                  (icon: Icons.library_books_outlined, name: '전체', count: total, onTap: () => _open(null), onLongPress: null),
+                  for (final c in collections)
+                    (
+                      icon: Icons.folder_outlined,
+                      name: c.collection.name,
+                      count: c.scriptCount,
+                      onTap: () => _open(c.collection),
+                      onLongPress: () => _manage(c, collections),
                     ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverGrid.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.2,
-                    children: [
-                      _CollectionCard(
-                        icon: Icons.library_books_outlined,
-                        name: '전체',
-                        count: total,
-                        onTap: () => _open(null),
-                      ),
-                      for (final c in collections)
-                        _CollectionCard(
-                          icon: Icons.folder_outlined,
-                          name: c.collection.name,
-                          count: c.scriptCount,
-                          onTap: () => _open(c.collection),
-                          onLongPress: () => _manage(c, collections),
+                ];
+                void create() => _create(collections);
+                return CustomScrollView(
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      sliver: SliverToBoxAdapter(
+                        child: SearchBar(
+                          focusNode: _searchFocus,
+                          hintText: '모든 대본에서 검색',
+                          leading: Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
+                          padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.only(start: 16, end: 16)),
+                          elevation: const WidgetStatePropertyAll(0),
+                          onTap: () => _open(null, search: true),
                         ),
-                      _NewCollectionCard(onTap: () => _create(collections)),
-                    ],
-                  ),
-                ),
-                if (total == 0)
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: Text(
-                        '아직 대본이 없어요\n대본 추가를 눌러 사진이나 글로 첫 대본을 넣어 보세요',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
                       ),
                     ),
-                  ),
-                const SliverToBoxAdapter(child: SizedBox(height: 112)),
-              ],
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => addScript(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('대본 추가'),
-      ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: grid
+                          ? SliverGrid.count(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 1.2,
+                              children: [
+                                for (final e in entries) _CollectionCard(entry: e),
+                                _NewCollectionCard(onTap: create),
+                              ],
+                            )
+                          : SliverToBoxAdapter(child: _CollectionList(entries: entries, onCreate: create)),
+                    ),
+                    if (total == 0)
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: Text(
+                            '아직 대본이 없어요\n대본 추가를 눌러 사진이나 글로 첫 대본을 넣어 보세요',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
+                          ),
+                        ),
+                      ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 112)),
+                  ],
+                );
+              },
+            ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => addScript(context),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('대본 추가'),
+          ),
+        );
+      },
     );
   }
 }
 
 class _CollectionCard extends StatelessWidget {
-  const _CollectionCard({
-    required this.icon,
-    required this.name,
-    required this.count,
-    required this.onTap,
-    this.onLongPress,
-  });
+  const _CollectionCard({required this.entry});
 
-  final IconData icon;
-  final String name;
-  final int? count;
-  final VoidCallback onTap;
-  final VoidCallback? onLongPress;
+  final _Entry entry;
 
   @override
   Widget build(BuildContext context) {
@@ -236,24 +244,24 @@ class _CollectionCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
+        onTap: entry.onTap,
+        onLongPress: entry.onLongPress,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 22, color: scheme.primary),
+              Icon(entry.icon, size: 22, color: scheme.primary),
               const Spacer(),
               Text(
-                name,
+                entry.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, height: 1.3),
               ),
               const SizedBox(height: 2),
               Text(
-                count == null ? '' : '$count편',
+                entry.count == null ? '' : '${entry.count}편',
                 style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ],
@@ -292,6 +300,71 @@ class _NewCollectionCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 목록 보기. 설정 화면처럼 카드 하나 안에 줄로 늘어놓는다.
+class _CollectionList extends StatelessWidget {
+  const _CollectionList({required this.entries, required this.onCreate});
+
+  final List<_Entry> entries;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    Widget leading(IconData icon, {bool outlined = false}) => Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: outlined ? null : scheme.primaryContainer,
+            border: outlined ? Border.all(color: scheme.outlineVariant) : null,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Icon(icon, size: 20, color: outlined ? scheme.onSurfaceVariant : scheme.onPrimaryContainer),
+        );
+    const padding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (final e in entries) ...[
+            ListTile(
+              contentPadding: padding,
+              leading: leading(e.icon),
+              title: Text(
+                e.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    e.count == null ? '' : '${e.count}편',
+                    style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+                ],
+              ),
+              onTap: e.onTap,
+              onLongPress: e.onLongPress,
+            ),
+            const Divider(height: 1, indent: 70),
+          ],
+          ListTile(
+            contentPadding: padding,
+            leading: leading(Icons.add_rounded, outlined: true),
+            title: Text('새 모음', style: theme.textTheme.titleMedium?.copyWith(color: scheme.onSurfaceVariant)),
+            onTap: onCreate,
+          ),
+        ],
       ),
     );
   }
