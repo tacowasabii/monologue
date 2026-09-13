@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../ocr/assemble_text.dart';
 
+const _fontSize = 15.0;
+const _lineSpacing = 1.6;
+
+/// 본문 한 줄이 차지하는 높이. 체크박스를 첫 줄에 맞춰 놓는 데 쓴다.
+const _lineHeight = _fontSize * _lineSpacing;
+
 /// 인식한 문단 중 대본에 넣을 것만 고른다.
 /// 앱 화면 글자로 보이는 문단은 꺼진 채로 시작하고, 확신도가 낮은 문단은 표시만 한다.
 class PickParagraphsScreen extends StatefulWidget {
@@ -129,16 +135,25 @@ class _ParagraphCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 14, 16, 14),
+          padding: const EdgeInsets.fromLTRB(14, 13, 16, 13),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Checkbox(
-                value: selected,
-                onChanged: (_) => onTap(),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              // 기본 체크박스는 48dp 탭 영역을 차지해 한 줄짜리 카드에도 두 줄 높이를 만든다.
+              // 카드 전체가 이미 탭 영역이므로, 첫 줄 높이(_lineHeight)에 맞춰 가운데 놓는다.
+              SizedBox(
+                height: _lineHeight,
+                child: Center(
+                  child: Checkbox(
+                    value: selected,
+                    onChanged: (_) => onTap(),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,8 +171,8 @@ class _ParagraphCard extends StatelessWidget {
                       maxLines: 6,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        fontSize: 15,
-                        height: 1.6,
+                        fontSize: _fontSize,
+                        height: _lineSpacing,
                         color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
                       ),
                     ),

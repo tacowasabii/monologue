@@ -101,6 +101,20 @@ void main() {
     expect(find.textContaining('번째 사진'), findsNothing);
   });
 
+  testWidgets('한 줄짜리 카드는 두 줄짜리 카드보다 낮다', (tester) async {
+    await openPicker(tester, const [
+      Paragraph(photoNumber: 1, text: '짧은 한 줄'),
+      Paragraph(
+        photoNumber: 1,
+        text: '카드 안에서 두 줄로 넘어갈 만큼 긴 문단이다. 줄바꿈이 일어나도록 문장을 충분히 길게 적어 둔다.',
+      ),
+    ]);
+    final cards = find.byType(Card);
+    final oneLine = tester.getSize(cards.at(0)).height;
+    final twoLines = tester.getSize(cards.at(1)).height;
+    expect(oneLine, lessThan(twoLines - 10));
+  });
+
   testWidgets('모두 끄면 계속 버튼을 누를 수 없다', (tester) async {
     await openPicker(tester, const [Paragraph(photoNumber: 1, text: '본문 하나')]);
     await tester.tap(find.text('본문 하나'));
