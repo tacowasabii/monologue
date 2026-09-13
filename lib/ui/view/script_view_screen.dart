@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
-import '../../domain/script_draft.dart';
 import '../../settings/reading_settings.dart';
 import '../edit/script_edit_screen.dart';
 import '../theme.dart';
@@ -131,7 +130,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         final s = d.script;
         final theme = Theme.of(context);
         final scheme = theme.colorScheme;
-        final source = sourceOf(s.work, s.character);
+        final source = s.work;
         final memo = s.memo;
         final traits = [
           if (s.gender != Gender.any) s.gender.label,

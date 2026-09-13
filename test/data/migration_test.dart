@@ -44,7 +44,7 @@ void main() {
     expect(await db.select(db.scripts).get(), isEmpty);
     expect(await db.select(db.scriptTags).get(), isEmpty);
     final columns = await db.customSelect("SELECT name FROM pragma_table_info('scripts')").get();
-    expect(columns.map((c) => c.read<String>('name')), allOf(contains('memo'), isNot(contains('title'))));
+    expect(columns.map((c) => c.read<String>('name')), allOf(contains('memo'), isNot(contains('title')), isNot(contains('character_name'))));
 
     // 옛 구조가 남아 있으면 제목 칸(NOT NULL) 때문에 저장이 실패한다
     await db.into(db.scripts).insert(ScriptsCompanion.insert(

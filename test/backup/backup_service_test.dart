@@ -54,7 +54,6 @@ void main() {
     await src.repo.create(
       const ScriptDraft(
         work: '갈매기',
-        character: '니나',
         memo: '4막 니나 독백',
         body: '나는 갈매기...',
         gender: Gender.female,
@@ -78,7 +77,6 @@ void main() {
     expect(list.map((s) => s.script.work).toSet(), {'갈매기', '두번째', '기존'});
     final nina = list.firstWhere((s) => s.script.work == '갈매기');
     final detail = (await dst.repo.watchScript(nina.script.id).first)!;
-    expect(detail.script.character, '니나');
     expect(detail.script.memo, '4막 니나 독백');
     expect(detail.script.gender, Gender.female);
     expect(detail.script.status, PracticeStatus.practicing);

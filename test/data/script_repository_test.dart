@@ -53,15 +53,13 @@ void main() {
     }
   });
 
-  test('검색은 작품명·인물·메모·본문 부분 일치', () async {
+  test('검색은 작품명·메모·본문 부분 일치', () async {
     await repo.create(const ScriptDraft(work: 'A', body: '사느냐 죽느냐'));
     await repo.create(const ScriptDraft(work: '갈매기', body: '...'));
-    await repo.create(const ScriptDraft(work: 'C', character: '니나', body: '...'));
-    await repo.create(const ScriptDraft(work: 'D', memo: '2차 오디션 지정 대사', body: '...'));
+    await repo.create(const ScriptDraft(work: 'C', memo: '니나 · 2차 오디션 지정 대사', body: '...'));
     expect(await works(const ScriptFilter(query: '죽느냐')), ['A']);
     expect(await works(const ScriptFilter(query: '갈매')), ['갈매기']);
     expect(await works(const ScriptFilter(query: '니나')), ['C']);
-    expect(await works(const ScriptFilter(query: '오디션')), ['D']);
   });
 
   test('성별·나이대 필터는 무관도 포함한다', () async {

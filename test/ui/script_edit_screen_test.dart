@@ -16,12 +16,13 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('기본 정보는 작품명·인물·메모이고 제목 칸은 없다', (tester) async {
+  testWidgets('기본 정보는 작품명·메모이고 제목·인물 칸은 없다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.pumpWidget(h.wrap(const ScriptEditScreen()));
     await tester.pumpAndSettle();
     expect(find.text('제목'), findsNothing);
-    for (final label in ['작품명', '인물', '메모']) {
+    expect(find.text('인물'), findsNothing);
+    for (final label in ['작품명', '메모']) {
       expect(find.widgetWithText(TextFormField, label), findsOneWidget, reason: label);
     }
     await tester.runAsync(h.db.close);

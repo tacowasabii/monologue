@@ -34,7 +34,7 @@ class ScriptRepository {
         final text = f.query.trim();
         if (text.isNotEmpty) {
           final pattern = '%$text%';
-          e = e & (s.work.like(pattern) | s.character.like(pattern) | s.memo.like(pattern) | s.body.like(pattern));
+          e = e & (s.work.like(pattern) | s.memo.like(pattern) | s.body.like(pattern));
         }
         // 성별·나이대가 '무관'인 대본은 어느 조건에도 맞는다
         if (f.gender != null) e = e & s.gender.isIn([f.gender!.name, Gender.any.name]);
@@ -115,7 +115,6 @@ class ScriptRepository {
     return db.transaction(() async {
       final id = await db.into(db.scripts).insert(ScriptsCompanion.insert(
             work: Value(d.work),
-            character: Value(d.character),
             memo: Value(d.memo),
             gender: d.gender,
             ageRange: d.ageRange,
@@ -138,7 +137,6 @@ class ScriptRepository {
       await db.transaction(() async {
         await (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(
               work: Value(d.work),
-              character: Value(d.character),
               memo: Value(d.memo),
               gender: Value(d.gender),
               ageRange: Value(d.ageRange),

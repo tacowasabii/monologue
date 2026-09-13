@@ -30,7 +30,6 @@ class ScriptEditScreen extends StatefulWidget {
 class _ScriptEditScreenState extends State<ScriptEditScreen> {
   final _form = GlobalKey<FormState>();
   late final TextEditingController _work;
-  late final TextEditingController _character;
   late final TextEditingController _memo;
   late final TextEditingController _body;
   late Gender _gender;
@@ -46,14 +45,13 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   late bool _dirty = widget.existing == null && (widget.initialBody.isNotEmpty || widget.newImagePaths.isNotEmpty);
   bool _saving = false;
 
-  List<TextEditingController> get _controllers => [_work, _character, _memo, _body];
+  List<TextEditingController> get _controllers => [_work, _memo, _body];
 
   @override
   void initState() {
     super.initState();
     final s = widget.existing?.script;
     _work = TextEditingController(text: s?.work ?? '');
-    _character = TextEditingController(text: s?.character ?? '');
     _memo = TextEditingController(text: s?.memo ?? '');
     _body = TextEditingController(text: s?.body ?? widget.initialBody);
     _gender = s?.gender ?? Gender.any;
@@ -110,7 +108,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     final draft = ScriptDraft(
       body: _body.text,
       work: _work.text,
-      character: _character.text,
       memo: _memo.text,
       gender: _gender,
       ageRange: _ageRange,
@@ -271,13 +268,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   const SizedBox(height: 12),
                 ],
                 _section('기본 정보', first: true),
-                Row(
-                  children: [
-                    Expanded(child: TextFormField(controller: _work, decoration: const InputDecoration(labelText: '작품명'))),
-                    const SizedBox(width: 12),
-                    Expanded(child: TextFormField(controller: _character, decoration: const InputDecoration(labelText: '인물'))),
-                  ],
-                ),
+                TextFormField(controller: _work, decoration: const InputDecoration(labelText: '작품명')),
                 gap,
                 TextFormField(
                   controller: _memo,
@@ -286,7 +277,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   keyboardType: TextInputType.multiline,
                   decoration: const InputDecoration(
                     labelText: '메모',
-                    hintText: '출처, 오디션 날짜, 연기 포인트 등',
+                    hintText: '인물, 배우, 회차·장면, 오디션 날짜 등',
                     alignLabelWithHint: true,
                   ),
                 ),

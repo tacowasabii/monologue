@@ -47,7 +47,6 @@ class BackupService {
       }
       entries.add({
         'work': s.work,
-        'character': s.character,
         'memo': s.memo,
         'gender': s.gender.name,
         'ageRange': s.ageRange.name,
@@ -127,7 +126,6 @@ class BackupService {
   ScriptDraft _draftOf(Map<String, Object?> e) => ScriptDraft(
         body: e['body'] as String,
         work: e['work'] as String?,
-        character: e['character'] as String?,
         memo: e['memo'] as String?,
         gender: Gender.values.byName(e['gender'] as String),
         ageRange: AgeRange.values.byName(e['ageRange'] as String),

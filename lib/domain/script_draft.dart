@@ -1,11 +1,5 @@
 import 'enums.dart';
 
-/// 작품명과 인물을 가운뎃점으로 잇는다. 둘 다 비어 있으면 null.
-String? sourceOf(String? work, String? character) {
-  final parts = [work, character].map((e) => e?.trim() ?? '').where((e) => e.isNotEmpty);
-  return parts.isEmpty ? null : parts.join(' · ');
-}
-
 /// 본문의 첫 비어있지 않은 줄. 없으면 빈 문자열.
 String firstLineOf(String body) {
   for (final line in body.split('\n')) {
@@ -19,7 +13,6 @@ class ScriptDraft {
   const ScriptDraft({
     required this.body,
     this.work,
-    this.character,
     this.memo,
     this.gender = Gender.any,
     this.ageRange = AgeRange.any,
@@ -30,7 +23,6 @@ class ScriptDraft {
 
   final String body;
   final String? work;
-  final String? character;
   final String? memo;
   final Gender gender;
   final AgeRange ageRange;
@@ -45,7 +37,6 @@ class ScriptDraft {
     return ScriptDraft(
       body: body.trim(),
       work: blankToNull(work),
-      character: blankToNull(character),
       memo: blankToNull(memo),
       gender: gender,
       ageRange: ageRange,

@@ -30,17 +30,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _characterMeta = const VerificationMeta(
-    'character',
-  );
-  @override
-  late final GeneratedColumn<String> character = GeneratedColumn<String>(
-    'character_name',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _memoMeta = const VerificationMeta('memo');
   @override
   late final GeneratedColumn<String> memo = GeneratedColumn<String>(
@@ -126,7 +115,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
   List<GeneratedColumn> get $columns => [
     id,
     work,
-    character,
     memo,
     gender,
     ageRange,
@@ -155,15 +143,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
       context.handle(
         _workMeta,
         work.isAcceptableOrUnknown(data['work']!, _workMeta),
-      );
-    }
-    if (data.containsKey('character_name')) {
-      context.handle(
-        _characterMeta,
-        character.isAcceptableOrUnknown(
-          data['character_name']!,
-          _characterMeta,
-        ),
       );
     }
     if (data.containsKey('memo')) {
@@ -220,10 +199,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
       work: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}work'],
-      ),
-      character: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}character_name'],
       ),
       memo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -282,7 +257,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
 class Script extends DataClass implements Insertable<Script> {
   final int id;
   final String? work;
-  final String? character;
   final String? memo;
   final Gender gender;
   final AgeRange ageRange;
@@ -294,7 +268,6 @@ class Script extends DataClass implements Insertable<Script> {
   const Script({
     required this.id,
     this.work,
-    this.character,
     this.memo,
     required this.gender,
     required this.ageRange,
@@ -310,9 +283,6 @@ class Script extends DataClass implements Insertable<Script> {
     map['id'] = Variable<int>(id);
     if (!nullToAbsent || work != null) {
       map['work'] = Variable<String>(work);
-    }
-    if (!nullToAbsent || character != null) {
-      map['character_name'] = Variable<String>(character);
     }
     if (!nullToAbsent || memo != null) {
       map['memo'] = Variable<String>(memo);
@@ -343,9 +313,6 @@ class Script extends DataClass implements Insertable<Script> {
     return ScriptsCompanion(
       id: Value(id),
       work: work == null && nullToAbsent ? const Value.absent() : Value(work),
-      character: character == null && nullToAbsent
-          ? const Value.absent()
-          : Value(character),
       memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
       gender: Value(gender),
       ageRange: Value(ageRange),
@@ -365,7 +332,6 @@ class Script extends DataClass implements Insertable<Script> {
     return Script(
       id: serializer.fromJson<int>(json['id']),
       work: serializer.fromJson<String?>(json['work']),
-      character: serializer.fromJson<String?>(json['character']),
       memo: serializer.fromJson<String?>(json['memo']),
       gender: $ScriptsTable.$convertergender.fromJson(
         serializer.fromJson<String>(json['gender']),
@@ -388,7 +354,6 @@ class Script extends DataClass implements Insertable<Script> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'work': serializer.toJson<String?>(work),
-      'character': serializer.toJson<String?>(character),
       'memo': serializer.toJson<String?>(memo),
       'gender': serializer.toJson<String>(
         $ScriptsTable.$convertergender.toJson(gender),
@@ -409,7 +374,6 @@ class Script extends DataClass implements Insertable<Script> {
   Script copyWith({
     int? id,
     Value<String?> work = const Value.absent(),
-    Value<String?> character = const Value.absent(),
     Value<String?> memo = const Value.absent(),
     Gender? gender,
     AgeRange? ageRange,
@@ -421,7 +385,6 @@ class Script extends DataClass implements Insertable<Script> {
   }) => Script(
     id: id ?? this.id,
     work: work.present ? work.value : this.work,
-    character: character.present ? character.value : this.character,
     memo: memo.present ? memo.value : this.memo,
     gender: gender ?? this.gender,
     ageRange: ageRange ?? this.ageRange,
@@ -435,7 +398,6 @@ class Script extends DataClass implements Insertable<Script> {
     return Script(
       id: data.id.present ? data.id.value : this.id,
       work: data.work.present ? data.work.value : this.work,
-      character: data.character.present ? data.character.value : this.character,
       memo: data.memo.present ? data.memo.value : this.memo,
       gender: data.gender.present ? data.gender.value : this.gender,
       ageRange: data.ageRange.present ? data.ageRange.value : this.ageRange,
@@ -452,7 +414,6 @@ class Script extends DataClass implements Insertable<Script> {
     return (StringBuffer('Script(')
           ..write('id: $id, ')
           ..write('work: $work, ')
-          ..write('character: $character, ')
           ..write('memo: $memo, ')
           ..write('gender: $gender, ')
           ..write('ageRange: $ageRange, ')
@@ -469,7 +430,6 @@ class Script extends DataClass implements Insertable<Script> {
   int get hashCode => Object.hash(
     id,
     work,
-    character,
     memo,
     gender,
     ageRange,
@@ -485,7 +445,6 @@ class Script extends DataClass implements Insertable<Script> {
       (other is Script &&
           other.id == this.id &&
           other.work == this.work &&
-          other.character == this.character &&
           other.memo == this.memo &&
           other.gender == this.gender &&
           other.ageRange == this.ageRange &&
@@ -499,7 +458,6 @@ class Script extends DataClass implements Insertable<Script> {
 class ScriptsCompanion extends UpdateCompanion<Script> {
   final Value<int> id;
   final Value<String?> work;
-  final Value<String?> character;
   final Value<String?> memo;
   final Value<Gender> gender;
   final Value<AgeRange> ageRange;
@@ -511,7 +469,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   const ScriptsCompanion({
     this.id = const Value.absent(),
     this.work = const Value.absent(),
-    this.character = const Value.absent(),
     this.memo = const Value.absent(),
     this.gender = const Value.absent(),
     this.ageRange = const Value.absent(),
@@ -524,7 +481,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   ScriptsCompanion.insert({
     this.id = const Value.absent(),
     this.work = const Value.absent(),
-    this.character = const Value.absent(),
     this.memo = const Value.absent(),
     required Gender gender,
     required AgeRange ageRange,
@@ -543,7 +499,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   static Insertable<Script> custom({
     Expression<int>? id,
     Expression<String>? work,
-    Expression<String>? character,
     Expression<String>? memo,
     Expression<String>? gender,
     Expression<String>? ageRange,
@@ -556,7 +511,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (work != null) 'work': work,
-      if (character != null) 'character_name': character,
       if (memo != null) 'memo': memo,
       if (gender != null) 'gender': gender,
       if (ageRange != null) 'age_range': ageRange,
@@ -571,7 +525,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   ScriptsCompanion copyWith({
     Value<int>? id,
     Value<String?>? work,
-    Value<String?>? character,
     Value<String?>? memo,
     Value<Gender>? gender,
     Value<AgeRange>? ageRange,
@@ -584,7 +537,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     return ScriptsCompanion(
       id: id ?? this.id,
       work: work ?? this.work,
-      character: character ?? this.character,
       memo: memo ?? this.memo,
       gender: gender ?? this.gender,
       ageRange: ageRange ?? this.ageRange,
@@ -604,9 +556,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     }
     if (work.present) {
       map['work'] = Variable<String>(work.value);
-    }
-    if (character.present) {
-      map['character_name'] = Variable<String>(character.value);
     }
     if (memo.present) {
       map['memo'] = Variable<String>(memo.value);
@@ -646,7 +595,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     return (StringBuffer('ScriptsCompanion(')
           ..write('id: $id, ')
           ..write('work: $work, ')
-          ..write('character: $character, ')
           ..write('memo: $memo, ')
           ..write('gender: $gender, ')
           ..write('ageRange: $ageRange, ')
@@ -1199,7 +1147,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$ScriptsTableCreateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
   Value<String?> work,
-  Value<String?> character,
   Value<String?> memo,
   required Gender gender,
   required AgeRange ageRange,
@@ -1212,7 +1159,6 @@ typedef $$ScriptsTableCreateCompanionBuilder = ScriptsCompanion Function({
 typedef $$ScriptsTableUpdateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
   Value<String?> work,
-  Value<String?> character,
   Value<String?> memo,
   Value<Gender> gender,
   Value<AgeRange> ageRange,
@@ -1280,11 +1226,6 @@ class $$ScriptsTableFilterComposer
 
   ColumnFilters<String> get work => $composableBuilder(
     column: $table.work,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get character => $composableBuilder(
-    column: $table.character,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1401,11 +1342,6 @@ class $$ScriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get character => $composableBuilder(
-    column: $table.character,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get memo => $composableBuilder(
     column: $table.memo,
     builder: (column) => ColumnOrderings(column),
@@ -1461,9 +1397,6 @@ class $$ScriptsTableAnnotationComposer
 
   GeneratedColumn<String> get work =>
       $composableBuilder(column: $table.work, builder: (column) => column);
-
-  GeneratedColumn<String> get character =>
-      $composableBuilder(column: $table.character, builder: (column) => column);
 
   GeneratedColumn<String> get memo =>
       $composableBuilder(column: $table.memo, builder: (column) => column);
@@ -1570,7 +1503,6 @@ class $$ScriptsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> work = const Value.absent(),
-                Value<String?> character = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
                 Value<Gender> gender = const Value.absent(),
                 Value<AgeRange> ageRange = const Value.absent(),
@@ -1582,7 +1514,6 @@ class $$ScriptsTableTableManager
               }) => ScriptsCompanion(
                 id: id,
                 work: work,
-                character: character,
                 memo: memo,
                 gender: gender,
                 ageRange: ageRange,
@@ -1596,7 +1527,6 @@ class $$ScriptsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> work = const Value.absent(),
-                Value<String?> character = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
                 required Gender gender,
                 required AgeRange ageRange,
@@ -1608,7 +1538,6 @@ class $$ScriptsTableTableManager
               }) => ScriptsCompanion.insert(
                 id: id,
                 work: work,
-                character: character,
                 memo: memo,
                 gender: gender,
                 ageRange: ageRange,

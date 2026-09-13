@@ -76,7 +76,7 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                 child: SearchBar(
-                  hintText: '작품, 인물, 메모, 본문 검색',
+                  hintText: '작품, 메모, 본문 검색',
                   leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
                   trailing: [
                     FavoritesButton(filter: _filter, onChanged: _setFilter),
@@ -179,7 +179,7 @@ class _ScriptCard extends StatelessWidget {
 
   final ScriptSummary summary;
 
-  /// 작품명·인물이 없으면 본문 첫 줄이 제목 자리로 올라가므로, 미리보기는 그다음 줄부터 보여 준다.
+  /// 작품명이 없으면 본문 첫 줄이 제목 자리로 올라가므로, 미리보기는 그다음 줄부터 보여 준다.
   static String _excerpt(String body, {required bool skipFirstLine}) {
     final lines = body.trim().split('\n');
     if (skipFirstLine) lines.removeAt(0);
@@ -192,10 +192,10 @@ class _ScriptCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final repo = AppScope.of(context).repo;
-    final source = sourceOf(s.work, s.character);
-    final heading = source ?? firstLineOf(s.body);
-    final excerpt = _excerpt(s.body, skipFirstLine: source == null);
-    // 같은 작품·인물의 독백이 여러 개여도 구분되도록 메모 첫 줄을 제목 아래에 보여 준다
+    final work = s.work;
+    final heading = work ?? firstLineOf(s.body);
+    final excerpt = _excerpt(s.body, skipFirstLine: work == null);
+    // 같은 작품의 독백이 여러 개여도 구분되도록 메모 첫 줄을 제목 아래에 보여 준다
     final memoLine = firstLineOf(s.memo ?? '');
     return Card(
       clipBehavior: Clip.antiAlias,

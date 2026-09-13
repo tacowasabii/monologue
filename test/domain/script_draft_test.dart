@@ -4,14 +4,6 @@ import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
 
 void main() {
-  test('sourceOf는 작품명과 인물을 가운뎃점으로 잇고, 둘 다 없으면 null', () {
-    expect(sourceOf('햄릿', '오필리어'), '햄릿 · 오필리어');
-    expect(sourceOf('햄릿', null), '햄릿');
-    expect(sourceOf(null, '니나'), '니나');
-    expect(sourceOf(' ', ''), isNull);
-    expect(sourceOf(null, null), isNull);
-  });
-
   test('firstLineOf는 첫 비어있지 않은 줄', () {
     expect(firstLineOf('\n\n  괜찮다는 말은 참 편리하더라.\n다음 줄'), '괜찮다는 말은 참 편리하더라.');
     expect(firstLineOf('   \n  '), '');
