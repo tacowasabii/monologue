@@ -115,7 +115,9 @@ void main() {
     expect(oneLine, lessThan(twoLines - 10));
   });
 
-  testWidgets('체크박스는 카드 세로 가운데에 놓인다', (tester) async {
+  // 한글 글꼴은 글자 획이 줄 상자 가운데보다 1px 아래에 앉는다(실기기에서 3디바이스px로 측정).
+  // 그래서 체크박스도 상자 가운데가 아니라 그만큼 내려야 눈에 맞는다.
+  testWidgets('체크박스는 글자 획에 맞춰 카드 가운데에서 1px 내려와 있다', (tester) async {
     await openPicker(tester, const [
       Paragraph(
         photoNumber: 1,
@@ -124,7 +126,7 @@ void main() {
     ]);
     final card = tester.getRect(find.byType(Card));
     final checkbox = tester.getRect(find.byType(Checkbox));
-    expect(checkbox.center.dy, moreOrLessEquals(card.center.dy, epsilon: 1));
+    expect(checkbox.center.dy - card.center.dy, moreOrLessEquals(1, epsilon: 0.1));
   });
 
   testWidgets('모두 끄면 계속 버튼을 누를 수 없다', (tester) async {

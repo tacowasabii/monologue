@@ -8,6 +8,10 @@ const _lineSpacing = 1.6;
 /// 본문 한 줄이 차지하는 높이. 체크박스를 첫 줄에 맞춰 놓는 데 쓴다.
 const _lineHeight = _fontSize * _lineSpacing;
 
+/// 글꼴은 글자 위쪽 여백이 아래쪽보다 커서, 획이 줄 상자 가운데보다 조금 아래에 앉는다.
+/// 상자가 아니라 획에 맞춰 보이도록 체크박스를 내리는 값(에뮬레이터에서 3디바이스px = 1px로 측정).
+const _checkboxOpticalNudge = 1.0;
+
 /// 인식한 문단 중 대본에 넣을 것만 고른다.
 /// 앱 화면 글자로 보이는 문단은 꺼진 채로 시작하고, 확신도가 낮은 문단은 표시만 한다.
 class PickParagraphsScreen extends StatefulWidget {
@@ -141,15 +145,18 @@ class _ParagraphCard extends StatelessWidget {
             children: [
               // 기본 체크박스는 48dp 탭 영역을 차지해 한 줄짜리 카드에도 두 줄 높이를 만든다.
               // 카드 전체가 이미 탭 영역이므로, 한 줄 높이(_lineHeight)로 묶어 카드가 글자만큼만 자라게 한다.
-              SizedBox(
-                height: _lineHeight,
-                child: Center(
-                  child: Checkbox(
-                    value: selected,
-                    onChanged: (_) => onTap(),
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              Transform.translate(
+                offset: const Offset(0, _checkboxOpticalNudge),
+                child: SizedBox(
+                  height: _lineHeight,
+                  child: Center(
+                    child: Checkbox(
+                      value: selected,
+                      onChanged: (_) => onTap(),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
                   ),
                 ),
               ),
