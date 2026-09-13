@@ -12,6 +12,8 @@ import 'package:monologue/data/media_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/ocr/assemble_text.dart';
 import 'package:monologue/ocr/text_recognizer.dart';
+import 'package:monologue/practice/media_picker.dart';
+import 'package:monologue/practice/voice_recorder.dart';
 import 'package:monologue/settings/app_tips.dart';
 import 'package:monologue/settings/home_view_settings.dart';
 import 'package:monologue/settings/reading_settings.dart';
@@ -23,11 +25,54 @@ class FakeRecognizer implements TextRecognizing {
   Future<List<OcrBlock>> recognize(String imagePath) async => const [];
 }
 
+/// 마이크 대신 짧은 파일을 써 두는 녹음기
+class FakeRecorder implements VoiceRecorder {
+  bool permission = true;
+  String? startedPath;
+
+  @override
+  Future<bool> hasPermission() async => permission;
+
+  @override
+  Future<void> start(String path) async {
+    startedPath = path;
+    File(path).writeAsBytesSync([1, 2, 3]);
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> cancel() async {
+    final path = startedPath;
+    if (path != null && File(path).existsSync()) File(path).deleteSync();
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+/// 카메라·파일 선택 대신 [next]를 돌려준다(null이면 취소한 것).
+class FakeMediaPicker implements MediaPicker {
+  PickedMedia? next;
+
+  @override
+  Future<PickedMedia?> recordVideo() async => next;
+
+  @override
+  Future<PickedMedia?> pickVideo() async => next;
+
+  @override
+  Future<PickedMedia?> pickAudio() async => next;
+}
+
 class Harness {
-  Harness._(this.db, this.services);
+  Harness._(this.db, this.services, this.recorder, this.picker);
 
   final AppDatabase db;
   final AppServices services;
+  final FakeRecorder recorder;
+  final FakeMediaPicker picker;
 
   static Future<Harness> create() async {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
@@ -35,6 +80,8 @@ class Harness {
     final images = ImageStore(Directory.systemTemp.createTempSync('monologue_ui'));
     final media = MediaStore(Directory.systemTemp.createTempSync('monologue_media'));
     final repo = ScriptRepository(db, images, media);
+    final recorder = FakeRecorder();
+    final picker = FakeMediaPicker();
     return Harness._(
       db,
       AppServices(
@@ -46,7 +93,11 @@ class Harness {
         settings: await ReadingSettings.load(),
         tips: await AppTips.load(),
         homeView: await HomeViewSettings.load(),
+        newRecorder: () => recorder,
+        mediaPicker: picker,
       ),
+      recorder,
+      picker,
     );
   }
 

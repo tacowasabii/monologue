@@ -4,11 +4,19 @@ import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/settings/how_to_screen.dart';
 
 void main() {
-  testWidgets('사용 방법에 여섯 가지 안내가 모두 있다', (tester) async {
+  testWidgets('사용 방법에 일곱 가지 안내가 모두 있다', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: HowToScreen()));
     await tester.pumpAndSettle();
 
-    for (final title in ['사진으로 대본 만들기', '모음으로 정리하기', '대본에 넣을 문단 고르기', '확인 필요 표시', '원본 사진 보관', '폰을 바꿀 때는 백업']) {
+    for (final title in [
+      '사진으로 대본 만들기',
+      '모음으로 정리하기',
+      '대본에 넣을 문단 고르기',
+      '확인 필요 표시',
+      '원본 사진 보관',
+      '연습 기록 남기기',
+      '폰을 바꿀 때는 백업',
+    ]) {
       await tester.scrollUntilVisible(find.text(title), 200);
       expect(find.text(title), findsOneWidget, reason: title);
     }
