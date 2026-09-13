@@ -115,6 +115,18 @@ void main() {
     expect(oneLine, lessThan(twoLines - 10));
   });
 
+  testWidgets('체크박스는 카드 세로 가운데에 놓인다', (tester) async {
+    await openPicker(tester, const [
+      Paragraph(
+        photoNumber: 1,
+        text: '카드 안에서 두 줄로 넘어갈 만큼 긴 문단이다. 줄바꿈이 일어나도록 문장을 충분히 길게 적어 둔다.',
+      ),
+    ]);
+    final card = tester.getRect(find.byType(Card));
+    final checkbox = tester.getRect(find.byType(Checkbox));
+    expect(checkbox.center.dy, moreOrLessEquals(card.center.dy, epsilon: 1));
+  });
+
   testWidgets('모두 끄면 계속 버튼을 누를 수 없다', (tester) async {
     await openPicker(tester, const [Paragraph(photoNumber: 1, text: '본문 하나')]);
     await tester.tap(find.text('본문 하나'));

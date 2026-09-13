@@ -137,10 +137,10 @@ class _ParagraphCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 13, 16, 13),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // 기본 체크박스는 48dp 탭 영역을 차지해 한 줄짜리 카드에도 두 줄 높이를 만든다.
-              // 카드 전체가 이미 탭 영역이므로, 첫 줄 높이(_lineHeight)에 맞춰 가운데 놓는다.
+              // 카드 전체가 이미 탭 영역이므로, 한 줄 높이(_lineHeight)로 묶어 카드가 글자만큼만 자라게 한다.
               SizedBox(
                 height: _lineHeight,
                 child: Center(
