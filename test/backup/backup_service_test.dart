@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/backup/backup_service.dart';
@@ -10,6 +10,7 @@ import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
+import 'package:monologue/domain/script_notes.dart';
 
 class Env {
   Env(this.db, this.images) : repo = ScriptRepository(db, images);
@@ -99,5 +100,48 @@ void main() {
     final dst = await newEnv('dst');
     final tampered = BackupService.debugRewriteManifest(bytes, (m) => m..['format'] = 'other');
     await expectLater(dst.backup.restore(tampered), throwsA(isA<BackupFormatException>()));
+  });
+
+  test('version 2 백업은 대화 형식·내 역할·노트를 옮긴다', () async {
+    final src = await newEnv('src');
+    await src.repo.create(const ScriptDraft(
+      work: '장면',
+      body: '민수: 가\n지영: 와',
+      dialogue: true,
+      myRole: '지영',
+      notes: ScriptNotes(situation: '새벽', author: '작가', medium: ScriptMedium.play),
+    ));
+    final bytes = await (await src.backup.export(tmp)).readAsBytes();
+    final dst = await newEnv('dst');
+    await dst.backup.restore(bytes);
+    final s = (await dst.repo.watchScripts(const ScriptFilter()).first).single.script;
+    expect(s.dialogue, isTrue);
+    expect(s.myRole, '지영');
+    expect(s.notes, const ScriptNotes(situation: '새벽', author: '작가', medium: ScriptMedium.play));
+  });
+
+  test('version 1 백업도 복원하고 형식은 독백, 역할·노트는 비운다', () async {
+    final src = await newEnv('src');
+    await src.repo.create(
+      const ScriptDraft(work: '옛 대본', body: '본문', dialogue: true, myRole: '민수', notes: ScriptNotes(obstacle: 'o')),
+    );
+    final bytes = await (await src.backup.export(tmp)).readAsBytes();
+    final v1 = BackupService.debugRewriteManifest(bytes, (m) {
+      m['version'] = 1;
+      for (final e in (m['scripts'] as List).cast<Map<String, Object?>>()) {
+        e
+          ..remove('dialogue')
+          ..remove('myRole')
+          ..remove('notes');
+      }
+      return m;
+    });
+    final dst = await newEnv('dst');
+    expect(await dst.backup.restore(v1), 1);
+    final s = (await dst.repo.watchScripts(const ScriptFilter()).first).single.script;
+    expect(s.work, '옛 대본');
+    expect(s.dialogue, isFalse);
+    expect(s.myRole, isNull);
+    expect(s.notes.isEmpty, isTrue);
   });
 }
