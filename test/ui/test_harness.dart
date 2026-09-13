@@ -64,6 +64,12 @@ class FakeMediaPicker implements MediaPicker {
 
   @override
   Future<PickedMedia?> pickAudio() async => next;
+
+  /// 파일에서 읽었다고 돌려줄 길이(null이면 읽지 못한 것)
+  Duration? audioLength;
+
+  @override
+  Future<Duration?> audioDuration(String path) async => audioLength;
 }
 
 class Harness {

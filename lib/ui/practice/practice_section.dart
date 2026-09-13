@@ -79,7 +79,11 @@ class _PracticeSectionState extends State<PracticeSection> {
         MaterialPageRoute(builder: (_) => RecordScreen(body: widget.body)),
       );
       if (take == null) return;
-      await repo.addMedia(widget.scriptId, kind: MediaKind.audio, storedFileName: take.fileName, duration: take.duration);
+      // 녹음 화면의 타이머와 파일의 실제 길이는 수십 ms 어긋나고, 초 단위로 버려 보여 주면
+      // 3.99초(0:03)와 4.04초(0:04)처럼 달라 보인다. 재생기와 같은 값을 보여 주도록
+      // 파일에서 읽은 길이를 쓰고, 읽지 못할 때만 타이머 값을 쓴다.
+      final duration = await services.mediaPicker.audioDuration(services.media.pathOf(take.fileName)) ?? take.duration;
+      await repo.addMedia(widget.scriptId, kind: MediaKind.audio, storedFileName: take.fileName, duration: duration);
       return;
     }
     final picker = services.mediaPicker;

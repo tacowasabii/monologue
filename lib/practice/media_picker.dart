@@ -15,6 +15,9 @@ abstract class MediaPicker {
   Future<PickedMedia?> pickVideo();
 
   Future<PickedMedia?> pickAudio();
+
+  /// 음성 파일의 실제 재생 길이. 읽지 못하면 null.
+  Future<Duration?> audioDuration(String path);
 }
 
 class PlatformMediaPicker implements MediaPicker {
@@ -53,6 +56,9 @@ class PlatformMediaPicker implements MediaPicker {
       await controller.dispose();
     }
   }
+
+  @override
+  Future<Duration?> audioDuration(String path) => _audioDuration(path);
 
   Future<Duration?> _audioDuration(String path) async {
     final player = AudioPlayer();

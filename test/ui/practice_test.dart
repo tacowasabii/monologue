@@ -78,6 +78,8 @@ void main() {
   testWidgets('녹음하기: 대본을 보면서 녹음하고, 멈추면 기록이 생긴다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     final id = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '나는 늘 괜찮다고 말했어.'))))!;
+    // 녹음 파일에서 읽은 실제 길이
+    h.picker.audioLength = const Duration(milliseconds: 4038);
     await openScript(tester, h, id);
 
     await chooseAdd(tester, '녹음하기');
@@ -97,7 +99,8 @@ void main() {
 
     final takes = (await tester.runAsync(() => h.services.repo.watchMedia(id).first))!;
     expect(takes.single.kind, MediaKind.audio);
-    expect(takes.single.durationMs, isNotNull);
+    // 화면 타이머가 아니라 파일에서 읽은 길이로 남긴다
+    expect(takes.single.durationMs, 4038);
     expect(File(h.services.media.pathOf(takes.single.fileName)).existsSync(), isTrue);
     expect(find.text('연습 기록'), findsOneWidget); // 대본 화면으로 돌아왔다
     await tester.runAsync(h.db.close);
