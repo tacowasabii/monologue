@@ -31,8 +31,50 @@ const _v3Schema = [
       '"script_id" INTEGER NOT NULL REFERENCES scripts (id), "file_name" TEXT NOT NULL, "position" INTEGER NOT NULL);',
 ];
 
+// 연습 기록이 생기기 전 버전 4: 버전 3에 모음 표 두 개가 더해졌다(에뮬레이터의 실제 DB에서 꺼냈다)
+const _v4Schema = [
+  ..._v3Schema,
+  'CREATE TABLE IF NOT EXISTS "collections" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, '
+      '"name" TEXT NOT NULL UNIQUE, "created_at" TEXT NOT NULL);',
+  'CREATE TABLE IF NOT EXISTS "script_collections" ("script_id" INTEGER NOT NULL REFERENCES scripts (id), '
+      '"collection_id" INTEGER NOT NULL REFERENCES collections (id), PRIMARY KEY ("script_id", "collection_id"));',
+];
+
 void main() {
   late Directory tmp;
+
+  test('버전 4 DB는 대본과 모음을 그대로 두고 연습 기록 표만 더한다', () async {
+    final file = File('${tmp.path}/v4.sqlite');
+    final v4 = sqlite3.open(file.path);
+    for (final sql in _v4Schema) {
+      v4.execute(sql);
+    }
+    v4.execute(
+      'INSERT INTO scripts (work, memo, gender, age_range, status, favorite, body, created_at, updated_at) '
+      "VALUES ('햄릿', NULL, 'any', 'any', 'notStarted', 0, '그분이 미치셨다니', "
+      "'2026-09-13T10:00:00.000+09:00', '2026-09-13T10:00:00.000+09:00')",
+    );
+    v4.execute("INSERT INTO collections (name, created_at) VALUES ('1차 오디션', '2026-09-13T10:00:00.000+09:00')");
+    v4.execute('INSERT INTO script_collections (script_id, collection_id) VALUES (1, 1)');
+    v4.execute('PRAGMA user_version = 4');
+    v4.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    expect((await db.select(db.scripts).getSingle()).work, '햄릿');
+    expect((await db.select(db.collections).getSingle()).name, '1차 오디션');
+    expect(await db.select(db.scriptCollections).get(), hasLength(1));
+    expect(await db.select(db.scriptMedia).get(), isEmpty);
+
+    // 새 표에 바로 쓸 수 있어야 한다
+    await db.into(db.scriptMedia).insert(ScriptMediaCompanion.insert(
+          scriptId: 1,
+          kind: MediaKind.audio,
+          fileName: 'take.m4a',
+          createdAt: DateTime(2026, 9, 13),
+        ));
+    expect((await db.select(db.scriptMedia).getSingle()).fileName, 'take.m4a');
+    await db.close();
+  });
 
   test('버전 3 DB는 대본을 그대로 두고 모음 표만 더한다', () async {
     final file = File('${tmp.path}/v3.sqlite');

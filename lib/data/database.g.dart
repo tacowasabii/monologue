@@ -1604,6 +1604,417 @@ class ScriptCollectionsCompanion extends UpdateCompanion<ScriptCollection> {
   }
 }
 
+class $ScriptMediaTable extends ScriptMedia
+    with TableInfo<$ScriptMediaTable, MediaItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ScriptMediaTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _scriptIdMeta = const VerificationMeta(
+    'scriptId',
+  );
+  @override
+  late final GeneratedColumn<int> scriptId = GeneratedColumn<int>(
+    'script_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES scripts (id)',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<MediaKind, String> kind =
+      GeneratedColumn<String>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<MediaKind>($ScriptMediaTable.$converterkind);
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMsMeta = const VerificationMeta(
+    'durationMs',
+  );
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    scriptId,
+    kind,
+    fileName,
+    durationMs,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'script_media';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MediaItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('script_id')) {
+      context.handle(
+        _scriptIdMeta,
+        scriptId.isAcceptableOrUnknown(data['script_id']!, _scriptIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scriptIdMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileNameMeta);
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MediaItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      scriptId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}script_id'],
+      )!,
+      kind: $ScriptMediaTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      fileName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_name'],
+      )!,
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ScriptMediaTable createAlias(String alias) {
+    return $ScriptMediaTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<MediaKind, String, String> $converterkind =
+      const EnumNameConverter<MediaKind>(MediaKind.values);
+}
+
+class MediaItem extends DataClass implements Insertable<MediaItem> {
+  final int id;
+  final int scriptId;
+  final MediaKind kind;
+  final String fileName;
+  final int? durationMs;
+  final DateTime createdAt;
+  const MediaItem({
+    required this.id,
+    required this.scriptId,
+    required this.kind,
+    required this.fileName,
+    this.durationMs,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['script_id'] = Variable<int>(scriptId);
+    {
+      map['kind'] = Variable<String>(
+        $ScriptMediaTable.$converterkind.toSql(kind),
+      );
+    }
+    map['file_name'] = Variable<String>(fileName);
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ScriptMediaCompanion toCompanion(bool nullToAbsent) {
+    return ScriptMediaCompanion(
+      id: Value(id),
+      scriptId: Value(scriptId),
+      kind: Value(kind),
+      fileName: Value(fileName),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory MediaItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaItem(
+      id: serializer.fromJson<int>(json['id']),
+      scriptId: serializer.fromJson<int>(json['scriptId']),
+      kind: $ScriptMediaTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      fileName: serializer.fromJson<String>(json['fileName']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'scriptId': serializer.toJson<int>(scriptId),
+      'kind': serializer.toJson<String>(
+        $ScriptMediaTable.$converterkind.toJson(kind),
+      ),
+      'fileName': serializer.toJson<String>(fileName),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  MediaItem copyWith({
+    int? id,
+    int? scriptId,
+    MediaKind? kind,
+    String? fileName,
+    Value<int?> durationMs = const Value.absent(),
+    DateTime? createdAt,
+  }) => MediaItem(
+    id: id ?? this.id,
+    scriptId: scriptId ?? this.scriptId,
+    kind: kind ?? this.kind,
+    fileName: fileName ?? this.fileName,
+    durationMs: durationMs.present ? durationMs.value : this.durationMs,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  MediaItem copyWithCompanion(ScriptMediaCompanion data) {
+    return MediaItem(
+      id: data.id.present ? data.id.value : this.id,
+      scriptId: data.scriptId.present ? data.scriptId.value : this.scriptId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      durationMs: data.durationMs.present
+          ? data.durationMs.value
+          : this.durationMs,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaItem(')
+          ..write('id: $id, ')
+          ..write('scriptId: $scriptId, ')
+          ..write('kind: $kind, ')
+          ..write('fileName: $fileName, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, scriptId, kind, fileName, durationMs, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaItem &&
+          other.id == this.id &&
+          other.scriptId == this.scriptId &&
+          other.kind == this.kind &&
+          other.fileName == this.fileName &&
+          other.durationMs == this.durationMs &&
+          other.createdAt == this.createdAt);
+}
+
+class ScriptMediaCompanion extends UpdateCompanion<MediaItem> {
+  final Value<int> id;
+  final Value<int> scriptId;
+  final Value<MediaKind> kind;
+  final Value<String> fileName;
+  final Value<int?> durationMs;
+  final Value<DateTime> createdAt;
+  const ScriptMediaCompanion({
+    this.id = const Value.absent(),
+    this.scriptId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ScriptMediaCompanion.insert({
+    this.id = const Value.absent(),
+    required int scriptId,
+    required MediaKind kind,
+    required String fileName,
+    this.durationMs = const Value.absent(),
+    required DateTime createdAt,
+  }) : scriptId = Value(scriptId),
+       kind = Value(kind),
+       fileName = Value(fileName),
+       createdAt = Value(createdAt);
+  static Insertable<MediaItem> custom({
+    Expression<int>? id,
+    Expression<int>? scriptId,
+    Expression<String>? kind,
+    Expression<String>? fileName,
+    Expression<int>? durationMs,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (scriptId != null) 'script_id': scriptId,
+      if (kind != null) 'kind': kind,
+      if (fileName != null) 'file_name': fileName,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ScriptMediaCompanion copyWith({
+    Value<int>? id,
+    Value<int>? scriptId,
+    Value<MediaKind>? kind,
+    Value<String>? fileName,
+    Value<int?>? durationMs,
+    Value<DateTime>? createdAt,
+  }) {
+    return ScriptMediaCompanion(
+      id: id ?? this.id,
+      scriptId: scriptId ?? this.scriptId,
+      kind: kind ?? this.kind,
+      fileName: fileName ?? this.fileName,
+      durationMs: durationMs ?? this.durationMs,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (scriptId.present) {
+      map['script_id'] = Variable<int>(scriptId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $ScriptMediaTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScriptMediaCompanion(')
+          ..write('id: $id, ')
+          ..write('scriptId: $scriptId, ')
+          ..write('kind: $kind, ')
+          ..write('fileName: $fileName, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1613,6 +2024,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CollectionsTable collections = $CollectionsTable(this);
   late final $ScriptCollectionsTable scriptCollections =
       $ScriptCollectionsTable(this);
+  late final $ScriptMediaTable scriptMedia = $ScriptMediaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1623,6 +2035,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     scriptImages,
     collections,
     scriptCollections,
+    scriptMedia,
   ];
   @override
   DriftDatabaseOptions get options =>
@@ -1710,6 +2123,24 @@ final class $$ScriptsTableReferences
     final cache = $_typedResult.readTableOrNull(
       _scriptCollectionsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ScriptMediaTable, List<MediaItem>>
+  _scriptMediaRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.scriptMedia,
+    aliasName: 'scripts__id__script_media__script_id',
+  );
+
+  $$ScriptMediaTableProcessedTableManager get scriptMediaRefs {
+    final manager = $$ScriptMediaTableTableManager(
+      $_db,
+      $_db.scriptMedia,
+    ).filter((f) => f.scriptId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_scriptMediaRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1844,6 +2275,31 @@ class $$ScriptsTableFilterComposer
           }) => $$ScriptCollectionsTableFilterComposer(
             $db: $db,
             $table: $db.scriptCollections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> scriptMediaRefs(
+    Expression<bool> Function($$ScriptMediaTableFilterComposer f) f,
+  ) {
+    final $$ScriptMediaTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.scriptMedia,
+      getReferencedColumn: (t) => t.scriptId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptMediaTableFilterComposer(
+            $db: $db,
+            $table: $db.scriptMedia,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2028,6 +2484,31 @@ class $$ScriptsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> scriptMediaRefs<T extends Object>(
+    Expression<T> Function($$ScriptMediaTableAnnotationComposer a) f,
+  ) {
+    final $$ScriptMediaTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.scriptMedia,
+      getReferencedColumn: (t) => t.scriptId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptMediaTableAnnotationComposer(
+            $db: $db,
+            $table: $db.scriptMedia,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ScriptsTableTableManager
@@ -2047,6 +2528,7 @@ class $$ScriptsTableTableManager
             bool scriptTagsRefs,
             bool scriptImagesRefs,
             bool scriptCollectionsRefs,
+            bool scriptMediaRefs,
           })
         > {
   $$ScriptsTableTableManager(_$AppDatabase db, $ScriptsTable table)
@@ -2121,6 +2603,7 @@ class $$ScriptsTableTableManager
                 scriptTagsRefs = false,
                 scriptImagesRefs = false,
                 scriptCollectionsRefs = false,
+                scriptMediaRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -2128,6 +2611,7 @@ class $$ScriptsTableTableManager
                     if (scriptTagsRefs) db.scriptTags,
                     if (scriptImagesRefs) db.scriptImages,
                     if (scriptCollectionsRefs) db.scriptCollections,
+                    if (scriptMediaRefs) db.scriptMedia,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -2195,6 +2679,27 @@ class $$ScriptsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (scriptMediaRefs)
+                        await $_getPrefetchedData<
+                          Script,
+                          $ScriptsTable,
+                          MediaItem
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ScriptsTableReferences
+                              ._scriptMediaRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ScriptsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).scriptMediaRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.scriptId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -2219,6 +2724,7 @@ typedef $$ScriptsTableProcessedTableManager =
         bool scriptTagsRefs,
         bool scriptImagesRefs,
         bool scriptCollectionsRefs,
+        bool scriptMediaRefs,
       })
     >;
 typedef $$ScriptTagsTableCreateCompanionBuilder = ScriptTagsCompanion Function({
@@ -3379,6 +3885,337 @@ typedef $$ScriptCollectionsTableProcessedTableManager =
       ScriptCollection,
       PrefetchHooks Function({bool scriptId, bool collectionId})
     >;
+typedef $$ScriptMediaTableCreateCompanionBuilder =
+    ScriptMediaCompanion Function({
+      Value<int> id,
+      required int scriptId,
+      required MediaKind kind,
+      required String fileName,
+      Value<int?> durationMs,
+      required DateTime createdAt,
+    });
+typedef $$ScriptMediaTableUpdateCompanionBuilder =
+    ScriptMediaCompanion Function({
+      Value<int> id,
+      Value<int> scriptId,
+      Value<MediaKind> kind,
+      Value<String> fileName,
+      Value<int?> durationMs,
+      Value<DateTime> createdAt,
+    });
+
+final class $$ScriptMediaTableReferences
+    extends BaseReferences<_$AppDatabase, $ScriptMediaTable, MediaItem> {
+  $$ScriptMediaTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ScriptsTable _scriptIdTable(_$AppDatabase db) =>
+      db.scripts.createAlias('script_media__script_id__scripts__id');
+
+  $$ScriptsTableProcessedTableManager get scriptId {
+    final $_column = $_itemColumn<int>('script_id')!;
+
+    final manager = $$ScriptsTableTableManager(
+      $_db,
+      $_db.scripts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_scriptIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ScriptMediaTableFilterComposer
+    extends Composer<_$AppDatabase, $ScriptMediaTable> {
+  $$ScriptMediaTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<MediaKind, MediaKind, String> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ScriptsTableFilterComposer get scriptId {
+    final $$ScriptsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scriptId,
+      referencedTable: $db.scripts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptsTableFilterComposer(
+            $db: $db,
+            $table: $db.scripts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ScriptMediaTableOrderingComposer
+    extends Composer<_$AppDatabase, $ScriptMediaTable> {
+  $$ScriptMediaTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ScriptsTableOrderingComposer get scriptId {
+    final $$ScriptsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scriptId,
+      referencedTable: $db.scripts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptsTableOrderingComposer(
+            $db: $db,
+            $table: $db.scripts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ScriptMediaTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ScriptMediaTable> {
+  $$ScriptMediaTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<MediaKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ScriptsTableAnnotationComposer get scriptId {
+    final $$ScriptsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.scriptId,
+      referencedTable: $db.scripts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ScriptsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.scripts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ScriptMediaTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ScriptMediaTable,
+          MediaItem,
+          $$ScriptMediaTableFilterComposer,
+          $$ScriptMediaTableOrderingComposer,
+          $$ScriptMediaTableAnnotationComposer,
+          $$ScriptMediaTableCreateCompanionBuilder,
+          $$ScriptMediaTableUpdateCompanionBuilder,
+          (MediaItem, $$ScriptMediaTableReferences),
+          MediaItem,
+          PrefetchHooks Function({bool scriptId})
+        > {
+  $$ScriptMediaTableTableManager(_$AppDatabase db, $ScriptMediaTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ScriptMediaTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ScriptMediaTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ScriptMediaTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> scriptId = const Value.absent(),
+                Value<MediaKind> kind = const Value.absent(),
+                Value<String> fileName = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ScriptMediaCompanion(
+                id: id,
+                scriptId: scriptId,
+                kind: kind,
+                fileName: fileName,
+                durationMs: durationMs,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int scriptId,
+                required MediaKind kind,
+                required String fileName,
+                Value<int?> durationMs = const Value.absent(),
+                required DateTime createdAt,
+              }) => ScriptMediaCompanion.insert(
+                id: id,
+                scriptId: scriptId,
+                kind: kind,
+                fileName: fileName,
+                durationMs: durationMs,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ScriptMediaTable, MediaItem>(table),
+                  $$ScriptMediaTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({scriptId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (scriptId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.scriptId,
+                        referencedTable: $$ScriptMediaTableReferences
+                            ._scriptIdTable(db),
+                        referencedColumn: $$ScriptMediaTableReferences
+                            ._scriptIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ScriptMediaTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ScriptMediaTable,
+      MediaItem,
+      $$ScriptMediaTableFilterComposer,
+      $$ScriptMediaTableOrderingComposer,
+      $$ScriptMediaTableAnnotationComposer,
+      $$ScriptMediaTableCreateCompanionBuilder,
+      $$ScriptMediaTableUpdateCompanionBuilder,
+      (MediaItem, $$ScriptMediaTableReferences),
+      MediaItem,
+      PrefetchHooks Function({bool scriptId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3393,4 +4230,6 @@ class $AppDatabaseManager {
       $$CollectionsTableTableManager(_db, _db.collections);
   $$ScriptCollectionsTableTableManager get scriptCollections =>
       $$ScriptCollectionsTableTableManager(_db, _db.scriptCollections);
+  $$ScriptMediaTableTableManager get scriptMedia =>
+      $$ScriptMediaTableTableManager(_db, _db.scriptMedia);
 }

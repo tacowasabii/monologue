@@ -5,6 +5,7 @@ import '../domain/script_draft.dart';
 import '../domain/script_filter.dart';
 import 'database.dart';
 import 'image_store.dart';
+import 'media_store.dart';
 
 class ScriptSummary {
   const ScriptSummary(this.script, this.tags);
@@ -30,10 +31,11 @@ class CollectionSummary {
 }
 
 class ScriptRepository {
-  ScriptRepository(this.db, this.images);
+  ScriptRepository(this.db, this.images, this.media);
 
   final AppDatabase db;
   final ImageStore images;
+  final MediaStore media;
 
   Stream<List<ScriptSummary>> watchScripts(ScriptFilter f) {
     final q = db.select(db.scripts)
@@ -215,13 +217,18 @@ class ScriptRepository {
 
   Future<void> delete(int id) async {
     final imgs = await (db.select(db.scriptImages)..where((i) => i.scriptId.equals(id))).get();
+    final takes = await (db.select(db.scriptMedia)..where((m) => m.scriptId.equals(id))).get();
     await db.transaction(() async {
       await (db.delete(db.scriptTags)..where((t) => t.scriptId.equals(id))).go();
       await (db.delete(db.scriptImages)..where((i) => i.scriptId.equals(id))).go();
       await (db.delete(db.scriptCollections)..where((sc) => sc.scriptId.equals(id))).go();
+      await (db.delete(db.scriptMedia)..where((m) => m.scriptId.equals(id))).go();
       await (db.delete(db.scripts)..where((s) => s.id.equals(id))).go();
     });
     await _deleteFiles([for (final img in imgs) img.fileName]);
+    for (final t in takes) {
+      await media.delete(t.fileName);
+    }
   }
 
   JoinedSelectStatement<$ScriptTagsTable, dynamic> _distinctTags() =>
@@ -271,4 +278,55 @@ class ScriptRepository {
         await (db.delete(db.scriptCollections)..where((sc) => sc.collectionId.equals(id))).go();
         await (db.delete(db.collections)..where((c) => c.id.equals(id))).go();
       });
+
+  // ── 연습 기록 ──
+
+  /// 최근에 남긴 기록부터.
+  Stream<List<MediaItem>> watchMedia(int scriptId) => (db.select(db.scriptMedia)
+        ..where((m) => m.scriptId.equals(scriptId))
+        ..orderBy([(m) => OrderingTerm.desc(m.createdAt), (m) => OrderingTerm.desc(m.id)]))
+      .watch();
+
+  /// 이미 저장소에 들어간 파일(앱에서 녹음한 파일, 백업에서 복원한 파일)을 기록으로 남긴다.
+  Future<int> addMedia(
+    int scriptId, {
+    required MediaKind kind,
+    required String storedFileName,
+    Duration? duration,
+    DateTime? createdAt,
+  }) =>
+      db.into(db.scriptMedia).insert(ScriptMediaCompanion.insert(
+            scriptId: scriptId,
+            kind: kind,
+            fileName: storedFileName,
+            durationMs: Value(duration?.inMilliseconds),
+            createdAt: createdAt ?? DateTime.now(),
+          ));
+
+  /// 폰에 있는 파일(카메라로 찍은 영상, 고른 파일)을 저장소로 복사해 기록으로 남긴다.
+  Future<int> importMedia(int scriptId, {required MediaKind kind, required String sourcePath, Duration? duration}) async {
+    final name = await media.importFile(sourcePath);
+    try {
+      return await addMedia(scriptId, kind: kind, storedFileName: name, duration: duration);
+    } catch (_) {
+      await media.delete(name);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteMedia(int id) async {
+    final item = await (db.select(db.scriptMedia)..where((m) => m.id.equals(id))).getSingleOrNull();
+    if (item == null) return;
+    await (db.delete(db.scriptMedia)..where((m) => m.id.equals(id))).go();
+    await media.delete(item.fileName);
+  }
+
+  /// 연습 기록 파일을 모두 더한 크기. 백업에 넣을지 고를 때 보여 준다.
+  Future<int> mediaSizeBytes() async {
+    var total = 0;
+    for (final m in await db.select(db.scriptMedia).get()) {
+      total += await media.sizeOf(m.fileName);
+    }
+    return total;
+  }
 }

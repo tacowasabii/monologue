@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/data/database.dart';
 import 'package:monologue/data/image_store.dart';
+import 'package:monologue/data/media_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
@@ -14,6 +15,7 @@ void main() {
   late AppDatabase db;
   late Directory tmp;
   late ImageStore images;
+  late MediaStore media;
   late ScriptRepository repo;
 
   Future<String> fakeImage(String name) async {
@@ -26,7 +28,8 @@ void main() {
     db = AppDatabase(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
     tmp = await Directory.systemTemp.createTemp('monologue_test');
     images = ImageStore(await Directory('${tmp.path}/store').create());
-    repo = ScriptRepository(db, images);
+    media = MediaStore(await Directory('${tmp.path}/media').create());
+    repo = ScriptRepository(db, images, media);
   });
 
   tearDown(() async {
@@ -164,6 +167,49 @@ void main() {
       expect(await repo.collectionIdFor('1차 오디션'), audition);
       expect(await repo.collectionIdFor('입시'), isNot(audition));
       expect(await repo.watchCollections().first, hasLength(2));
+    });
+  });
+
+  group('연습 기록', () {
+    test('기록을 최근 순으로 보여 주고, 기록을 지우면 파일도 지운다', () async {
+      final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      final video = await repo.importMedia(
+        id,
+        kind: MediaKind.video,
+        sourcePath: await fakeImage('take1.mp4'),
+        duration: const Duration(seconds: 90),
+      );
+      // 앱에서 녹음한 파일은 저장소에 바로 써진다
+      final recorded = media.newFileName('.m4a');
+      await File(media.pathOf(recorded)).writeAsBytes([1, 2]);
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await repo.addMedia(id, kind: MediaKind.audio, storedFileName: recorded, duration: const Duration(seconds: 42));
+
+      final items = await repo.watchMedia(id).first;
+      expect(items.map((m) => (m.kind, m.durationMs)), [(MediaKind.audio, 42000), (MediaKind.video, 90000)]);
+      final videoFile = media.pathOf(items.last.fileName);
+      expect(File(videoFile).existsSync(), isTrue);
+
+      await repo.deleteMedia(video);
+      expect(File(videoFile).existsSync(), isFalse);
+      expect(await repo.watchMedia(id).first, hasLength(1));
+    });
+
+    test('대본을 지우면 연습 기록과 파일도 함께 지운다', () async {
+      final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      await repo.importMedia(id, kind: MediaKind.audio, sourcePath: await fakeImage('voice.m4a'));
+      final file = media.pathOf((await repo.watchMedia(id).first).single.fileName);
+
+      await repo.delete(id);
+      expect(File(file).existsSync(), isFalse);
+      expect(await repo.watchMedia(id).first, isEmpty);
+    });
+
+    test('mediaSizeBytes는 연습 기록 파일 크기를 모두 더한다', () async {
+      final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      await repo.importMedia(id, kind: MediaKind.audio, sourcePath: await fakeImage('a.m4a'));
+      await repo.importMedia(id, kind: MediaKind.video, sourcePath: await fakeImage('b.mp4'));
+      expect(await repo.mediaSizeBytes(), 8); // fakeImage는 4바이트짜리 파일을 만든다
     });
   });
 

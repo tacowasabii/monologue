@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'backup/backup_service.dart';
 import 'data/image_store.dart';
+import 'data/media_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
 import 'settings/app_tips.dart';
@@ -12,6 +13,7 @@ class AppServices {
   const AppServices({
     required this.repo,
     required this.images,
+    required this.media,
     required this.ocr,
     required this.backup,
     required this.settings,
@@ -21,6 +23,7 @@ class AppServices {
 
   final ScriptRepository repo;
   final ImageStore images;
+  final MediaStore media;
   final TextRecognizing ocr;
   final BackupService backup;
   final ReadingSettings settings;

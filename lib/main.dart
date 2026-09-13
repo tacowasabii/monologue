@@ -7,6 +7,7 @@ import 'app_scope.dart';
 import 'backup/backup_service.dart';
 import 'data/database.dart';
 import 'data/image_store.dart';
+import 'data/media_store.dart';
 import 'data/script_repository.dart';
 import 'ocr/text_recognizer.dart';
 import 'settings/app_tips.dart';
@@ -20,11 +21,13 @@ Future<void> main() async {
   });
   final db = AppDatabase();
   final images = await ImageStore.open();
-  final repo = ScriptRepository(db, images);
+  final media = await MediaStore.open();
+  final repo = ScriptRepository(db, images, media);
   runApp(AppScope(
     services: AppServices(
       repo: repo,
       images: images,
+      media: media,
       ocr: PlatformTextRecognizer(),
       backup: BackupService(db, repo, images),
       settings: await ReadingSettings.load(),

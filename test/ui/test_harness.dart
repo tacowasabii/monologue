@@ -8,6 +8,7 @@ import 'package:monologue/app_scope.dart';
 import 'package:monologue/backup/backup_service.dart';
 import 'package:monologue/data/database.dart';
 import 'package:monologue/data/image_store.dart';
+import 'package:monologue/data/media_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/ocr/assemble_text.dart';
 import 'package:monologue/ocr/text_recognizer.dart';
@@ -32,12 +33,14 @@ class Harness {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     final db = AppDatabase(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
     final images = ImageStore(Directory.systemTemp.createTempSync('monologue_ui'));
-    final repo = ScriptRepository(db, images);
+    final media = MediaStore(Directory.systemTemp.createTempSync('monologue_media'));
+    final repo = ScriptRepository(db, images, media);
     return Harness._(
       db,
       AppServices(
         repo: repo,
         images: images,
+        media: media,
         ocr: FakeRecognizer(),
         backup: BackupService(db, repo, images),
         settings: await ReadingSettings.load(),

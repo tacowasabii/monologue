@@ -50,12 +50,23 @@ class ScriptCollections extends Table {
   Set<Column> get primaryKey => {scriptId, collectionId};
 }
 
-@DriftDatabase(tables: [Scripts, ScriptTags, ScriptImages, Collections, ScriptCollections])
+/// 대본에 남긴 연습 기록(녹음·영상). 파일은 MediaStore에 따로 둔다.
+@DataClassName('MediaItem')
+class ScriptMedia extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get scriptId => integer().references(Scripts, #id)();
+  TextColumn get kind => textEnum<MediaKind>()();
+  TextColumn get fileName => text()();
+  IntColumn get durationMs => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+@DriftDatabase(tables: [Scripts, ScriptTags, ScriptImages, Collections, ScriptCollections, ScriptMedia])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -72,6 +83,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(collections);
             await m.createTable(scriptCollections);
+          }
+          // 5: 연습 기록(녹음·영상)
+          if (from < 5) {
+            await m.createTable(scriptMedia);
           }
         },
       );

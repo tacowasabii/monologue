@@ -6,16 +6,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/backup/backup_service.dart';
 import 'package:monologue/data/database.dart';
 import 'package:monologue/data/image_store.dart';
+import 'package:monologue/data/media_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
 
 class Env {
-  Env(this.db, this.images) : repo = ScriptRepository(db, images);
+  Env(this.db, this.images, this.media) : repo = ScriptRepository(db, images, media);
 
   final AppDatabase db;
   final ImageStore images;
+  final MediaStore media;
   final ScriptRepository repo;
   late final backup = BackupService(db, repo, images);
 }
@@ -28,6 +30,7 @@ void main() {
     final e = Env(
       AppDatabase(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true)),
       ImageStore(await Directory('${tmp.path}/$name').create()),
+      MediaStore(await Directory('${tmp.path}/$name-media').create()),
     );
     envs.add(e);
     return e;
