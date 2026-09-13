@@ -66,9 +66,16 @@ final class OcrPlugin: NSObject, FlutterPlugin {
     try VNImageRequestHandler(cgImage: image, orientation: orientation).perform([request])
 
     return (request.results ?? []).compactMap { observation in
-      guard let text = observation.topCandidates(1).first?.string else { return nil }
+      guard let candidate = observation.topCandidates(1).first else { return nil }
       let box = observation.boundingBox // 정규화 좌표, 원점 왼쪽 아래
-      return ["text": text, "top": 1 - box.maxY, "left": box.minX, "height": box.height]
+      return [
+        "text": candidate.string,
+        "top": 1 - box.maxY,
+        "left": box.minX,
+        "height": box.height,
+        // 손글씨처럼 인식기가 자신 없어 하는 줄을 가려내는 데 쓴다
+        "confidence": candidate.confidence,
+      ]
     }
   }
 }

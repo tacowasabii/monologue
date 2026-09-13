@@ -21,6 +21,7 @@ class PlatformTextRecognizer implements TextRecognizing {
           top: (m['top']! as num).toDouble(),
           left: (m['left']! as num).toDouble(),
           height: (m['height']! as num).toDouble(),
+          confidence: (m['confidence'] as num?)?.toDouble(),
         ),
     ]);
   }

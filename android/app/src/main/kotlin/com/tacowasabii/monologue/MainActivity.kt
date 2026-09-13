@@ -39,11 +39,14 @@ class MainActivity : FlutterActivity() {
                 .addOnSuccessListener { text ->
                     val lines = text.textBlocks.flatMap { it.lines }.mapNotNull { line ->
                         val box = line.boundingBox ?: return@mapNotNull null
+                        val confidence = line.confidence
                         mapOf(
                             "text" to line.text,
                             "top" to box.top.toDouble(),
                             "left" to box.left.toDouble(),
                             "height" to box.height().toDouble(),
+                            // 손글씨처럼 인식기가 자신 없어 하는 줄을 가려내는 데 쓴다
+                            "confidence" to if (confidence.isNaN()) null else confidence.toDouble(),
                         )
                     }
                     result.success(lines)

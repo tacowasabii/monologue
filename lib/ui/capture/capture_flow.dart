@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../app_scope.dart';
 import '../../ocr/assemble_text.dart';
+import 'pick_paragraphs_screen.dart';
 
 class CaptureResult {
   const CaptureResult({required this.text, required this.imagePaths, this.failedCount = 0});
@@ -202,15 +203,38 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
         pages.add(const []);
       }
     }
-    final text = assembleText(pages);
     progress.dispose();
     if (!mounted) return;
     navigator.pop(); // 진행 대화상자
-    if (text.isEmpty) messenger.showSnackBar(const SnackBar(content: Text('글자를 찾지 못했어요. 직접 입력할 수 있어요.')));
+
+    final paragraphs = paragraphsOf(pages);
+    if (paragraphs.isEmpty) {
+      messenger.showSnackBar(const SnackBar(content: Text('글자를 찾지 못했어요. 직접 입력할 수 있어요.')));
+      navigator.pop(CaptureResult(text: '', imagePaths: List.of(_paths)));
+      return;
+    }
+
+    // 문단이 하나뿐이면 고를 것이 없다
+    var picked = paragraphs;
+    if (paragraphs.length > 1) {
+      final chosen = await navigator.push<List<Paragraph>>(
+        MaterialPageRoute(builder: (_) => PickParagraphsScreen(paragraphs: paragraphs)),
+      );
+      // 뒤로 가면 사진을 그대로 둔 채 다시 인식할 수 있게 한다
+      if (chosen == null) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+      picked = chosen;
+    }
+    if (!mounted) return;
+    if (picked.any((p) => p.needsCheck)) {
+      messenger.showSnackBar(const SnackBar(content: Text('확인 필요로 표시된 문단이 있어요. 본문을 한 번 봐 주세요.')));
+    }
     navigator.pop(CaptureResult(
-      text: text,
+      text: textOf(picked),
       imagePaths: List.of(_paths),
-      failedCount: text.isEmpty ? 0 : pages.where((p) => p.isEmpty).length,
+      failedCount: pages.where((p) => p.isEmpty).length,
     ));
   }
 
