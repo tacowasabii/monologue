@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
+import '../../domain/script_draft.dart';
 import '../../domain/script_filter.dart';
 import '../capture/capture_flow.dart';
 import '../edit/script_edit_screen.dart';
@@ -75,7 +76,7 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                 child: SearchBar(
-                  hintText: '제목, 작품, 인물, 본문 검색',
+                  hintText: '작품, 인물, 메모, 본문 검색',
                   leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
                   trailing: [
                     FavoritesButton(filter: _filter, onChanged: _setFilter),
@@ -178,10 +179,10 @@ class _ScriptCard extends StatelessWidget {
 
   final ScriptSummary summary;
 
-  /// 제목이 본문 첫 줄에서 온 경우가 많아서, 첫 줄이 제목과 같으면 빼고 이어지는 대사를 보여준다.
-  static String _excerpt(String title, String body) {
+  /// 작품명·인물이 없으면 본문 첫 줄이 제목 자리로 올라가므로, 미리보기는 그다음 줄부터 보여 준다.
+  static String _excerpt(String body, {required bool skipFirstLine}) {
     final lines = body.trim().split('\n');
-    if (lines.first.trim() == title.trim()) lines.removeAt(0);
+    if (skipFirstLine) lines.removeAt(0);
     return lines.join(' ').replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
@@ -191,8 +192,11 @@ class _ScriptCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final repo = AppScope.of(context).repo;
-    final meta = [s.work, s.character].whereType<String>().where((e) => e.isNotEmpty).join(' · ');
-    final excerpt = _excerpt(s.title, s.body);
+    final source = sourceOf(s.work, s.character);
+    final heading = source ?? firstLineOf(s.body);
+    final excerpt = _excerpt(s.body, skipFirstLine: source == null);
+    // 같은 작품·인물의 독백이 여러 개여도 구분되도록 메모 첫 줄을 제목 아래에 보여 준다
+    final memoLine = firstLineOf(s.memo ?? '');
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -212,16 +216,16 @@ class _ScriptCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            s.title,
+                            heading,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleLarge?.copyWith(fontSize: 18, height: 1.35),
                           ),
-                          if (meta.isNotEmpty)
+                          if (memoLine.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 3),
                               child: Text(
-                                meta,
+                                memoLine,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant, fontSize: 13),

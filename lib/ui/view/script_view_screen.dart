@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
+import '../../domain/script_draft.dart';
 import '../../settings/reading_settings.dart';
 import '../edit/script_edit_screen.dart';
 import '../theme.dart';
@@ -130,11 +131,13 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         final s = d.script;
         final theme = Theme.of(context);
         final scheme = theme.colorScheme;
-        final source = [s.work, s.character].whereType<String>().where((e) => e.isNotEmpty).join(' · ');
+        final source = sourceOf(s.work, s.character);
+        final memo = s.memo;
         final traits = [
           if (s.gender != Gender.any) s.gender.label,
           if (s.ageRange != AgeRange.any) s.ageRange.label,
         ];
+        final hasLabels = traits.isNotEmpty || d.tags.isNotEmpty;
         return Scaffold(
           appBar: AppBar(
             actions: [
@@ -188,14 +191,10 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(24, 4, 24, 64),
             children: [
-              if (source.isNotEmpty) ...[
-                Text(source, style: theme.textTheme.labelLarge?.copyWith(color: scheme.primary)),
-                const SizedBox(height: 10),
-              ],
-              Text(s.title, style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
-              if (traits.isNotEmpty || d.tags.isNotEmpty)
+              if (source != null) Text(source, style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
+              if (hasLabels)
                 Padding(
-                  padding: const EdgeInsets.only(top: 14),
+                  padding: EdgeInsets.only(top: source != null ? 14 : 0),
                   child: Wrap(
                     spacing: 6,
                     runSpacing: 6,
@@ -205,12 +204,23 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     ],
                   ),
                 ),
-              const SizedBox(height: 28),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(width: 28, height: 2, color: scheme.primary.withValues(alpha: 0.5)),
-              ),
-              const SizedBox(height: 24),
+              if (memo != null)
+                Padding(
+                  padding: EdgeInsets.only(top: source != null || hasLabels ? 16 : 0),
+                  child: Text(
+                    memo,
+                    style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
+                  ),
+                ),
+              // 위에 보여 줄 정보가 없으면 구분선 없이 본문부터 시작한다
+              if (source != null || hasLabels || memo != null) ...[
+                const SizedBox(height: 28),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(width: 28, height: 2, color: scheme.primary.withValues(alpha: 0.5)),
+                ),
+                const SizedBox(height: 24),
+              ],
               ListenableBuilder(
                 listenable: services.settings,
                 builder: (context, _) => SelectableText(

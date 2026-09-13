@@ -53,9 +53,9 @@ void main() {
     final img = File('${tmp.path}/shot.png')..writeAsBytesSync([9, 8, 7]);
     await src.repo.create(
       const ScriptDraft(
-        title: '갈매기',
         work: '갈매기',
         character: '니나',
+        memo: '4막 니나 독백',
         body: '나는 갈매기...',
         gender: Gender.female,
         ageRange: AgeRange.twenties,
@@ -65,20 +65,21 @@ void main() {
       ),
       imagePaths: [img.path],
     );
-    await src.repo.create(const ScriptDraft(title: '두번째', body: '본문'));
+    await src.repo.create(const ScriptDraft(work: '두번째', body: '본문'));
 
     final zip = await src.backup.export(tmp, now: DateTime(2026, 9, 11));
     expect(zip.path.endsWith('monologue-backup-20260911.zip'), isTrue);
 
     final dst = await newEnv('dst');
-    await dst.repo.create(const ScriptDraft(title: '기존', body: '유지'));
+    await dst.repo.create(const ScriptDraft(work: '기존', body: '유지'));
     expect(await dst.backup.restore(await zip.readAsBytes()), 2);
 
     final list = await dst.repo.watchScripts(const ScriptFilter()).first;
-    expect(list.map((s) => s.script.title).toSet(), {'갈매기', '두번째', '기존'});
-    final nina = list.firstWhere((s) => s.script.title == '갈매기');
+    expect(list.map((s) => s.script.work).toSet(), {'갈매기', '두번째', '기존'});
+    final nina = list.firstWhere((s) => s.script.work == '갈매기');
     final detail = (await dst.repo.watchScript(nina.script.id).first)!;
     expect(detail.script.character, '니나');
+    expect(detail.script.memo, '4막 니나 독백');
     expect(detail.script.gender, Gender.female);
     expect(detail.script.status, PracticeStatus.practicing);
     expect(detail.script.favorite, isTrue);
@@ -95,7 +96,7 @@ void main() {
 
   test('형식이 다른 backup.json은 거부한다', () async {
     final src = await newEnv('src');
-    await src.repo.create(const ScriptDraft(title: 'A', body: 'x'));
+    await src.repo.create(const ScriptDraft(work: 'A', body: 'x'));
     final bytes = await (await src.backup.export(tmp)).readAsBytes();
     final dst = await newEnv('dst');
     final tampered = BackupService.debugRewriteManifest(bytes, (m) => m..['format'] = 'other');

@@ -15,11 +15,33 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
+  testWidgets('카드 제목은 작품명·인물(없으면 본문 첫 줄)이고, 그 아래 메모 첫 줄이 붙는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() async {
+      await h.services.repo.create(
+        const ScriptDraft(work: '햄릿', character: '오필리어', memo: '1차 오디션\n지정 대사', body: '그분이 미치셨다니'),
+      );
+      await h.services.repo.create(const ScriptDraft(body: '나는 늘 괜찮다고 말했어.\n아침에 눈을 뜰 때도'));
+    });
+    await tester.pumpWidget(h.wrap(const ScriptListScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('햄릿 · 오필리어'), findsOneWidget);
+    // 같은 작품·인물의 독백이 여러 개여도 구분되도록 메모는 첫 줄만 보여 준다
+    expect(find.text('1차 오디션'), findsOneWidget);
+    expect(find.textContaining('지정 대사'), findsNothing);
+    expect(find.text('그분이 미치셨다니'), findsOneWidget);
+    // 첫 줄이 제목 자리로 올라가면 미리보기는 그다음 줄부터 보여 준다
+    expect(find.text('나는 늘 괜찮다고 말했어.'), findsOneWidget);
+    expect(find.text('아침에 눈을 뜰 때도'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
   testWidgets('검색어로 목록을 거른다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {
-      await h.services.repo.create(const ScriptDraft(title: '햄릿', body: '사느냐 죽느냐'));
-      await h.services.repo.create(const ScriptDraft(title: '갈매기', body: '나는 갈매기', gender: Gender.female));
+      await h.services.repo.create(const ScriptDraft(work: '햄릿', body: '사느냐 죽느냐'));
+      await h.services.repo.create(const ScriptDraft(work: '갈매기', body: '나는 갈매기', gender: Gender.female));
     });
     await tester.pumpWidget(h.wrap(const ScriptListScreen()));
     await tester.pumpAndSettle();
@@ -38,20 +60,20 @@ void main() {
     await tester.runAsync(() async {
       final r = h.services.repo;
       await r.create(const ScriptDraft(
-        title: '햄릿',
+        work: '햄릿',
         body: '사느냐 죽느냐',
         gender: Gender.male,
         ageRange: AgeRange.twenties,
       ));
       await r.create(const ScriptDraft(
-        title: '갈매기',
+        work: '갈매기',
         body: '나는 갈매기',
         gender: Gender.female,
         ageRange: AgeRange.twenties,
         favorite: true,
       ));
       await r.create(const ScriptDraft(
-        title: '벚꽃 동산',
+        work: '벚꽃 동산',
         body: '안녕, 나의 동산',
         gender: Gender.female,
         ageRange: AgeRange.fiftiesPlus,

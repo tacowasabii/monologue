@@ -21,15 +21,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _workMeta = const VerificationMeta('work');
   @override
   late final GeneratedColumn<String> work = GeneratedColumn<String>(
@@ -45,6 +36,15 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
   @override
   late final GeneratedColumn<String> character = GeneratedColumn<String>(
     'character_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _memoMeta = const VerificationMeta('memo');
+  @override
+  late final GeneratedColumn<String> memo = GeneratedColumn<String>(
+    'memo',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -125,9 +125,9 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    title,
     work,
     character,
+    memo,
     gender,
     ageRange,
     status,
@@ -151,14 +151,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('title')) {
-      context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
     if (data.containsKey('work')) {
       context.handle(
         _workMeta,
@@ -172,6 +164,12 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
           data['character_name']!,
           _characterMeta,
         ),
+      );
+    }
+    if (data.containsKey('memo')) {
+      context.handle(
+        _memoMeta,
+        memo.isAcceptableOrUnknown(data['memo']!, _memoMeta),
       );
     }
     if (data.containsKey('favorite')) {
@@ -219,10 +217,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      title: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}title'],
-      )!,
       work: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}work'],
@@ -230,6 +224,10 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
       character: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}character_name'],
+      ),
+      memo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memo'],
       ),
       gender: $ScriptsTable.$convertergender.fromSql(
         attachedDatabase.typeMapping.read(
@@ -283,9 +281,9 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
 
 class Script extends DataClass implements Insertable<Script> {
   final int id;
-  final String title;
   final String? work;
   final String? character;
+  final String? memo;
   final Gender gender;
   final AgeRange ageRange;
   final PracticeStatus status;
@@ -295,9 +293,9 @@ class Script extends DataClass implements Insertable<Script> {
   final DateTime updatedAt;
   const Script({
     required this.id,
-    required this.title,
     this.work,
     this.character,
+    this.memo,
     required this.gender,
     required this.ageRange,
     required this.status,
@@ -310,12 +308,14 @@ class Script extends DataClass implements Insertable<Script> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['title'] = Variable<String>(title);
     if (!nullToAbsent || work != null) {
       map['work'] = Variable<String>(work);
     }
     if (!nullToAbsent || character != null) {
       map['character_name'] = Variable<String>(character);
+    }
+    if (!nullToAbsent || memo != null) {
+      map['memo'] = Variable<String>(memo);
     }
     {
       map['gender'] = Variable<String>(
@@ -342,11 +342,11 @@ class Script extends DataClass implements Insertable<Script> {
   ScriptsCompanion toCompanion(bool nullToAbsent) {
     return ScriptsCompanion(
       id: Value(id),
-      title: Value(title),
       work: work == null && nullToAbsent ? const Value.absent() : Value(work),
       character: character == null && nullToAbsent
           ? const Value.absent()
           : Value(character),
+      memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
       gender: Value(gender),
       ageRange: Value(ageRange),
       status: Value(status),
@@ -364,9 +364,9 @@ class Script extends DataClass implements Insertable<Script> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Script(
       id: serializer.fromJson<int>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
       work: serializer.fromJson<String?>(json['work']),
       character: serializer.fromJson<String?>(json['character']),
+      memo: serializer.fromJson<String?>(json['memo']),
       gender: $ScriptsTable.$convertergender.fromJson(
         serializer.fromJson<String>(json['gender']),
       ),
@@ -387,9 +387,9 @@ class Script extends DataClass implements Insertable<Script> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'title': serializer.toJson<String>(title),
       'work': serializer.toJson<String?>(work),
       'character': serializer.toJson<String?>(character),
+      'memo': serializer.toJson<String?>(memo),
       'gender': serializer.toJson<String>(
         $ScriptsTable.$convertergender.toJson(gender),
       ),
@@ -408,9 +408,9 @@ class Script extends DataClass implements Insertable<Script> {
 
   Script copyWith({
     int? id,
-    String? title,
     Value<String?> work = const Value.absent(),
     Value<String?> character = const Value.absent(),
+    Value<String?> memo = const Value.absent(),
     Gender? gender,
     AgeRange? ageRange,
     PracticeStatus? status,
@@ -420,9 +420,9 @@ class Script extends DataClass implements Insertable<Script> {
     DateTime? updatedAt,
   }) => Script(
     id: id ?? this.id,
-    title: title ?? this.title,
     work: work.present ? work.value : this.work,
     character: character.present ? character.value : this.character,
+    memo: memo.present ? memo.value : this.memo,
     gender: gender ?? this.gender,
     ageRange: ageRange ?? this.ageRange,
     status: status ?? this.status,
@@ -434,9 +434,9 @@ class Script extends DataClass implements Insertable<Script> {
   Script copyWithCompanion(ScriptsCompanion data) {
     return Script(
       id: data.id.present ? data.id.value : this.id,
-      title: data.title.present ? data.title.value : this.title,
       work: data.work.present ? data.work.value : this.work,
       character: data.character.present ? data.character.value : this.character,
+      memo: data.memo.present ? data.memo.value : this.memo,
       gender: data.gender.present ? data.gender.value : this.gender,
       ageRange: data.ageRange.present ? data.ageRange.value : this.ageRange,
       status: data.status.present ? data.status.value : this.status,
@@ -451,9 +451,9 @@ class Script extends DataClass implements Insertable<Script> {
   String toString() {
     return (StringBuffer('Script(')
           ..write('id: $id, ')
-          ..write('title: $title, ')
           ..write('work: $work, ')
           ..write('character: $character, ')
+          ..write('memo: $memo, ')
           ..write('gender: $gender, ')
           ..write('ageRange: $ageRange, ')
           ..write('status: $status, ')
@@ -468,9 +468,9 @@ class Script extends DataClass implements Insertable<Script> {
   @override
   int get hashCode => Object.hash(
     id,
-    title,
     work,
     character,
+    memo,
     gender,
     ageRange,
     status,
@@ -484,9 +484,9 @@ class Script extends DataClass implements Insertable<Script> {
       identical(this, other) ||
       (other is Script &&
           other.id == this.id &&
-          other.title == this.title &&
           other.work == this.work &&
           other.character == this.character &&
+          other.memo == this.memo &&
           other.gender == this.gender &&
           other.ageRange == this.ageRange &&
           other.status == this.status &&
@@ -498,9 +498,9 @@ class Script extends DataClass implements Insertable<Script> {
 
 class ScriptsCompanion extends UpdateCompanion<Script> {
   final Value<int> id;
-  final Value<String> title;
   final Value<String?> work;
   final Value<String?> character;
+  final Value<String?> memo;
   final Value<Gender> gender;
   final Value<AgeRange> ageRange;
   final Value<PracticeStatus> status;
@@ -510,9 +510,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   final Value<DateTime> updatedAt;
   const ScriptsCompanion({
     this.id = const Value.absent(),
-    this.title = const Value.absent(),
     this.work = const Value.absent(),
     this.character = const Value.absent(),
+    this.memo = const Value.absent(),
     this.gender = const Value.absent(),
     this.ageRange = const Value.absent(),
     this.status = const Value.absent(),
@@ -523,9 +523,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   });
   ScriptsCompanion.insert({
     this.id = const Value.absent(),
-    required String title,
     this.work = const Value.absent(),
     this.character = const Value.absent(),
+    this.memo = const Value.absent(),
     required Gender gender,
     required AgeRange ageRange,
     required PracticeStatus status,
@@ -533,8 +533,7 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     required String body,
     required DateTime createdAt,
     required DateTime updatedAt,
-  }) : title = Value(title),
-       gender = Value(gender),
+  }) : gender = Value(gender),
        ageRange = Value(ageRange),
        status = Value(status),
        favorite = Value(favorite),
@@ -543,9 +542,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
        updatedAt = Value(updatedAt);
   static Insertable<Script> custom({
     Expression<int>? id,
-    Expression<String>? title,
     Expression<String>? work,
     Expression<String>? character,
+    Expression<String>? memo,
     Expression<String>? gender,
     Expression<String>? ageRange,
     Expression<String>? status,
@@ -556,9 +555,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (title != null) 'title': title,
       if (work != null) 'work': work,
       if (character != null) 'character_name': character,
+      if (memo != null) 'memo': memo,
       if (gender != null) 'gender': gender,
       if (ageRange != null) 'age_range': ageRange,
       if (status != null) 'status': status,
@@ -571,9 +570,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
 
   ScriptsCompanion copyWith({
     Value<int>? id,
-    Value<String>? title,
     Value<String?>? work,
     Value<String?>? character,
+    Value<String?>? memo,
     Value<Gender>? gender,
     Value<AgeRange>? ageRange,
     Value<PracticeStatus>? status,
@@ -584,9 +583,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   }) {
     return ScriptsCompanion(
       id: id ?? this.id,
-      title: title ?? this.title,
       work: work ?? this.work,
       character: character ?? this.character,
+      memo: memo ?? this.memo,
       gender: gender ?? this.gender,
       ageRange: ageRange ?? this.ageRange,
       status: status ?? this.status,
@@ -603,14 +602,14 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
     if (work.present) {
       map['work'] = Variable<String>(work.value);
     }
     if (character.present) {
       map['character_name'] = Variable<String>(character.value);
+    }
+    if (memo.present) {
+      map['memo'] = Variable<String>(memo.value);
     }
     if (gender.present) {
       map['gender'] = Variable<String>(
@@ -646,9 +645,9 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   String toString() {
     return (StringBuffer('ScriptsCompanion(')
           ..write('id: $id, ')
-          ..write('title: $title, ')
           ..write('work: $work, ')
           ..write('character: $character, ')
+          ..write('memo: $memo, ')
           ..write('gender: $gender, ')
           ..write('ageRange: $ageRange, ')
           ..write('status: $status, ')
@@ -1199,9 +1198,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 typedef $$ScriptsTableCreateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
-  required String title,
   Value<String?> work,
   Value<String?> character,
+  Value<String?> memo,
   required Gender gender,
   required AgeRange ageRange,
   required PracticeStatus status,
@@ -1212,9 +1211,9 @@ typedef $$ScriptsTableCreateCompanionBuilder = ScriptsCompanion Function({
 });
 typedef $$ScriptsTableUpdateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
-  Value<String> title,
   Value<String?> work,
   Value<String?> character,
+  Value<String?> memo,
   Value<Gender> gender,
   Value<AgeRange> ageRange,
   Value<PracticeStatus> status,
@@ -1279,11 +1278,6 @@ class $$ScriptsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get work => $composableBuilder(
     column: $table.work,
     builder: (column) => ColumnFilters(column),
@@ -1291,6 +1285,11 @@ class $$ScriptsTableFilterComposer
 
   ColumnFilters<String> get character => $composableBuilder(
     column: $table.character,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memo => $composableBuilder(
+    column: $table.memo,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1397,11 +1396,6 @@ class $$ScriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get work => $composableBuilder(
     column: $table.work,
     builder: (column) => ColumnOrderings(column),
@@ -1409,6 +1403,11 @@ class $$ScriptsTableOrderingComposer
 
   ColumnOrderings<String> get character => $composableBuilder(
     column: $table.character,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memo => $composableBuilder(
+    column: $table.memo,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1460,14 +1459,14 @@ class $$ScriptsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
   GeneratedColumn<String> get work =>
       $composableBuilder(column: $table.work, builder: (column) => column);
 
   GeneratedColumn<String> get character =>
       $composableBuilder(column: $table.character, builder: (column) => column);
+
+  GeneratedColumn<String> get memo =>
+      $composableBuilder(column: $table.memo, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<Gender, String> get gender =>
       $composableBuilder(column: $table.gender, builder: (column) => column);
@@ -1570,9 +1569,9 @@ class $$ScriptsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<String> title = const Value.absent(),
                 Value<String?> work = const Value.absent(),
                 Value<String?> character = const Value.absent(),
+                Value<String?> memo = const Value.absent(),
                 Value<Gender> gender = const Value.absent(),
                 Value<AgeRange> ageRange = const Value.absent(),
                 Value<PracticeStatus> status = const Value.absent(),
@@ -1582,9 +1581,9 @@ class $$ScriptsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => ScriptsCompanion(
                 id: id,
-                title: title,
                 work: work,
                 character: character,
+                memo: memo,
                 gender: gender,
                 ageRange: ageRange,
                 status: status,
@@ -1596,9 +1595,9 @@ class $$ScriptsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required String title,
                 Value<String?> work = const Value.absent(),
                 Value<String?> character = const Value.absent(),
+                Value<String?> memo = const Value.absent(),
                 required Gender gender,
                 required AgeRange ageRange,
                 required PracticeStatus status,
@@ -1608,9 +1607,9 @@ class $$ScriptsTableTableManager
                 required DateTime updatedAt,
               }) => ScriptsCompanion.insert(
                 id: id,
-                title: title,
                 work: work,
                 character: character,
+                memo: memo,
                 gender: gender,
                 ageRange: ageRange,
                 status: status,

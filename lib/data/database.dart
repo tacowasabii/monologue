@@ -8,9 +8,9 @@ part 'database.g.dart';
 
 class Scripts extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get title => text()();
   TextColumn get work => text().nullable()();
   TextColumn get character => text().named('character_name').nullable()();
+  TextColumn get memo => text().nullable()();
   TextColumn get gender => textEnum<Gender>()();
   TextColumn get ageRange => textEnum<AgeRange>()();
   TextColumn get status => textEnum<PracticeStatus>()();
@@ -40,7 +40,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          // 버전 1은 제목 칸이 있던 출시 전 빌드라 옮길 대본이 없다. 비우고 새 구조로 다시 만든다.
+          if (from < 2) {
+            for (final table in allTables) {
+              await m.deleteTable(table.actualTableName);
+            }
+            await m.createAll();
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() => driftDatabase(
         name: 'monologue',

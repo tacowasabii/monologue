@@ -4,19 +4,27 @@ import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
 
 void main() {
-  test('defaultTitle은 첫 비어있지 않은 줄의 앞 20자', () {
-    expect(defaultTitle('\n\n  괜찮다는 말은 참 편리하더라. 그 한마디면\n다음 줄'), '괜찮다는 말은 참 편리하더라. 그 한');
-    expect(defaultTitle('짧은 줄\n다음'), '짧은 줄');
-    expect(defaultTitle('   \n  '), '제목 없음');
+  test('sourceOf는 작품명과 인물을 가운뎃점으로 잇고, 둘 다 없으면 null', () {
+    expect(sourceOf('햄릿', '오필리어'), '햄릿 · 오필리어');
+    expect(sourceOf('햄릿', null), '햄릿');
+    expect(sourceOf(null, '니나'), '니나');
+    expect(sourceOf(' ', ''), isNull);
+    expect(sourceOf(null, null), isNull);
   });
 
-  test('withResolvedTitle은 제목이 비었을 때만 채우고 태그를 정리한다', () {
-    const d = ScriptDraft(title: '  ', body: '첫 줄\n둘째 줄', work: ' ', tags: [' 슬픔', '슬픔', '', '분노 ']);
-    final r = d.withResolvedTitle();
-    expect(r.title, '첫 줄');
+  test('firstLineOf는 첫 비어있지 않은 줄', () {
+    expect(firstLineOf('\n\n  괜찮다는 말은 참 편리하더라.\n다음 줄'), '괜찮다는 말은 참 편리하더라.');
+    expect(firstLineOf('   \n  '), '');
+  });
+
+  test('normalized는 빈 칸을 null로 바꾸고 본문·메모를 다듬고 태그를 정리한다', () {
+    const d = ScriptDraft(body: '  첫 줄\n둘째 줄 ', work: ' ', memo: '  오디션용  ', tags: [' 슬픔', '슬픔', '', '분노 ']);
+    final r = d.normalized();
+    expect(r.body, '첫 줄\n둘째 줄');
     expect(r.work, isNull);
+    expect(r.memo, '오디션용');
     expect(r.tags, ['분노', '슬픔']);
-    expect(const ScriptDraft(title: '햄릿', body: 'x').withResolvedTitle().title, '햄릿');
+    expect(const ScriptDraft(body: 'x', memo: '   ').normalized().memo, isNull);
   });
 
   test('enum 라벨', () {

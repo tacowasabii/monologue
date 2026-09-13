@@ -46,9 +46,9 @@ class BackupService {
         archive.addFile(ArchiveFile.bytes('images/$name', await File(images.pathOf(name)).readAsBytes()));
       }
       entries.add({
-        'title': s.title,
         'work': s.work,
         'character': s.character,
+        'memo': s.memo,
         'gender': s.gender.name,
         'ageRange': s.ageRange.name,
         'status': s.status.name,
@@ -125,10 +125,10 @@ class BackupService {
   }
 
   ScriptDraft _draftOf(Map<String, Object?> e) => ScriptDraft(
-        title: e['title'] as String,
         body: e['body'] as String,
         work: e['work'] as String?,
         character: e['character'] as String?,
+        memo: e['memo'] as String?,
         gender: Gender.values.byName(e['gender'] as String),
         ageRange: AgeRange.values.byName(e['ageRange'] as String),
         status: PracticeStatus.values.byName(e['status'] as String),

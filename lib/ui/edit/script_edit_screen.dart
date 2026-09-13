@@ -29,9 +29,9 @@ class ScriptEditScreen extends StatefulWidget {
 
 class _ScriptEditScreenState extends State<ScriptEditScreen> {
   final _form = GlobalKey<FormState>();
-  late final TextEditingController _title;
   late final TextEditingController _work;
   late final TextEditingController _character;
+  late final TextEditingController _memo;
   late final TextEditingController _body;
   late Gender _gender;
   late AgeRange _ageRange;
@@ -46,20 +46,22 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   late bool _dirty = widget.existing == null && (widget.initialBody.isNotEmpty || widget.newImagePaths.isNotEmpty);
   bool _saving = false;
 
+  List<TextEditingController> get _controllers => [_work, _character, _memo, _body];
+
   @override
   void initState() {
     super.initState();
     final s = widget.existing?.script;
-    _title = TextEditingController(text: s?.title ?? '');
     _work = TextEditingController(text: s?.work ?? '');
     _character = TextEditingController(text: s?.character ?? '');
+    _memo = TextEditingController(text: s?.memo ?? '');
     _body = TextEditingController(text: s?.body ?? widget.initialBody);
     _gender = s?.gender ?? Gender.any;
     _ageRange = s?.ageRange ?? AgeRange.any;
     _status = s?.status ?? PracticeStatus.notStarted;
     _favorite = s?.favorite ?? false;
     _tags = [...?widget.existing?.tags];
-    for (final c in [_title, _work, _character, _body]) {
+    for (final c in _controllers) {
       c.addListener(_markDirty);
     }
     if (widget.failedImages > 0) {
@@ -81,7 +83,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
 
   @override
   void dispose() {
-    for (final c in [_title, _work, _character, _body]) {
+    for (final c in _controllers) {
       c.dispose();
     }
     super.dispose();
@@ -106,10 +108,10 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     setState(() => _saving = true);
     final repo = AppScope.of(context).repo;
     final draft = ScriptDraft(
-      title: _title.text,
       body: _body.text,
       work: _work.text,
       character: _character.text,
+      memo: _memo.text,
       gender: _gender,
       ageRange: _ageRange,
       status: _status,
@@ -259,7 +261,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            '사진 ${_pendingImages.length}장이 원본으로 함께 보관돼요',
+                            "사진 ${_pendingImages.length}장이 대본과 함께 보관돼요. 사진첩에서 캡처를 지워도 '원본 보기'로 다시 볼 수 있어요",
                             style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, color: scheme.onPrimaryContainer),
                           ),
                         ),
@@ -269,17 +271,24 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   const SizedBox(height: 12),
                 ],
                 _section('기본 정보', first: true),
-                TextFormField(
-                  controller: _title,
-                  decoration: const InputDecoration(labelText: '제목', hintText: '비워두면 본문 첫 줄로'),
-                ),
-                gap,
                 Row(
                   children: [
                     Expanded(child: TextFormField(controller: _work, decoration: const InputDecoration(labelText: '작품명'))),
                     const SizedBox(width: 12),
                     Expanded(child: TextFormField(controller: _character, decoration: const InputDecoration(labelText: '인물'))),
                   ],
+                ),
+                gap,
+                TextFormField(
+                  controller: _memo,
+                  minLines: 2,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration: const InputDecoration(
+                    labelText: '메모',
+                    hintText: '출처, 오디션 날짜, 연기 포인트 등',
+                    alignLabelWithHint: true,
+                  ),
                 ),
                 _section('배역'),
                 _label('성별'),

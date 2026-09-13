@@ -34,7 +34,7 @@ class ScriptRepository {
         final text = f.query.trim();
         if (text.isNotEmpty) {
           final pattern = '%$text%';
-          e = e & (s.title.like(pattern) | s.work.like(pattern) | s.character.like(pattern) | s.body.like(pattern));
+          e = e & (s.work.like(pattern) | s.character.like(pattern) | s.memo.like(pattern) | s.body.like(pattern));
         }
         // 성별·나이대가 '무관'인 대본은 어느 조건에도 맞는다
         if (f.gender != null) e = e & s.gender.isIn([f.gender!.name, Gender.any.name]);
@@ -111,12 +111,12 @@ class ScriptRepository {
     required DateTime updatedAt,
     required List<String> storedImageFileNames,
   }) {
-    final d = draft.withResolvedTitle();
+    final d = draft.normalized();
     return db.transaction(() async {
       final id = await db.into(db.scripts).insert(ScriptsCompanion.insert(
-            title: d.title,
             work: Value(d.work),
             character: Value(d.character),
+            memo: Value(d.memo),
             gender: d.gender,
             ageRange: d.ageRange,
             status: d.status,
@@ -133,13 +133,13 @@ class ScriptRepository {
 
   Future<void> update(int id, ScriptDraft draft, {List<String> newImagePaths = const []}) async {
     final stored = await _importAll(newImagePaths);
-    final d = draft.withResolvedTitle();
+    final d = draft.normalized();
     try {
       await db.transaction(() async {
         await (db.update(db.scripts)..where((s) => s.id.equals(id))).write(ScriptsCompanion(
-              title: Value(d.title),
               work: Value(d.work),
               character: Value(d.character),
+              memo: Value(d.memo),
               gender: Value(d.gender),
               ageRange: Value(d.ageRange),
               status: Value(d.status),

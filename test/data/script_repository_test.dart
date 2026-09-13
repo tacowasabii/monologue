@@ -34,16 +34,18 @@ void main() {
     await tmp.delete(recursive: true);
   });
 
-  Future<List<String>> titles(ScriptFilter f) async =>
-      (await repo.watchScripts(f).first).map((s) => s.script.title).toList();
+  // 테스트마다 작품명으로 대본을 구분한다
+  Future<List<String>> works(ScriptFilter f) async =>
+      (await repo.watchScripts(f).first).map((s) => s.script.work!).toList();
 
   test('create는 대본·태그·이미지를 저장하고 이미지를 저장소로 복사한다', () async {
     final id = await repo.create(
-      const ScriptDraft(title: '', body: '첫 줄\n본문', tags: ['슬픔', '분노']),
+      const ScriptDraft(body: ' 첫 줄\n본문 ', memo: '  ', tags: ['슬픔', '분노']),
       imagePaths: [await fakeImage('a.png'), await fakeImage('b.png')],
     );
     final d = (await repo.watchScript(id).first)!;
-    expect(d.script.title, '첫 줄');
+    expect(d.script.body, '첫 줄\n본문');
+    expect(d.script.memo, isNull);
     expect(d.tags, ['분노', '슬픔']);
     expect(d.images.map((i) => i.position), [0, 1]);
     for (final img in d.images) {
@@ -51,43 +53,53 @@ void main() {
     }
   });
 
-  test('검색은 제목·작품명·인물·본문 부분 일치', () async {
-    await repo.create(const ScriptDraft(title: '햄릿 독백', body: '사느냐 죽느냐'));
-    await repo.create(const ScriptDraft(title: 'B', work: '갈매기', body: '...'));
-    await repo.create(const ScriptDraft(title: 'C', character: '니나', body: '...'));
-    expect(await titles(const ScriptFilter(query: '죽느냐')), ['햄릿 독백']);
-    expect(await titles(const ScriptFilter(query: '갈매')), ['B']);
-    expect(await titles(const ScriptFilter(query: '니나')), ['C']);
+  test('검색은 작품명·인물·메모·본문 부분 일치', () async {
+    await repo.create(const ScriptDraft(work: 'A', body: '사느냐 죽느냐'));
+    await repo.create(const ScriptDraft(work: '갈매기', body: '...'));
+    await repo.create(const ScriptDraft(work: 'C', character: '니나', body: '...'));
+    await repo.create(const ScriptDraft(work: 'D', memo: '2차 오디션 지정 대사', body: '...'));
+    expect(await works(const ScriptFilter(query: '죽느냐')), ['A']);
+    expect(await works(const ScriptFilter(query: '갈매')), ['갈매기']);
+    expect(await works(const ScriptFilter(query: '니나')), ['C']);
+    expect(await works(const ScriptFilter(query: '오디션')), ['D']);
   });
 
   test('성별·나이대 필터는 무관도 포함한다', () async {
-    await repo.create(const ScriptDraft(title: '남20', body: 'x', gender: Gender.male, ageRange: AgeRange.twenties));
-    await repo.create(const ScriptDraft(title: '여30', body: 'x', gender: Gender.female, ageRange: AgeRange.thirties));
-    await repo.create(const ScriptDraft(title: '무관', body: 'x'));
-    expect((await titles(const ScriptFilter(gender: Gender.male)))..sort(), ['남20', '무관']);
-    expect((await titles(const ScriptFilter(ageRange: AgeRange.thirties)))..sort(), ['무관', '여30']);
+    await repo.create(const ScriptDraft(work: '남20', body: 'x', gender: Gender.male, ageRange: AgeRange.twenties));
+    await repo.create(const ScriptDraft(work: '여30', body: 'x', gender: Gender.female, ageRange: AgeRange.thirties));
+    await repo.create(const ScriptDraft(work: '무관', body: 'x'));
+    expect((await works(const ScriptFilter(gender: Gender.male)))..sort(), ['남20', '무관']);
+    expect((await works(const ScriptFilter(ageRange: AgeRange.thirties)))..sort(), ['무관', '여30']);
   });
 
   test('태그·즐겨찾기 필터', () async {
-    final a = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['코미디']));
-    await repo.create(const ScriptDraft(title: 'B', body: 'x'));
+    final a = await repo.create(const ScriptDraft(work: 'A', body: 'x', tags: ['코미디']));
+    await repo.create(const ScriptDraft(work: 'B', body: 'x'));
     await repo.setFavorite(a, true);
-    expect(await titles(const ScriptFilter(tag: '코미디')), ['A']);
-    expect(await titles(const ScriptFilter(favoritesOnly: true)), ['A']);
+    expect(await works(const ScriptFilter(tag: '코미디')), ['A']);
+    expect(await works(const ScriptFilter(favoritesOnly: true)), ['A']);
   });
 
   test('최근 수정순으로 정렬한다', () async {
-    final a = await repo.create(const ScriptDraft(title: 'A', body: 'x'));
-    await repo.create(const ScriptDraft(title: 'B', body: 'x'));
+    final a = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+    await repo.create(const ScriptDraft(work: 'B', body: 'x'));
     await Future<void>.delayed(const Duration(milliseconds: 5));
-    await repo.update(a, const ScriptDraft(title: 'A2', body: 'x'));
-    expect(await titles(const ScriptFilter()), ['A2', 'B']);
+    await repo.update(a, const ScriptDraft(work: 'A2', body: 'x'));
+    expect(await works(const ScriptFilter()), ['A2', 'B']);
   });
 
-  test('update는 태그를 교체하고 새 이미지를 뒤에 붙인다', () async {
-    final id = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['a']), imagePaths: [await fakeImage('1.png')]);
-    await repo.update(id, const ScriptDraft(title: 'A', body: 'y', tags: ['b']), newImagePaths: [await fakeImage('2.png')]);
+  test('update는 메모와 태그를 교체하고 새 이미지를 뒤에 붙인다', () async {
+    final id = await repo.create(
+      const ScriptDraft(work: 'A', body: 'x', memo: '처음 메모', tags: ['a']),
+      imagePaths: [await fakeImage('1.png')],
+    );
+    await repo.update(
+      id,
+      const ScriptDraft(work: 'A', body: 'y', memo: '고친 메모', tags: ['b']),
+      newImagePaths: [await fakeImage('2.png')],
+    );
     final d = (await repo.watchScript(id).first)!;
+    expect(d.script.memo, '고친 메모');
     expect(d.tags, ['b']);
     expect(d.images.map((i) => i.position), [0, 1]);
     expect(await repo.allTags(), ['b']);
@@ -96,14 +108,14 @@ void main() {
   test('watchAllTags는 태그가 바뀌면 새 목록을 낸다', () async {
     final tags = repo.watchAllTags();
     expect(await tags.first, isEmpty);
-    final id = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['코미디', '분노']));
+    final id = await repo.create(const ScriptDraft(work: 'A', body: 'x', tags: ['코미디', '분노']));
     expect(await tags.first, ['분노', '코미디']);
-    await repo.update(id, const ScriptDraft(title: 'A', body: 'x', tags: ['슬픔']));
+    await repo.update(id, const ScriptDraft(work: 'A', body: 'x', tags: ['슬픔']));
     expect(await tags.first, ['슬픔']);
   });
 
   test('delete는 행과 이미지 파일을 지운다', () async {
-    final id = await repo.create(const ScriptDraft(title: 'A', body: 'x', tags: ['t']), imagePaths: [await fakeImage('1.png')]);
+    final id = await repo.create(const ScriptDraft(work: 'A', body: 'x', tags: ['t']), imagePaths: [await fakeImage('1.png')]);
     final file = images.pathOf((await repo.watchScript(id).first)!.images.single.fileName);
     await repo.delete(id);
     expect(await repo.watchScript(id).first, isNull);
@@ -113,10 +125,10 @@ void main() {
 
   test('이미지 복사 실패 시 아무것도 저장하지 않는다', () async {
     await expectLater(
-      repo.create(const ScriptDraft(title: 'A', body: 'x'), imagePaths: [await fakeImage('ok.png'), '${tmp.path}/missing.png']),
+      repo.create(const ScriptDraft(work: 'A', body: 'x'), imagePaths: [await fakeImage('ok.png'), '${tmp.path}/missing.png']),
       throwsA(isA<FileSystemException>()),
     );
-    expect(await titles(const ScriptFilter()), isEmpty);
+    expect(await works(const ScriptFilter()), isEmpty);
     expect(images.dir.listSync(), isEmpty);
   });
 }
