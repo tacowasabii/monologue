@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/korean_text.dart';
+
 /// 설정 → 사용 방법. 한 번 보고 지나치기 쉬운 기능을 모아 둔다.
 class HowToScreen extends StatelessWidget {
   const HowToScreen({super.key});
@@ -69,7 +71,10 @@ class HowToScreen extends StatelessWidget {
                           child: Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                         ),
                         const SizedBox(height: 8),
-                        Text(body, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6)),
+                        Text(
+                          keepWords(body),
+                          style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
+                        ),
                       ],
                     ),
                   ),

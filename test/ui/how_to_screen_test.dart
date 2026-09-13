@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/settings/how_to_screen.dart';
 
 void main() {
@@ -12,6 +13,6 @@ void main() {
       expect(find.text(title), findsOneWidget, reason: title);
     }
     // 사진첩을 비워도 된다는 핵심 내용이 들어 있어야 한다
-    expect(find.textContaining('사진첩에서 캡처를 지워도'), findsOneWidget);
+    expect(find.textContaining(keepWords('사진첩에서 캡처를 지워도')), findsOneWidget);
   });
 }

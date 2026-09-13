@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
+import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/list/script_list_screen.dart';
 
 import 'test_harness.dart';
@@ -30,10 +31,10 @@ void main() {
     // 같은 작품의 독백이 여러 개여도 구분되도록 메모는 첫 줄만 보여 준다
     expect(find.text('오필리어 · 1차 오디션'), findsOneWidget);
     expect(find.textContaining('지정 대사'), findsNothing);
-    expect(find.text('그분이 미치셨다니'), findsOneWidget);
+    expect(find.text(keepWords('그분이 미치셨다니')), findsOneWidget);
     // 첫 줄이 제목 자리로 올라가면 미리보기는 그다음 줄부터 보여 준다
     expect(find.text('나는 늘 괜찮다고 말했어.'), findsOneWidget);
-    expect(find.text('아침에 눈을 뜰 때도'), findsOneWidget);
+    expect(find.text(keepWords('아침에 눈을 뜰 때도')), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 

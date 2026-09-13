@@ -5,6 +5,7 @@ import '../../data/script_repository.dart';
 import '../../domain/script_draft.dart';
 import '../../domain/script_filter.dart';
 import '../capture/capture_flow.dart';
+import '../common/korean_text.dart';
 import '../edit/script_edit_screen.dart';
 import '../settings/settings_screen.dart';
 import '../theme.dart';
@@ -254,7 +255,7 @@ class _ScriptCard extends StatelessWidget {
                     border: Border(left: BorderSide(color: scheme.primary.withValues(alpha: 0.35), width: 2)),
                   ),
                   child: Text(
-                    excerpt,
+                    keepWords(excerpt),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontFamily: serifFamily, fontSize: 14, height: 1.6, color: scheme.onSurfaceVariant),

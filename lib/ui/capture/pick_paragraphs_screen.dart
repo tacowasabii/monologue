@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../ocr/assemble_text.dart';
+import '../common/korean_text.dart';
 
 const _fontSize = 15.0;
 const _lineSpacing = 1.6;
@@ -174,7 +175,7 @@ class _ParagraphCard extends StatelessWidget {
                       const SizedBox(height: 8),
                     ],
                     Text(
-                      paragraph.text,
+                      keepWords(paragraph.text),
                       maxLines: 6,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyLarge?.copyWith(

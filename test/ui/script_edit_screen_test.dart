@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_filter.dart';
+import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/edit/script_edit_screen.dart';
 
 import 'test_harness.dart';
@@ -66,7 +67,7 @@ void main() {
 
     await tapSaveAndWait(tester);
     expect(find.text('사진도 함께 보관했어요'), findsOneWidget);
-    expect(find.textContaining('설정 → 사용 방법'), findsOneWidget);
+    expect(find.textContaining(keepWords('설정 → 사용 방법')), findsOneWidget);
 
     await tester.tap(find.text('확인'));
     await tester.pumpAndSettle();

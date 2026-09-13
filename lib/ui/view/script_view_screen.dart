@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../settings/reading_settings.dart';
+import '../common/korean_text.dart';
 import '../edit/script_edit_screen.dart';
 import '../theme.dart';
 import 'image_viewer_screen.dart';
@@ -190,7 +192,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(24, 4, 24, 64),
             children: [
-              if (source != null) Text(source, style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
+              if (source != null) Text(keepWords(source), style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
               if (hasLabels)
                 Padding(
                   padding: EdgeInsets.only(top: source != null ? 14 : 0),
@@ -207,7 +209,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 Padding(
                   padding: EdgeInsets.only(top: source != null || hasLabels ? 16 : 0),
                   child: Text(
-                    memo,
+                    keepWords(memo),
                     style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
                   ),
                 ),
@@ -223,7 +225,24 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
               ListenableBuilder(
                 listenable: services.settings,
                 builder: (context, _) => SelectableText(
-                  s.body,
+                  keepWords(s.body),
+                  // 줄바꿈 때문에 넣은 보이지 않는 문자는 복사할 때 뺀다
+                  contextMenuBuilder: (context, editable) => AdaptiveTextSelectionToolbar.buttonItems(
+                    anchors: editable.contextMenuAnchors,
+                    buttonItems: [
+                      for (final item in editable.contextMenuButtonItems)
+                        if (item.type == ContextMenuButtonType.copy)
+                          item.copyWith(onPressed: () {
+                            final value = editable.textEditingValue;
+                            Clipboard.setData(
+                              ClipboardData(text: withoutWordJoiners(value.selection.textInside(value.text))),
+                            );
+                            editable.hideToolbar();
+                          })
+                        else
+                          item,
+                    ],
+                  ),
                   style: TextStyle(
                     fontFamily: serifFamily,
                     fontSize: services.settings.fontSize,

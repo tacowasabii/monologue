@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/ocr/assemble_text.dart';
 import 'package:monologue/ui/capture/pick_paragraphs_screen.dart';
+import 'package:monologue/ui/common/korean_text.dart';
 
 const _instagram = [
   Paragraph(photoNumber: 1, text: 'kim actor 팔로우', isChrome: true),
@@ -67,8 +68,8 @@ void main() {
 
   testWidgets('문단을 탭하면 선택이 바뀐다', (tester) async {
     final box = await openPicker(tester, _instagram);
-    await tester.tap(find.text('#독백 #연기'));
-    await tester.tap(find.text('나는 늘 괜찮다고 말했어. 아침에 눈을 뜰 때도,'));
+    await tester.tap(find.text(keepWords('#독백 #연기')));
+    await tester.tap(find.text(keepWords('나는 늘 괜찮다고 말했어. 아침에 눈을 뜰 때도,')));
     await tester.pumpAndSettle();
     expect(find.textContaining('5개 중 2개'), findsOneWidget);
 
@@ -131,7 +132,7 @@ void main() {
 
   testWidgets('모두 끄면 계속 버튼을 누를 수 없다', (tester) async {
     await openPicker(tester, const [Paragraph(photoNumber: 1, text: '본문 하나')]);
-    await tester.tap(find.text('본문 하나'));
+    await tester.tap(find.text(keepWords('본문 하나')));
     await tester.pumpAndSettle();
     expect(tester.widget<FilledButton>(find.byType(FilledButton)).onPressed, isNull);
   });

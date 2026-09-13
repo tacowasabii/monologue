@@ -5,6 +5,7 @@ import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
+import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../theme.dart';
 import 'tag_input.dart';
@@ -95,10 +96,10 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('사진도 함께 보관했어요'),
-          content: const Text(
+          content: Text(keepWords(
             '대본에 쓴 사진은 앱 안에 따로 저장돼요. 사진첩에서 캡처를 지워도 대본 화면의 ⋯ 메뉴 → 원본 보기로 다시 볼 수 있어요.\n\n'
             '이 안내는 설정 → 사용 방법에서 다시 볼 수 있어요.',
-          ),
+          )),
           actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('확인'))],
         ),
       );
