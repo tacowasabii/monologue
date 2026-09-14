@@ -93,18 +93,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('즐겨찾기 1'), findsOneWidget);
-    expect(find.text('다른 대본 2'), findsOneWidget);
+    expect(find.text('대본 2편'), findsOneWidget);
     expect(find.byTooltip('즐겨찾기만 보기'), findsNothing);
     // 즐겨찾기가 맨 위, 그 아래는 최근 수정순
-    expect(top(tester, '갈매기'), lessThan(top(tester, '다른 대본 2')));
+    expect(top(tester, '갈매기'), lessThan(top(tester, '대본 2편')));
     expect(top(tester, '벚꽃 동산'), lessThan(top(tester, '햄릿')));
 
     final hamletCard = find.ancestor(of: find.text('햄릿'), matching: find.byType(Card));
     await tester.tap(find.descendant(of: hamletCard, matching: find.byTooltip('즐겨찾기')));
     await tester.pumpAndSettle();
     expect(find.text('즐겨찾기 2'), findsOneWidget);
-    expect(find.text('다른 대본 1'), findsOneWidget);
-    expect(top(tester, '햄릿'), lessThan(top(tester, '다른 대본 1')));
+    expect(find.text('대본 1편'), findsOneWidget);
+    expect(top(tester, '햄릿'), lessThan(top(tester, '대본 1편')));
 
     await tester.enterText(find.byType(SearchBar), '갈매기');
     await tester.pumpAndSettle();

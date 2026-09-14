@@ -194,7 +194,7 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
                         () => SectionHeader('즐겨찾기 ${favorites.length}', first: true),
                         for (final s in favorites) () => card(s),
                         if (others.isNotEmpty) ...[
-                          () => SectionHeader('다른 대본 ${others.length}'),
+                          () => SectionHeader('대본 ${others.length}편'),
                           for (final s in others) () => card(s),
                         ],
                       ],
