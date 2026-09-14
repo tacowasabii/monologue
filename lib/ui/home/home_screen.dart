@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../list/script_list_screen.dart';
@@ -16,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ios = Theme.of(context).platform == TargetPlatform.iOS;
     return PopScope(
       // 모음 탭에서 뒤로 가면 앱을 닫지 않고 대본 탭으로 돌아온다
       canPop: _index == 0,
@@ -28,24 +31,34 @@ class _HomeScreenState extends State<HomeScreen> {
           index: _index,
           children: const [ScriptListScreen(home: true), CollectionsScreen()],
         ),
-        bottomNavigationBar: NavigationBar(
-          // 아이폰은 기본 높이(80) 아래에 홈 인디케이터 여백(34)이 더 붙어 글자 아래가 크게 빈다.
-          // 아이폰 기본 탭 바처럼 보이게 낮춘다
-          height: Theme.of(context).platform == TargetPlatform.iOS ? 60 : null,
-          selectedIndex: _index,
-          onDestinationSelected: (i) => setState(() => _index = i),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.description_outlined),
-              selectedIcon: Icon(Icons.description_rounded),
-              label: '대본',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.folder_outlined),
-              selectedIcon: Icon(Icons.folder_rounded),
-              label: '모음',
-            ),
-          ],
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            // Scaffold가 위쪽 여백을 뺀 뒤의 값이어야 한다. 화면 전체 값을 쓰면 상태 표시줄 여백이 탭 위에 붙는다
+            final media = MediaQuery.of(context);
+            // 아이폰은 기본 높이(80) 아래에 홈 인디케이터 여백(34)이 붙어 탭이 너무 높고, 줄이면 아이콘이 위로 붙는다.
+            // 홈 인디케이터 여백 일부를 탭 안쪽으로 옮겨 전체 높이는 줄이고 아이콘·글자는 아래로 내린다
+            final shift = ios ? math.min(24.0, media.padding.bottom) : 0.0;
+            return MediaQuery(
+              data: media.copyWith(padding: media.padding.copyWith(bottom: media.padding.bottom - shift)),
+              child: NavigationBar(
+                height: ios ? 60 + shift : null,
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.description_outlined),
+                    selectedIcon: Icon(Icons.description_rounded),
+                    label: '대본',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.folder_outlined),
+                    selectedIcon: Icon(Icons.folder_rounded),
+                    label: '모음',
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
