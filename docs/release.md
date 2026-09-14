@@ -17,6 +17,8 @@ flutter build appbundle --release          # build/app/outputs/bundle/release/ap
 flutter build ipa --release                 # Apple 계정·서명 설정 후
 ```
 
+만든 파일은 `~/monologue-releases/<버전>/`에 복사하고 `BUILD.txt`에 커밋·versionCode·SHA-256을 남긴 뒤, 스토어에는 그 폴더의 파일을 올린다(`CLAUDE.md`의 "출시 파일 보관").
+
 ## Apple App Store
 
 1. [Apple Developer Program](https://developer.apple.com/programs/) 개인(Individual)으로 가입 (연 $99, Apple ID 2단계 인증 필요).

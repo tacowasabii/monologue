@@ -18,6 +18,15 @@ Flutter 앱 "모노로그"(com.tacowasabii.monologue)와 앱 사이트(`site/`, 
 2. `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk`를 `site/public/downloads/monologue-android-test.apk`로 복사한다 (`.gitignore`로 git에서는 빠지지만, Vercel은 `.vercelignore`를 따르므로 배포에는 포함된다).
 3. 크기가 바뀌었으면 `site/src/pages/index.astro`의 "APK …MB" 문구를 고친다.
 4. `cd site && vercel --prod` 후 `curl -sI https://monologue.ink/downloads/monologue-android-test.apk`로 content-length를 확인한다.
+5. 올린 APK를 아래 "출시 파일 보관" 폴더에도 복사한다.
+
+## 출시 파일 보관
+
+스토어에 올리거나 배포할 AAB·APK·IPA는 빌드한 폴더에 두지 않는다. worktree(`~/orca/workspaces/monologue/…`)의 `build/`는 세션이 끝나면 지워질 수 있고, 여러 폴더에 옛 파일이 섞여 헷갈린다.
+
+- 어디서 빌드했든 `~/monologue-releases/<pubspec 버전>/`(예: `~/monologue-releases/1.0.0+2/`)에 복사한다. Play 업로드용은 `app-release.aab`, 테스트 APK는 `monologue-android-test.apk` 이름을 쓴다.
+- 같은 폴더의 `BUILD.txt`에 빌드한 커밋, 날짜, versionCode, 파일별 SHA-256(`shasum -a 256`)을 적는다.
+- 같은 버전을 다시 빌드하면 파일을 덮어쓰고 `BUILD.txt`도 고친다. 버전을 올렸으면 새 폴더를 만든다.
 
 ## 공유 서버 주의
 
