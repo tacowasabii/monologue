@@ -32,7 +32,7 @@ flutter build ipa --release                 # Apple 계정·서명 설정 후
 
 1. [Play Console](https://play.google.com/console) 개인 개발자 계정 생성 ($25 1회, 신원 확인)
 2. 앱 만들기 → 이름 "모노로그", 무료, 앱
-3. 앱 콘텐츠: 개인정보처리방침 URL, 광고 없음, 데이터 보안(수집 없음), 콘텐츠 등급 설문, 타깃 연령
+3. 앱 콘텐츠: 개인정보처리방침 URL, 광고 없음, 데이터 보안(ML Kit 진단 정보 때문에 "수집함" — 답은 `docs/store-listing.md`의 표), 콘텐츠 등급 설문, 타깃 연령
 4. **Play 앱 서명** 사용(기본값). `app-release.aab` 업로드 → 업로드 키 인증서 자동 등록
 5. 개인 계정은 프로덕션 출시 전에 **비공개 테스트** 요건이 있다(작성 시점 기준 테스터 12명 이상이 14일 연속 참여). 제출 시점의 Play Console 안내를 다시 확인할 것
 6. 비공개 테스트 트랙에 테스터 초대 → 기간 충족 후 프로덕션 신청
@@ -50,6 +50,9 @@ flutter build ipa --release                 # Apple 계정·서명 설정 후
   `ios/Flutter/Generated.xcconfig`에 `EXCLUDED_ARCHS[sdk=iphonesimulator*]=i386 arm64`가 남아 있는지 본다.
   arm64를 지원하지 않던 플러그인을 뺀 뒤 생기는 낡은 설정이다. `flutter build ios --simulator --debug --config-only`로 다시 만든다.
 - Xcode가 "iOS 26.x is not installed"라고 하면 `xcodebuild -downloadPlatform iOS`.
+- macOS의 `/usr/bin/keytool`, `jarsigner`는 Java가 없으면 아무것도 출력하지 않는다. Android Studio에 든 것을 쓴다:
+  `"/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/jarsigner" -verify -verbose -certs app-release.aab`
+- git worktree에서 릴리스 빌드할 때는 `android/key.properties`가 없으므로 `ln -s ~/.monologue-keys/key.properties android/key.properties`.
 
 ## 버전 올리기
 
