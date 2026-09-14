@@ -11,6 +11,7 @@ import '../common/adaptive.dart';
 import '../common/confirm_dialog.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
+import '../share/sent_links_screen.dart';
 import 'how_to_screen.dart';
 
 const privacyPolicyUrl = 'https://tacowasabii.vercel.app/monologue/privacy';
@@ -226,6 +227,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 if (_busy) const LinearProgressIndicator(minHeight: 2),
               ],
+            ),
+          ),
+          section('공유'),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: _SettingTile(
+              icon: Icons.link_rounded,
+              title: '보낸 링크',
+              subtitle: '7일 동안 링크를 복사하거나 지울 수 있어요',
+              trailing: Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SentLinksScreen())),
             ),
           ),
           section('정보'),
