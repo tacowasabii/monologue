@@ -8,12 +8,6 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>모노로그</string>
-	<key>NSCameraUsageDescription</key>
-	<string>대본을 촬영해 글자를 인식하거나 연습 영상을 찍으려면 카메라 접근이 필요해요.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>대본을 보면서 연습을 녹음하거나 소리가 담긴 연습 영상을 찍으려면 마이크 접근이 필요해요.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>캡처해 둔 대본 사진이나 연습 영상을 불러오려면 사진 접근이 필요해요.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -28,12 +22,31 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tacowasabii.monologue</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>monologue</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>대본을 촬영해 글자를 인식하거나 연습 영상을 찍으려면 카메라 접근이 필요해요.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>대본을 보면서 연습을 녹음하거나 소리가 담긴 연습 영상을 찍으려면 마이크 접근이 필요해요.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>캡처해 둔 대본 사진이나 연습 영상을 불러오려면 사진 접근이 필요해요.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
