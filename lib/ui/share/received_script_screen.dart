@@ -80,7 +80,19 @@ class _ReceivedScriptScreenState extends State<ReceivedScriptScreen> {
           // FutureBuilder는 future가 바뀌어도 이전 data를 지우지 않고 connectionState만 waiting으로 되돌리므로,
           // 다시 시도 중에도 옛 결과가 그대로 보이지 않도록 connectionState로 로딩 여부를 가린다.
           if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-          final loaded = snap.data!;
+          void retry() => setState(() {
+                _loaded = _load();
+              });
+          final loaded = snap.data;
+          // _load()는 ShareClient 호출과 달리 감싸지 않아 repo 조회 등에서 예외로 끝날 수 있다 — 빈 화면 대신 같은 재시도 화면을 보여 준다
+          if (loaded == null) {
+            return _Message(
+              icon: Icons.wifi_off_rounded,
+              text: '인터넷 연결을 확인해 주세요',
+              actionLabel: '다시 시도',
+              onAction: retry,
+            );
+          }
           final existing = loaded.existingScriptId;
           if (existing != null) {
             return _Message(
@@ -97,9 +109,7 @@ class _ReceivedScriptScreenState extends State<ReceivedScriptScreen> {
                 icon: Icons.wifi_off_rounded,
                 text: '인터넷 연결을 확인해 주세요',
                 actionLabel: '다시 시도',
-                onAction: () => setState(() {
-                  _loaded = _load();
-                }),
+                onAction: retry,
               ),
           };
         },

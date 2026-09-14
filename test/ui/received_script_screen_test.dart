@@ -172,6 +172,21 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
+  testWidgets('불러오다 예외가 나도 앱이 죽지 않고 다시 시도 화면을 보여 준다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    // shareHistory에는 이미 추가한 것으로 남아 있지만(예: 백업 복원 등으로) repo 조회 자체가 실패하는 상황을 흉내 낸다
+    await tester.runAsync(() => h.services.shareHistory.markReceived(id, 1));
+    await tester.runAsync(() => h.db.customStatement('DROP TABLE scripts'));
+
+    await tester.pumpWidget(h.wrap(ReceivedScriptScreen(shareId: id)));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(keepWords('인터넷 연결을 확인해 주세요')), findsOneWidget);
+    expect(find.text('다시 시도'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
   testWidgets('받은 대본 아래에 문제를 알릴 수 있는 안내가 보인다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     h.shareServer.handler = (_) => jsonResponse(hamlet(), 200);
