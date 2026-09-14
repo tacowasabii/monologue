@@ -18,9 +18,9 @@ bool usesSideRail(BuildContext context) {
   return size.width >= 840 && size.height >= 480;
 }
 
-/// 폭이 [width]인 자리에서 내용이 [readableWidth]보다 넓어지지 않도록 [padding]의 양옆을 늘린다.
+/// 폭이 [width]인 자리에서 내용이 [maxWidth]보다 넓어지지 않도록 [padding]의 양옆을 늘린다.
 /// 스크롤 영역에 쓰면 여백을 끌어도 스크롤된다. 창 전체를 쓰는 화면은 창 폭을 넘긴다.
-EdgeInsets readablePadding(double width, EdgeInsets padding) {
-  final extra = math.max(0.0, (width - padding.horizontal - readableWidth) / 2);
+EdgeInsets readablePadding(double width, EdgeInsets padding, {double maxWidth = readableWidth}) {
+  final extra = math.max(0.0, (width - padding.horizontal - maxWidth) / 2);
   return padding.copyWith(left: padding.left + extra, right: padding.right + extra);
 }

@@ -186,11 +186,14 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                     builder: (context, constraints) => CustomScrollView(
                       slivers: [
                         SliverPadding(
-                          padding: grid ? padding : readablePadding(constraints.maxWidth, padding),
-                          // 넓은 창에서는 카드를 키우지 않고 한 줄에 더 많이 놓는다(폰에서는 두 개)
+                          padding: grid
+                              ? readablePadding(constraints.maxWidth, padding, maxWidth: _gridMaxWidth)
+                              : readablePadding(constraints.maxWidth, padding),
+                          // 넓은 창에서 카드가 한 줄로 흩어져 아래가 비지 않도록, 그리드 폭을 줄이고 세 개씩 놓는다(폰에서는 두 개)
                           sliver: grid
-                              ? SliverGrid.extent(
-                                  maxCrossAxisExtent: 220,
+                              ? SliverGrid.count(
+                                  crossAxisCount:
+                                      (constraints.maxWidth - padding.horizontal).clamp(0.0, _gridMaxWidth) < 520 ? 2 : 3,
                                   mainAxisSpacing: 12,
                                   crossAxisSpacing: 12,
                                   childAspectRatio: 1.2,
@@ -213,6 +216,9 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     );
   }
 }
+
+/// 모음 그리드가 넓어질 수 있는 최대 폭. 이 폭에 세 개씩 놓으면 카드 하나가 300쯤 된다.
+const _gridMaxWidth = 960.0;
 
 class _CollectionCard extends StatelessWidget {
   const _CollectionCard({required this.entry});

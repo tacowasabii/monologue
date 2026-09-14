@@ -51,35 +51,38 @@ class _PickParagraphsScreenState extends State<PickParagraphsScreen> {
     final scheme = theme.colorScheme;
     final total = widget.paragraphs.length;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('문단 고르기'),
-        actions: [
-          TextButton(
-            onPressed: _toggleAll,
-            child: Text(_count < total ? '모두 선택' : '모두 해제'),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: AppBar(title: const Text('문단 고르기')),
       body: ListView.separated(
         padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 4, 20, 20)),
         itemCount: total + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (context, i) {
           if (i == 0) {
+            // 모두 선택은 앱 바 끝이 아니라 문단 목록 바로 위에 둬서, 넓은 화면에서도 목록과 함께 보인다
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    '대본에 넣을 문단만 남겨 주세요',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.5),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '대본에 넣을 문단만 남겨 주세요',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.5),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$total개 중 $_count개 선택',
+                          style: theme.textTheme.labelLarge?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$total개 중 $_count개 선택',
-                    style: theme.textTheme.labelLarge?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700),
+                  TextButton(
+                    onPressed: _toggleAll,
+                    child: Text(_count < total ? '모두 선택' : '모두 해제'),
                   ),
                 ],
               ),
