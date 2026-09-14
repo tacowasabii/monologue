@@ -60,7 +60,7 @@ class _CollectionNameDialogState extends State<_CollectionNameDialog> {
           autofocus: true,
           textInputAction: TextInputAction.done,
           decoration: InputDecoration(
-            hintText: '예: 1차 오디션, 입시',
+            hintText: '예: 1차 오디션, 워크숍',
             errorText: _taken ? '이미 있는 모음이에요' : null,
           ),
           onChanged: (_) => setState(() {}),

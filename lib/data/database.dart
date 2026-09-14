@@ -40,7 +40,7 @@ class ScriptImages extends Table {
   IntColumn get position => integer()();
 }
 
-/// '1차 오디션', '입시'처럼 사용자가 만든 대본 묶음.
+/// '1차 오디션', '워크숍'처럼 사용자가 만든 대본 묶음.
 class Collections extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
