@@ -191,7 +191,7 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
                         () => _CountHeader(_filter.isActive ? '찾은 대본 ${items.length}편' : '대본 ${items.length}편'),
                         for (final s in items) () => card(s),
                       ] else ...[
-                        () => SectionHeader('즐겨찾기 ${favorites.length}', first: true),
+                        () => SectionHeader('즐겨찾기 ${favorites.length}편', first: true),
                         for (final s in favorites) () => card(s),
                         if (others.isNotEmpty) ...[
                           () => SectionHeader('대본 ${others.length}편'),
