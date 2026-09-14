@@ -5,14 +5,11 @@ OcrBlock b(double top, List<String> lines, {double left = 0}) => OcrBlock(top: t
 
 void main() {
   group('joinLines', () {
-    test('블록 안의 줄은 공백 하나로 잇는다', () {
-      expect(joinLines(['나는 늘 괜찮다고', '말했어.']), '나는 늘 괜찮다고 말했어.');
-    });
-    test('하이픈으로 끝난 줄은 공백 없이 잇는다', () {
-      expect(joinLines(['self-', 'tape']), 'self-tape');
+    test('블록 안의 줄은 사진의 줄바꿈 그대로 잇는다', () {
+      expect(joinLines(['나는 늘 괜찮다고', '말했어.']), '나는 늘 괜찮다고\n말했어.');
     });
     test('줄 안의 연속 공백을 정리하고 빈 줄은 건너뛴다', () {
-      expect(joinLines(['  괜찮지   않아 ', '', ' 하나도 ']), '괜찮지 않아 하나도');
+      expect(joinLines(['  괜찮지   않아 ', '', ' 하나도 ']), '괜찮지 않아\n하나도');
     });
   });
 

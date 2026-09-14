@@ -138,9 +138,10 @@ List<OcrBlock> groupLines(List<OcrLine> lines) {
   }
 
   // 간격이 벌어지면 새 문단. 앱 화면 글자와 본문은 붙어 있어도 섞지 않는다.
+  // 문단 안에서는 사진의 행을 한 줄씩 그대로 둔다. 대본의 줄바꿈은 호흡이고, 대화 형식은 줄 앞 '이름:'으로 나누기 때문이다.
   final blocks = <OcrBlock>[];
   double bottomOf(List<OcrLine> row) => row.map((l) => l.bottom).reduce(max);
-  var current = [...rows.first];
+  var current = [rows.first];
   var currentChrome = _isChromeRow(rows.first);
   var currentBottom = bottomOf(rows.first);
   for (final row in rows.skip(1)) {
@@ -148,11 +149,11 @@ List<OcrBlock> groupLines(List<OcrLine> lines) {
     final rowChrome = _isChromeRow(row);
     if (rowTop - currentBottom > medianHeight * paragraphGapRatio || rowChrome != currentChrome) {
       blocks.add(_toBlock(current, currentChrome));
-      current = [...row];
+      current = [row];
       currentChrome = rowChrome;
       currentBottom = bottomOf(row);
     } else {
-      current.addAll(row);
+      current.add(row);
       currentBottom = max(currentBottom, bottomOf(row));
     }
   }
@@ -160,13 +161,16 @@ List<OcrBlock> groupLines(List<OcrLine> lines) {
   return blocks;
 }
 
-OcrBlock _toBlock(List<OcrLine> lines, bool isChrome) {
+/// [rows]는 위에서부터의 행이고, 행마다 왼쪽부터의 조각이다.
+/// 같은 행의 조각(따로 인식된 인물명과 대사 등)은 공백으로 이어 한 줄로 만든다.
+OcrBlock _toBlock(List<List<OcrLine>> rows, bool isChrome) {
+  final lines = [for (final row in rows) ...row];
   // 손글씨가 한 줄만 섞여도 문단이 드러나도록 가장 낮은 확신도를 쓴다
   final confidences = [for (final l in lines) if (l.confidence != null) l.confidence!];
   return OcrBlock(
     top: lines.map((l) => l.top).reduce(min),
     left: lines.map((l) => l.left).reduce(min),
-    lines: [for (final l in lines) l.text],
+    lines: [for (final row in rows) row.map((l) => l.text).join(' ')],
     confidence: confidences.isEmpty ? null : confidences.reduce(min),
     isChrome: isChrome,
   );
@@ -174,17 +178,11 @@ OcrBlock _toBlock(List<OcrLine> lines, bool isChrome) {
 
 final _spaces = RegExp(r'\s+');
 
-/// 화면 폭 때문에 생긴 줄바꿈을 이어붙인다.
-String joinLines(List<String> lines) {
-  final buf = StringBuffer();
-  for (final raw in lines) {
-    final line = raw.replaceAll(_spaces, ' ').trim();
-    if (line.isEmpty) continue;
-    if (buf.isNotEmpty && !buf.toString().endsWith('-')) buf.write(' ');
-    buf.write(line);
-  }
-  return buf.toString();
-}
+/// 문단 안의 줄을 사진에서 바뀐 그대로 줄바꿈으로 잇는다. 줄 안의 연속 공백은 하나로 줄이고 빈 줄은 건너뛴다.
+String joinLines(List<String> lines) => [
+      for (final raw in lines)
+        if (raw.replaceAll(_spaces, ' ').trim() case final line when line.isNotEmpty) line,
+    ].join('\n');
 
 /// 이미지별 인식 블록을 읽는 순서대로 문단 목록으로 만든다(사진 번호는 1부터).
 List<Paragraph> paragraphsOf(List<List<OcrBlock>> pages) {
