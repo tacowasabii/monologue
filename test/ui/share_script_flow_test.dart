@@ -49,7 +49,7 @@ void main() {
     ))!;
     h.shareServer.handler = (_) => jsonResponse({
           'id': id,
-          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'url': 'https://monologue.ink/s/$id',
           'deleteToken': 'secret',
           'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
         }, 201);
@@ -72,7 +72,7 @@ void main() {
     expect(h.services.shareHistory.noticeSeen, isTrue);
     expect(h.services.shareHistory.sent.single.id, id);
     final text = (shareCalls.single.arguments as Map)['text'] as String;
-    expect(text, '「갈매기」 대본을 보냈어요\nhttps://tacowasabii.vercel.app/monologue/s/$id');
+    expect(text, '「갈매기」 대본을 보냈어요\nhttps://monologue.ink/s/$id');
     await tester.runAsync(h.db.close);
   });
 
@@ -150,7 +150,7 @@ void main() {
     ))!;
     h.shareServer.handler = (_) => jsonResponse({
           'id': id,
-          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'url': 'https://monologue.ink/s/$id',
           'deleteToken': 'secret',
           'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
         }, 201);
@@ -189,7 +189,7 @@ void main() {
     final scriptId = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '대사'))))!;
     h.shareServer.handler = (_) => jsonResponse({
           'id': id,
-          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'url': 'https://monologue.ink/s/$id',
           'deleteToken': 'secret',
           'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
         }, 201);
@@ -213,7 +213,7 @@ void main() {
     final scriptId = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '대사'))))!;
     h.shareServer.handler = (_) => jsonResponse({
           'id': id,
-          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'url': 'https://monologue.ink/s/$id',
           'deleteToken': 'secret',
           'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
         }, 201);

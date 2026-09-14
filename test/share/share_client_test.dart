@@ -23,7 +23,7 @@ void main() {
       sent = request;
       return jsonResponse({
         'id': id,
-        'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+        'url': 'https://monologue.ink/s/$id',
         'deleteToken': 'secret',
         'expiresAt': '2026-09-21T12:00:00.000Z',
       }, 201);
@@ -32,7 +32,7 @@ void main() {
     final result = await client.upload(payload);
 
     expect(sent.method, 'POST');
-    expect(sent.url.toString(), 'https://tacowasabii.vercel.app/api/monologue/shares');
+    expect(sent.url.toString(), 'https://monologue.ink/api/shares');
     expect(jsonDecode(sent.body), payload.toJson());
     final link = (result as ShareOk<SentLink>).value;
     expect(link.id, id);
@@ -53,7 +53,7 @@ void main() {
 
   test('가져오기는 한글 본문을 그대로 읽고, 없으면 ShareMissing', () async {
     final client = ShareClient(MockClient((request) async {
-      expect(request.url.path, '/api/monologue/shares/$id');
+      expect(request.url.path, '/api/shares/$id');
       return jsonResponse({'v': 1, 'work': null, 'dialogue': true, 'body': '민수: 안녕', 'gender': 'any', 'ageRange': 'any', 'tags': <String>[], 'note': null}, 200);
     }));
     final result = await client.fetch(id);
@@ -72,7 +72,7 @@ void main() {
     })).delete(link);
     expect(ok, isA<ShareOk<void>>());
     expect(sent.method, 'DELETE');
-    expect(sent.url.path, '/api/monologue/shares/$id');
+    expect(sent.url.path, '/api/shares/$id');
     expect(sent.headers['Authorization'], 'Bearer secret');
 
     expect(await ShareClient(MockClient((_) async => http.Response('', 404))).delete(link), isA<ShareMissing<void>>());

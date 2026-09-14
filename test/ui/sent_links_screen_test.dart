@@ -12,7 +12,7 @@ void main() {
   final id = 'C' * 22;
   SentLink hamlet() => SentLink(
         id: id,
-        url: 'https://tacowasabii.vercel.app/monologue/s/$id',
+        url: 'https://monologue.ink/s/$id',
         deleteToken: 'secret',
         title: '햄릿',
         expiresAt: DateTime.now().add(const Duration(days: 3)),
@@ -35,7 +35,7 @@ void main() {
 
     await tester.tap(find.byTooltip('링크 복사'));
     await tester.pumpAndSettle();
-    expect(copied, 'https://tacowasabii.vercel.app/monologue/s/$id');
+    expect(copied, 'https://monologue.ink/s/$id');
     expect(find.text('링크를 복사했어요'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });

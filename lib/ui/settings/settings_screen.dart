@@ -14,7 +14,7 @@ import '../common/korean_text.dart';
 import '../share/sent_links_screen.dart';
 import 'how_to_screen.dart';
 
-const privacyPolicyUrl = 'https://tacowasabii.vercel.app/monologue/privacy';
+const privacyPolicyUrl = 'https://monologue.ink/privacy';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

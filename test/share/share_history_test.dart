@@ -6,7 +6,7 @@ import 'package:shared_preferences_platform_interface/shared_preferences_async_p
 import 'package:shared_preferences_platform_interface/types.dart';
 
 SentLink link(String id, DateTime expiresAt) =>
-    SentLink(id: id, url: 'https://tacowasabii.vercel.app/monologue/s/$id', deleteToken: 't-$id', title: '대본 $id', expiresAt: expiresAt);
+    SentLink(id: id, url: 'https://monologue.ink/s/$id', deleteToken: 't-$id', title: '대본 $id', expiresAt: expiresAt);
 
 /// A platform that throws on all write operations.
 final class FailingSharedPreferencesAsync extends InMemorySharedPreferencesAsync {

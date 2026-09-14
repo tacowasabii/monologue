@@ -107,7 +107,7 @@ void main() {
     await tester.pumpWidget(AppScope(services: h.services, child: const MonologueApp()));
     await tester.pumpAndSettle();
 
-    h.links.open(Uri.parse('https://tacowasabii.vercel.app/monologue/privacy'));
+    h.links.open(Uri.parse('https://monologue.ink/privacy'));
     await tester.pumpAndSettle();
     expect(find.byType(ReceivedScriptScreen), findsNothing);
 

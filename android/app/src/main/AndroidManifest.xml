@@ -28,12 +28,12 @@
             </intent-filter>
             <!-- 링크는 app_links가 받으므로 Flutter 기본 딥 링크 처리를 끈다 -->
             <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
-            <!-- 공유 링크: https://tacowasabii.vercel.app/monologue/s/<ID> -->
+            <!-- 공유 링크: https://monologue.ink/s/<ID> -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="tacowasabii.vercel.app" android:pathPrefix="/monologue/s/" />
+                <data android:scheme="https" android:host="monologue.ink" android:pathPrefix="/s/" />
             </intent-filter>
             <!-- 웹 보기의 "앱에서 열기": monologue://s/<ID> -->
             <intent-filter>

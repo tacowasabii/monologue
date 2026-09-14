@@ -10,8 +10,8 @@
 | 카테고리 | iOS: 생산성 / Google Play: 생산성 |
 | 연령 등급 | iOS 4+ / Google Play: 전체이용가 (설문 기준) |
 | 가격 | 무료, 인앱 결제·광고 없음 |
-| 개인정보처리방침 | https://tacowasabii.vercel.app/monologue/privacy |
-| 지원 URL | https://tacowasabii.vercel.app |
+| 개인정보처리방침 | https://monologue.ink/privacy |
+| 지원 URL | https://monologue.ink |
 
 ## 설명
 
@@ -118,4 +118,4 @@ Android 앱에 들어 있는 Google ML Kit(글자 인식)가 진단 정보를 Go
 - `RECORD_AUDIO`: 연습 녹음할 때만
 - `INTERNET`, `ACCESS_NETWORK_STATE`: 링크 공유, ML Kit 진단 정보 전송 라이브러리(`datatransport`), 미디어 재생 라이브러리
 - 카메라·사진·파일은 시스템 카메라 앱, 사진 선택기, 파일 선택기를 거쳐서 권한을 따로 요청하지 않는다
-- 개인정보처리방침: https://tacowasabii.vercel.app/monologue/privacy (ML Kit 진단 정보, 링크 공유 설명 포함)
+- 개인정보처리방침: https://monologue.ink/privacy (ML Kit 진단 정보, 링크 공유 설명 포함)

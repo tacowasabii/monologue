@@ -82,7 +82,7 @@ void main() {
   test('보낸 링크 기록은 JSON으로 저장했다 읽을 수 있고, 망가진 값은 버린다', () {
     final link = SentLink(
       id: 'A' * 22,
-      url: 'https://tacowasabii.vercel.app/monologue/s/${'A' * 22}',
+      url: 'https://monologue.ink/s/${'A' * 22}',
       deleteToken: 'secret',
       title: '햄릿',
       expiresAt: DateTime.utc(2026, 9, 21, 12),
