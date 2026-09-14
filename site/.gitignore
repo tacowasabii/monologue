@@ -3,3 +3,5 @@ dist/
 .astro/
 .vercel/
 public/downloads/*.apk
+.vercel
+.env*
