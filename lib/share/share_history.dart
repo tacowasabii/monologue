@@ -68,17 +68,24 @@ class ShareHistory {
 
   int? receivedScriptId(String shareId) => _received[shareId];
 
+  /// 기록에 실패해도 공유 흐름을 막지 않도록 오류는 삼킨다.
+  Future<void> _write(Future<void> Function() write) async {
+    try {
+      await write();
+    } catch (_) {}
+  }
+
   Future<void> markReceived(String shareId, int scriptId) async {
     _received[shareId] = scriptId;
-    await _prefs.setString(_receivedKey, jsonEncode(_received));
+    await _write(() => _prefs.setString(_receivedKey, jsonEncode(_received)));
   }
 
   bool get noticeSeen => _noticeSeen;
 
   Future<void> markNoticeSeen() async {
     _noticeSeen = true;
-    await _prefs.setBool(_noticeKey, true);
+    await _write(() => _prefs.setBool(_noticeKey, true));
   }
 
-  Future<void> _saveSent() => _prefs.setString(_sentKey, jsonEncode([for (final l in _sent) l.toJson()]));
+  Future<void> _saveSent() => _write(() => _prefs.setString(_sentKey, jsonEncode([for (final l in _sent) l.toJson()])));
 }
