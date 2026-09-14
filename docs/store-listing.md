@@ -55,8 +55,33 @@ Google Play용 이미지는 `docs/store-assets/`에 있다. 스크린샷은 1080
 
 - 앱 아이콘: `icon-512.png` (512×512)
 - 대표 이미지: `feature-graphic-1024x500.png` (1024×500, 투명도 없음)
-- iOS 스크린샷(iPhone 6.9", 1320×2868)과 iPad 스크린샷(13", 2064×2752)은 아직 만들지 않았다. 앱이 iPad를 지원하므로(`TARGETED_DEVICE_FAMILY = "1,2"`) App Store 제출에는 iPad 스크린샷도 필요하다.
-- Google Play 태블릿 스크린샷(7"·10")은 선택이지만, 넣어야 태블릿·폴드에서 큰 화면 대응 앱으로 보인다.
+- 이 스크린샷들은 테스트 위젯으로 실제 화면을 그려 만든다. 샘플 대본은 모두 자작이다.
+
+### App Store
+
+iPhone 6.9"(1320×2868)와 iPad 13"(2752×2064, 가로) 스크린샷도 같은 방식으로 만들었다. App Store Connect에서 6.9" 칸과 13" iPad 칸에 올리면 작은 기기용은 자동으로 줄여 쓴다. 투명도 없는 24비트 PNG.
+
+| 순서 | iPhone 파일 | 문구 |
+|---|---|---|
+| 1 | `ios-iphone-01-list.png` | 캡처해 둔 독백 대본을 한곳에 |
+| 2 | `ios-iphone-02-paragraphs.png` | 사진을 올리면 글자로 |
+| 3 | `ios-iphone-03-dialogue.png` | 대화 장면은 내 역할만 또렷하게 |
+| 4 | `ios-iphone-04-immersive.png` | 메뉴 없이 대본에만 몰입 |
+| 5 | `ios-iphone-05-practice.png` | 연습을 녹음하고 다시 들어요 |
+| 6 | `ios-iphone-06-collections.png` | 오디션·작품별로 모음 정리 |
+| 7 | `ios-iphone-07-notes.png` | 대본 옆에 나만의 노트 |
+
+### iPad·태블릿
+
+iPad는 `ios-ipad-*.png`(2752×2064), Google Play 태블릿은 `play-tablet-*.png`(2560×1440, 16:9)다. 태블릿 파일은 7" 칸과 10" 칸에 같은 것을 올려도 된다. 넓은 화면이라 목록 옆에 대본이 열리고 탭이 왼쪽 레일로 간다.
+
+| 순서 | 파일 이름 끝 | 문구 |
+|---|---|---|
+| 1 | `-01-split.png` | 목록과 장면을 나란히 |
+| 2 | `-02-paragraphs.png` | 사진을 올리면 글자로 |
+| 3 | `-03-immersive.png` | 메뉴 없이 대본에만 몰입 |
+| 4 | `-04-practice.png` | 연습을 녹음하고 다시 들어요 |
+| 5 | `-05-collections.png` | 오디션·작품별로 모음 정리 |
 
 샘플 대본·노트는 저작권이 없는 자작 문장만 쓴다.
 
