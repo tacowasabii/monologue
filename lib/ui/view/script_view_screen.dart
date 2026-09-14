@@ -4,7 +4,6 @@ import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
-import '../../domain/script_notes.dart';
 import '../../settings/reading_settings.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
@@ -148,8 +147,10 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         final speakers = s.dialogue ? speakersOf(parseDialogue(s.body)) : const <String>[];
         // 본문을 고쳐 저장된 역할이 사라졌으면 강조하지 않는다
         final focus = speakers.contains(s.myRole) ? s.myRole : null;
-        final notes = s.notes;
-        final showNotes = notes.situation != null || notes.objective != null;
+        final note = s.note;
+        void openNotes() => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => NotesScreen(script: s)),
+            );
         return Scaffold(
           appBar: AppBar(
             actions: [
@@ -162,9 +163,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
               IconButton(
                 tooltip: '노트',
                 icon: const Icon(Icons.sticky_note_2_outlined),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => NotesScreen(script: s)),
-                ),
+                onPressed: openNotes,
               ),
               IconButton(
                 tooltip: '편집',
@@ -263,20 +262,15 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     ],
                   ),
                 ),
-              if (showNotes)
+              if (note != null)
                 Padding(
                   padding: EdgeInsets.only(
                     top: source != null || hasLabels || memo != null || speakers.isNotEmpty ? 20 : 0,
                   ),
-                  child: _NotesSummary(
-                    notes: notes,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(builder: (_) => NotesScreen(script: s)),
-                    ),
-                  ),
+                  child: _NotePreview(note: note, onTap: openNotes),
                 ),
               // 위에 보여 줄 정보가 없으면 구분선 없이 본문부터 시작한다
-              if (source != null || hasLabels || memo != null || speakers.isNotEmpty || showNotes) ...[
+              if (source != null || hasLabels || memo != null || speakers.isNotEmpty || note != null) ...[
                 const SizedBox(height: 28),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -351,33 +345,17 @@ class _Label extends StatelessWidget {
   }
 }
 
-/// 본문 위에 상황·원하는 것을 짧게 보여 주고, 누르면 노트 화면을 연다.
-class _NotesSummary extends StatelessWidget {
-  const _NotesSummary({required this.notes, required this.onTap});
+/// 본문 위에 노트 앞부분을 보여 주고, 누르면 노트 화면을 연다.
+class _NotePreview extends StatelessWidget {
+  const _NotePreview({required this.note, required this.onTap});
 
-  final ScriptNotes notes;
+  final String note;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    Widget row(String label, String value) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text(
-                keepWords(value),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-              ),
-            ],
-          ),
-        );
     return Material(
       color: scheme.surfaceContainerLowest,
       clipBehavior: Clip.antiAlias,
@@ -385,12 +363,24 @@ class _NotesSummary extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (notes.situation case final v?) row('상황', v),
-              if (notes.objective case final v?) row('원하는 것', v),
+              Row(
+                children: [
+                  Icon(Icons.sticky_note_2_outlined, size: 16, color: scheme.primary),
+                  const SizedBox(width: 6),
+                  Text('노트', style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                keepWords(note),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+              ),
             ],
           ),
         ),

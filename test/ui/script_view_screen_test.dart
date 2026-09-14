@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_draft.dart';
-import 'package:monologue/domain/script_notes.dart';
 import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/view/script_view_screen.dart';
 
@@ -61,17 +60,20 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('상황이나 원하는 것이 있으면 본문 위에 요약을 보여준다', (tester) async {
+  testWidgets('노트가 있으면 본문 위에 앞부분을 보여 주고, 누르면 노트 화면이 열린다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     final id = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(
           work: '독백',
           body: '괜찮다는 말은 참 편리하더라.',
-          notes: ScriptNotes(situation: '새벽 세 시, 부엌', objective: '들키지 않기'),
+          note: '새벽 세 시, 부엌',
         ))))!;
     await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: id)));
     await tester.pumpAndSettle();
     expect(find.text(keepWords('새벽 세 시, 부엌')), findsOneWidget);
-    expect(find.text(keepWords('들키지 않기')), findsOneWidget);
+
+    await tester.tap(find.text(keepWords('새벽 세 시, 부엌')));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(FilledButton, '저장'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 }

@@ -30,15 +30,3 @@ enum PracticeStatus {
   const PracticeStatus(this.label);
   final String label;
 }
-
-enum ScriptMedium {
-  film('영화'),
-  drama('드라마'),
-  play('연극'),
-  musical('뮤지컬'),
-  original('창작'),
-  other('기타');
-
-  const ScriptMedium(this.label);
-  final String label;
-}

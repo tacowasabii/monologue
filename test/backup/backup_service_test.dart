@@ -11,7 +11,6 @@ import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
-import 'package:monologue/domain/script_notes.dart';
 
 class Env {
   Env(this.db, this.images, this.media) : repo = ScriptRepository(db, images, media);
@@ -222,14 +221,14 @@ void main() {
     await expectLater(dst.backup.restore(await saveZip('tampered', tampered)), throwsA(isA<BackupFormatException>()));
   });
 
-  test('version 2 백업은 대화 형식·내 역할·노트를 옮긴다', () async {
+  test('대화 형식·내 역할·노트를 옮긴다', () async {
     final src = await newEnv('src');
     await src.repo.create(const ScriptDraft(
       work: '장면',
       body: '민수: 가\n지영: 와',
       dialogue: true,
       myRole: '지영',
-      notes: ScriptNotes(situation: '새벽', author: '작가', medium: ScriptMedium.play),
+      note: '새벽\n\n지영은 먼저 말하고 싶지 않다',
     ));
     final zip = await src.backup.export(tmp);
     final dst = await newEnv('dst');
@@ -237,13 +236,32 @@ void main() {
     final s = (await dst.repo.watchScripts(const ScriptFilter()).first).single.script;
     expect(s.dialogue, isTrue);
     expect(s.myRole, '지영');
-    expect(s.notes, const ScriptNotes(situation: '새벽', author: '작가', medium: ScriptMedium.play));
+    expect(s.note, '새벽\n\n지영은 먼저 말하고 싶지 않다');
+  });
+
+  test('version 2 백업의 여러 노트 칸은 제목을 붙여 노트 한 글로 합친다', () async {
+    final src = await newEnv('src');
+    await src.repo.create(const ScriptDraft(work: '옛 노트', body: '본문'));
+    final bytes = await (await src.backup.export(tmp)).readAsBytes();
+    final v2 = BackupService.debugRewriteManifest(bytes, (m) {
+      m['version'] = 2;
+      for (final e in (m['scripts'] as List).cast<Map<String, Object?>>()) {
+        e
+          ..remove('note')
+          ..['notes'] = {'situation': '새벽', 'objective': null, 'author': '체호프', 'medium': 'play'};
+      }
+      return m;
+    });
+    final dst = await newEnv('dst');
+    expect(await dst.backup.restore(await saveZip('v2', v2)), 1);
+    final s = (await dst.repo.watchScripts(const ScriptFilter()).first).single.script;
+    expect(s.note, '상황: 새벽\n\n작가: 체호프\n\n매체: 연극');
   });
 
   test('version 1 백업도 복원하고 형식은 독백, 역할·노트는 비운다', () async {
     final src = await newEnv('src');
     await src.repo.create(
-      const ScriptDraft(work: '옛 대본', body: '본문', dialogue: true, myRole: '민수', notes: ScriptNotes(obstacle: 'o')),
+      const ScriptDraft(work: '옛 대본', body: '본문', dialogue: true, myRole: '민수', note: 'o'),
     );
     final bytes = await (await src.backup.export(tmp)).readAsBytes();
     final v1 = BackupService.debugRewriteManifest(bytes, (m) {
@@ -252,7 +270,7 @@ void main() {
         e
           ..remove('dialogue')
           ..remove('myRole')
-          ..remove('notes');
+          ..remove('note');
       }
       return m;
     });
@@ -262,6 +280,6 @@ void main() {
     expect(s.work, '옛 대본');
     expect(s.dialogue, isFalse);
     expect(s.myRole, isNull);
-    expect(s.notes.isEmpty, isTrue);
+    expect(s.note, isNull);
   });
 }

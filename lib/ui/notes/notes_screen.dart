@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
 import '../../data/database.dart';
-import '../../data/script_repository.dart';
-import '../../domain/enums.dart';
-import '../../domain/script_notes.dart';
-import '../common/pill_chip.dart';
-import '../common/section_header.dart';
 
-/// 대본 분석과 작품 맥락을 적는다. 저장 버튼을 누를 때만 반영한다.
+/// 대본에 대해 형식 없이 자유롭게 적는 노트. 저장 버튼을 누를 때만 반영한다.
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key, required this.script});
 
@@ -19,47 +14,22 @@ class NotesScreen extends StatefulWidget {
 }
 
 class _NotesScreenState extends State<NotesScreen> {
-  late final ScriptNotes _initial = widget.script.notes.normalized();
-  late final _situation = TextEditingController(text: _initial.situation);
-  late final _objective = TextEditingController(text: _initial.objective);
-  late final _obstacle = TextEditingController(text: _initial.obstacle);
-  late final _author = TextEditingController(text: _initial.author);
-  late final _sourceUrl = TextEditingController(text: _initial.sourceUrl);
-  late final _synopsis = TextEditingController(text: _initial.synopsis);
-  late final _sceneContext = TextEditingController(text: _initial.sceneContext);
-  late ScriptMedium? _medium = _initial.medium;
+  late final String _initial = widget.script.note ?? '';
+  late final _text = TextEditingController(text: _initial);
   bool _saving = false;
   bool _leaving = false;
 
-  List<TextEditingController> get _controllers =>
-      [_situation, _objective, _obstacle, _author, _sourceUrl, _synopsis, _sceneContext];
-
-  ScriptNotes get _notes => ScriptNotes(
-        situation: _situation.text,
-        objective: _objective.text,
-        obstacle: _obstacle.text,
-        author: _author.text,
-        medium: _medium,
-        sourceUrl: _sourceUrl.text,
-        synopsis: _synopsis.text,
-        sceneContext: _sceneContext.text,
-      ).normalized();
-
-  bool get _dirty => !_leaving && _notes != _initial;
+  bool get _dirty => !_leaving && _text.text.trim() != _initial.trim();
 
   @override
   void initState() {
     super.initState();
-    for (final c in _controllers) {
-      c.addListener(() => setState(() {}));
-    }
+    _text.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
-    }
+    _text.dispose();
     super.dispose();
   }
 
@@ -75,7 +45,7 @@ class _NotesScreenState extends State<NotesScreen> {
     if (_saving) return;
     setState(() => _saving = true);
     try {
-      await AppScope.of(context).repo.updateNotes(widget.script.id, _notes);
+      await AppScope.of(context).repo.updateNote(widget.script.id, _text.text);
       if (mounted) _leave();
     } catch (_) {
       if (!mounted) return;
@@ -97,18 +67,6 @@ class _NotesScreenState extends State<NotesScreen> {
     );
     if (leave == true && mounted) _leave();
   }
-
-  Widget _field(TextEditingController c, String label, {String? hint, int minLines = 1, TextInputType? keyboard}) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: TextFormField(
-          controller: c,
-          minLines: minLines,
-          maxLines: null,
-          keyboardType: keyboard ?? TextInputType.multiline,
-          decoration: InputDecoration(labelText: label, hintText: hint, alignLabelWithHint: minLines > 1),
-        ),
-      );
 
   @override
   Widget build(BuildContext context) {
@@ -138,36 +96,24 @@ class _NotesScreenState extends State<NotesScreen> {
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 48),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SectionHeader('분석', first: true),
-              _field(_situation, '상황', hint: '누가, 어디서, 언제, 바로 전에 무슨 일이 있었나요', minLines: 2),
-              _field(_objective, '원하는 것', hint: '이 인물이 상대에게서 얻고 싶은 것'),
-              _field(_obstacle, '가로막는 것', hint: '그걸 얻지 못하게 막는 것'),
-              const SectionHeader('작품 맥락'),
-              _field(_author, '작가'),
-              Text('매체', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final m in ScriptMedium.values)
-                    PillChip(
-                      label: m.label,
-                      selected: m == _medium,
-                      onSelected: (_) => setState(() => _medium = m == _medium ? null : m),
-                    ),
-                ],
+        body: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+            // 무엇을 어떻게 적을지는 사람마다 달라서 칸을 나누지 않고 화면 가득 한 칸만 둔다
+            child: TextField(
+              controller: _text,
+              autofocus: _initial.isEmpty,
+              expands: true,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              textAlignVertical: TextAlignVertical.top,
+              style: theme.textTheme.bodyLarge?.copyWith(height: 1.7),
+              decoration: const InputDecoration(
+                hintText: '인물의 상황, 원하는 것, 떠오르는 생각을 자유롭게 적어 보세요',
+                hintMaxLines: 3,
               ),
-              const SizedBox(height: 16),
-              _field(_sourceUrl, '출처 링크', keyboard: TextInputType.url),
-              _field(_synopsis, '작품 줄거리', minLines: 3),
-              _field(_sceneContext, '이 장면 앞뒤', hint: '이 장면 직전과 직후에 일어나는 일', minLines: 3),
-            ],
+            ),
           ),
         ),
       ),

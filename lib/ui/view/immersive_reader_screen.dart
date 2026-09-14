@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import '../../app_scope.dart';
 import '../../data/database.dart';
-import '../../data/script_repository.dart';
 import '../../domain/script_draft.dart';
 import '../../platform/screen_awake.dart';
 import '../common/korean_text.dart';
@@ -64,14 +63,6 @@ class _ImmersiveReaderScreenState extends State<ImmersiveReaderScreen> {
                   padding: const EdgeInsets.fromLTRB(28, 56, 28, 120),
                   children: [
                     Text(keepWords(s.work ?? firstLineOf(s.body)), style: theme.textTheme.headlineSmall),
-                    if (s.notes.situation case final situation?)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          keepWords(situation),
-                          style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
-                        ),
-                      ),
                     const SizedBox(height: 40),
                     ScriptBody(
                       body: s.body,

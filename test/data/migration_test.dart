@@ -48,6 +48,32 @@ const _v5Schema = [
       '"duration_ms" INTEGER NULL, "created_at" TEXT NOT NULL);',
 ];
 
+// 버전 6은 버전 5의 scripts 표에 형식·역할과 여러 노트 칸을 더한 구조다
+const _v6ScriptColumns = [
+  '"dialogue" INTEGER NOT NULL DEFAULT 0 CHECK ("dialogue" IN (0, 1))',
+  '"my_role" TEXT NULL',
+  '"situation" TEXT NULL',
+  '"objective" TEXT NULL',
+  '"obstacle" TEXT NULL',
+  '"author" TEXT NULL',
+  '"medium" TEXT NULL',
+  '"source_url" TEXT NULL',
+  '"synopsis" TEXT NULL',
+  '"scene_context" TEXT NULL',
+];
+
+void createV6(Database db) {
+  for (final sql in _v5Schema) {
+    db.execute(sql);
+  }
+  for (final column in _v6ScriptColumns) {
+    db.execute('ALTER TABLE scripts ADD COLUMN $column');
+  }
+}
+
+Future<List<String>> scriptColumns(AppDatabase db) async =>
+    [for (final c in await db.customSelect("SELECT name FROM pragma_table_info('scripts')").get()) c.read<String>('name')];
+
 void main() {
   late Directory tmp;
 
@@ -137,8 +163,7 @@ void main() {
     final db = AppDatabase(NativeDatabase(file));
     expect(await db.select(db.scripts).get(), isEmpty);
     expect(await db.select(db.scriptTags).get(), isEmpty);
-    final columns = await db.customSelect("SELECT name FROM pragma_table_info('scripts')").get();
-    expect(columns.map((c) => c.read<String>('name')), allOf(contains('memo'), isNot(contains('title')), isNot(contains('character_name'))));
+    expect(await scriptColumns(db), allOf(contains('memo'), isNot(contains('title')), isNot(contains('character_name'))));
 
     // 옛 구조가 남아 있으면 제목 칸(NOT NULL) 때문에 저장이 실패한다
     await db.into(db.scripts).insert(ScriptsCompanion.insert(
@@ -177,8 +202,7 @@ void main() {
     expect(row.memo, '1차 오디션');
     expect(row.dialogue, isFalse);
     expect(row.myRole, isNull);
-    expect(row.situation, isNull);
-    expect(row.medium, isNull);
+    expect(row.note, isNull);
     expect((await db.select(db.scriptTags).getSingle()).tag, '고뇌');
     await db.close();
   });
@@ -208,7 +232,7 @@ void main() {
     expect(row.work, '햄릿');
     expect(row.dialogue, isFalse);
     expect(row.myRole, isNull);
-    expect(row.situation, isNull);
+    expect(row.note, isNull);
     expect(await db.select(db.scriptCollections).get(), hasLength(1));
     expect((await db.select(db.scriptMedia).getSingle()).durationMs, 42000);
     await db.close();
@@ -217,24 +241,7 @@ void main() {
   test('버전 6 DB는 모음 연결을 그대로 두고, 지금까지 보이던 최근 수정순을 모음 안 순서로 삼는다', () async {
     final file = File('${tmp.path}/v6.sqlite');
     final v6 = sqlite3.open(file.path);
-    // 버전 6은 버전 5의 scripts 표에 형식·역할·노트 칸을 더한 구조다
-    for (final sql in _v5Schema) {
-      v6.execute(sql);
-    }
-    for (final column in [
-      '"dialogue" INTEGER NOT NULL DEFAULT 0 CHECK ("dialogue" IN (0, 1))',
-      '"my_role" TEXT NULL',
-      '"situation" TEXT NULL',
-      '"objective" TEXT NULL',
-      '"obstacle" TEXT NULL',
-      '"author" TEXT NULL',
-      '"medium" TEXT NULL',
-      '"source_url" TEXT NULL',
-      '"synopsis" TEXT NULL',
-      '"scene_context" TEXT NULL',
-    ]) {
-      v6.execute('ALTER TABLE scripts ADD COLUMN $column');
-    }
+    createV6(v6);
     v6.execute(
       'INSERT INTO scripts (work, memo, gender, age_range, status, favorite, body, created_at, updated_at) VALUES '
       "('오래전에 고친 대본', NULL, 'any', 'any', 'notStarted', 0, 'x', "
@@ -251,5 +258,61 @@ void main() {
     final links = await (db.select(db.scriptCollections)..orderBy([(l) => OrderingTerm.asc(l.position)])).get();
     expect([for (final l in links) (l.scriptId, l.position)], [(2, 0), (1, 1)]);
     await db.close();
+  });
+
+  test('버전 7 DB는 여러 노트 칸을 제목 붙인 노트 한 글로 합치고 예전 칸은 지운다', () async {
+    final file = File('${tmp.path}/v7.sqlite');
+    final v7 = sqlite3.open(file.path);
+    createV6(v7);
+    v7.execute('ALTER TABLE script_collections ADD COLUMN "position" INTEGER NOT NULL DEFAULT 0');
+    v7.execute(
+      'INSERT INTO scripts (work, memo, gender, age_range, status, favorite, body, created_at, updated_at, '
+      'dialogue, my_role, situation, medium, source_url) VALUES '
+      "('갈매기', '니나', 'any', 'any', 'notStarted', 1, '나는 갈매기', "
+      "'2026-09-14T10:00:00.000+09:00', '2026-09-14T10:00:00.000+09:00', 1, '니나', '호숫가 무대', 'play', "
+      "'https://example.com'), "
+      "('햄릿', NULL, 'any', 'any', 'notStarted', 0, '사느냐 죽느냐', "
+      "'2026-09-14T10:00:00.000+09:00', '2026-09-14T10:00:00.000+09:00', 0, NULL, NULL, NULL, NULL)",
+    );
+    v7.execute('PRAGMA user_version = 7');
+    v7.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final rows = await (db.select(db.scripts)..orderBy([(s) => OrderingTerm.asc(s.id)])).get();
+    expect(rows[0].note, '상황: 호숫가 무대\n\n매체: 연극\n\n출처 링크: https://example.com');
+    expect((rows[0].work, rows[0].memo, rows[0].favorite, rows[0].dialogue, rows[0].myRole), ('갈매기', '니나', true, true, '니나'));
+    expect(rows[1].note, isNull);
+    expect(
+      await scriptColumns(db),
+      allOf(contains('note'), isNot(contains('situation')), isNot(contains('source_url')), isNot(contains('medium'))),
+    );
+    await db.close();
+  });
+
+  test('올리는 도중에 실패하면 DB를 조금도 바꾸지 않아서, 반쯤 바뀐 채로 남지 않는다', () async {
+    final file = File('${tmp.path}/v7_fails.sqlite');
+    final v7 = sqlite3.open(file.path);
+    createV6(v7);
+    v7.execute('ALTER TABLE script_collections ADD COLUMN "position" INTEGER NOT NULL DEFAULT 0');
+    v7.execute(
+      'INSERT INTO scripts (work, gender, age_range, status, favorite, body, created_at, updated_at, situation) '
+      "VALUES ('갈매기', 'any', 'any', 'notStarted', 0, 'x', "
+      "'2026-09-14T10:00:00.000+09:00', '2026-09-14T10:00:00.000+09:00', '호숫가 무대')",
+    );
+    // 칸에 색인이 걸려 있으면 노트 칸을 지우는 마지막 단계에서 실패한다. 노트 칸 추가·내용 합치기는 이미 한 뒤다
+    v7.execute('CREATE INDEX scripts_situation ON scripts (situation)');
+    v7.execute('PRAGMA user_version = 7');
+    v7.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    await expectLater(db.select(db.scripts).get(), throwsA(anything));
+    await db.close().catchError((_) {});
+
+    final raw = sqlite3.open(file.path);
+    addTearDown(raw.close);
+    expect(raw.select('PRAGMA user_version').single.values.single, 7);
+    final columns = [for (final r in raw.select("SELECT name FROM pragma_table_info('scripts')")) r['name']];
+    expect(columns, allOf(contains('situation'), isNot(contains('note'))));
+    expect(raw.select('SELECT situation FROM scripts').single['situation'], '호숫가 무대');
   });
 }

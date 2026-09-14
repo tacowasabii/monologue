@@ -1,5 +1,4 @@
 import 'enums.dart';
-import 'script_notes.dart';
 
 /// 본문의 첫 비어있지 않은 줄. 없으면 빈 문자열.
 String firstLineOf(String body) {
@@ -23,7 +22,7 @@ class ScriptDraft {
     this.collectionIds = const [],
     this.dialogue = false,
     this.myRole,
-    this.notes = ScriptNotes.empty,
+    this.note,
   });
 
   final String body;
@@ -39,9 +38,11 @@ class ScriptDraft {
 
   /// 대화 대본에서 강조해 읽을 인물 이름
   final String? myRole;
-  final ScriptNotes notes;
 
-  /// 빈 칸은 null로, 본문·메모는 앞뒤 공백을 다듬고, 태그·모음은 중복 제거·정렬한다.
+  /// 대본에 대해 형식 없이 자유롭게 적은 노트
+  final String? note;
+
+  /// 빈 칸은 null로, 본문·메모·노트는 앞뒤 공백을 다듬고, 태그·모음은 중복 제거·정렬한다.
   ScriptDraft normalized() {
     String? blankToNull(String? s) => (s == null || s.trim().isEmpty) ? null : s.trim();
     final cleanTags = {for (final t in tags) t.trim()}..remove('');
@@ -57,7 +58,7 @@ class ScriptDraft {
       collectionIds: {...collectionIds}.toList()..sort(),
       dialogue: dialogue,
       myRole: blankToNull(myRole),
-      notes: notes.normalized(),
+      note: blankToNull(note),
     );
   }
 
@@ -74,6 +75,6 @@ class ScriptDraft {
         collectionIds: ids,
         dialogue: dialogue,
         myRole: myRole,
-        notes: notes,
+        note: note,
       );
 }

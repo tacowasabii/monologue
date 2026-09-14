@@ -10,7 +10,6 @@ import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/domain/script_filter.dart';
-import 'package:monologue/domain/script_notes.dart';
 
 void main() {
   late AppDatabase db;
@@ -283,28 +282,31 @@ void main() {
     expect(images.dir.listSync(), isEmpty);
   });
 
-  test('create는 형식·역할·노트를 저장하고 update는 형식만 바꾼다', () async {
+  test('create는 형식·역할·노트를 저장하고 update는 노트를 건드리지 않는다', () async {
     final id = await repo.create(const ScriptDraft(
       body: '민수: 안녕\n지영: 응',
       dialogue: true,
       myRole: '지영',
-      notes: ScriptNotes(situation: '새벽', medium: ScriptMedium.play),
+      note: '새벽\n\n지영은 먼저 말하고 싶지 않다',
     ));
     await repo.update(id, const ScriptDraft(body: '민수: 안녕\n지영: 응', dialogue: false));
     final s = (await repo.watchScript(id).first)!.script;
     expect(s.dialogue, isFalse);
     expect(s.myRole, '지영');
-    expect(s.notes, const ScriptNotes(situation: '새벽', medium: ScriptMedium.play));
+    expect(s.note, '새벽\n\n지영은 먼저 말하고 싶지 않다');
   });
 
-  test('updateNotes는 노트를 정리해 저장하고 수정 시각을 바꾼다', () async {
+  test('updateNote는 앞뒤 공백을 다듬어 저장하고 수정 시각을 바꾸며, 비우면 노트를 지운다', () async {
     final id = await repo.create(const ScriptDraft(body: 'x'));
     final before = (await repo.watchScript(id).first)!.script.updatedAt;
     await Future<void>.delayed(const Duration(milliseconds: 5));
-    await repo.updateNotes(id, const ScriptNotes(objective: '  용서받기 ', obstacle: ''));
+    await repo.updateNote(id, '  용서받고 싶다\n');
     final s = (await repo.watchScript(id).first)!.script;
-    expect(s.notes, const ScriptNotes(objective: '용서받기'));
+    expect(s.note, '용서받고 싶다');
     expect(s.updatedAt.isAfter(before), isTrue);
+
+    await repo.updateNote(id, '   ');
+    expect((await repo.watchScript(id).first)!.script.note, isNull);
   });
 
   test('setMyRole은 역할을 저장하고 null이면 지운다', () async {
@@ -315,8 +317,8 @@ void main() {
     expect((await repo.watchScript(id).first)!.script.myRole, isNull);
   });
 
-  test('작가로도 검색된다', () async {
-    await repo.create(const ScriptDraft(work: '갈매기', body: 'x', notes: ScriptNotes(author: '체호프')));
+  test('노트 내용으로도 검색된다', () async {
+    await repo.create(const ScriptDraft(work: '갈매기', body: 'x', note: '작가: 체호프'));
     await repo.create(const ScriptDraft(work: '햄릿', body: 'x'));
     expect(await works(const ScriptFilter(query: '체호프')), ['갈매기']);
   });

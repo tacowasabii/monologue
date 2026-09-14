@@ -11,8 +11,8 @@ import '../data/database.dart';
 import '../data/image_store.dart';
 import '../data/script_repository.dart';
 import '../domain/enums.dart';
+import '../domain/legacy_notes.dart';
 import '../domain/script_draft.dart';
-import '../domain/script_notes.dart';
 
 class BackupFormatException implements Exception {
   const BackupFormatException(this.message);
@@ -30,8 +30,9 @@ class BackupService {
   BackupService(this.db, this.repo, this.images);
 
   static const format = 'monologue-backup';
-  // 2: 대화 형식·내 역할·대본 노트를 더했다. 1도 계속 복원한다
-  static const version = 2;
+  // 2: 대화 형식·내 역할·대본 노트를 더했다.
+  // 3: 여러 칸이던 노트(notes)를 자유 글 한 칸(note)으로 바꿨다. 1·2도 계속 복원한다
+  static const version = 3;
   static const _manifest = 'backup.json';
 
   final AppDatabase db;
@@ -73,7 +74,7 @@ class BackupService {
           'body': s.body,
           'dialogue': s.dialogue,
           'myRole': s.myRole,
-          'notes': s.notes.toJson(),
+          'note': s.note,
           'createdAt': s.createdAt.toIso8601String(),
           'updatedAt': s.updatedAt.toIso8601String(),
           'tags': tags.where((t) => t.scriptId == s.id).map((t) => t.tag).toList(),
@@ -253,10 +254,12 @@ class BackupService {
         // version 1 백업에는 없는 칸이라 기본값을 쓴다
         dialogue: e['dialogue'] as bool? ?? false,
         myRole: e['myRole'] as String?,
-        notes: switch (e['notes']) {
-          final Map<String, Object?> m => ScriptNotes.fromJson(m),
-          _ => ScriptNotes.empty,
-        },
+        // version 2 백업은 노트가 여러 칸(notes)이라 제목을 붙여 한 글로 합친다
+        note: e['note'] as String? ??
+            switch (e['notes']) {
+              final Map<String, Object?> m => legacyNoteText(m),
+              _ => null,
+            },
       );
 
   /// 대본이 든 모음 이름들. 모음 기능이 생기기 전에 만든 백업에는 없다.
