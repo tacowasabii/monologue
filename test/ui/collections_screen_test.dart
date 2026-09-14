@@ -103,7 +103,7 @@ void main() {
     await tester.tap(find.text('삭제'));
     await tester.pumpAndSettle();
     expect(find.textContaining(keepWords('대본은 그대로 남아요')), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, '삭제'));
+    await tester.tap(find.widgetWithText(FilledButton, '삭제'));
     await tester.pumpAndSettle();
 
     expect(find.text('1차 오디션'), findsNothing);

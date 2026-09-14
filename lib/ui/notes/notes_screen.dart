@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../common/adaptive.dart';
+import '../common/confirm_dialog.dart';
 
 /// 대본에 대해 형식 없이 자유롭게 적는 노트. 저장 버튼을 누를 때만 반영한다.
 class NotesScreen extends StatefulWidget {
@@ -56,17 +57,15 @@ class _NotesScreenState extends State<NotesScreen> {
   }
 
   Future<void> _confirmLeave() async {
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: const Text('저장하지 않고 나갈까요? 적은 내용은 사라져요.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('계속 쓰기')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('나가기')),
-        ],
-      ),
+    final leave = await showConfirmDialog(
+      context,
+      title: '저장하지 않고 나갈까요?',
+      message: '적은 내용은 사라져요.',
+      cancelLabel: '계속 쓰기',
+      confirmLabel: '나가기',
+      destructive: true,
     );
-    if (leave == true && mounted) _leave();
+    if (leave && mounted) _leave();
   }
 
   @override

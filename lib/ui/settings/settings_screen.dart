@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app_scope.dart';
 import '../../backup/backup_service.dart';
 import '../common/adaptive.dart';
+import '../common/confirm_dialog.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import 'how_to_screen.dart';
@@ -114,18 +115,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _snack('이 위치의 파일은 가져올 수 없어요. 파일 앱에 저장한 뒤 다시 골라 주세요.');
       return;
     }
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('백업에서 복원'),
-        content: const Text('백업의 대본을 지금 목록에 추가할까요? 기존 대본은 그대로 남아요.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('가져오기')),
-        ],
-      ),
+    final ok = await showConfirmDialog(
+      context,
+      title: '백업에서 복원할까요?',
+      message: '백업의 대본을 지금 목록에 더해요. 기존 대본은 그대로 남아요.',
+      confirmLabel: '가져오기',
     );
-    if (ok != true || !mounted) return;
+    if (!ok || !mounted) return;
     setState(() => _busy = true);
     try {
       final count = await backup.restore(path);
@@ -143,6 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final settings = AppScope.of(context).settings;
     Widget section(String title) => Padding(
           padding: const EdgeInsets.fromLTRB(4, 24, 4, 10),
           child: Text(
@@ -156,6 +153,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 0, 20, 40)),
         children: [
+          section('화면'),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(11)),
+                        child: Icon(Icons.contrast_rounded, size: 20, color: scheme.onPrimaryContainer),
+                      ),
+                      const SizedBox(width: 16),
+                      Text('화면 모드', style: theme.listTileTheme.titleTextStyle),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  ListenableBuilder(
+                    listenable: settings,
+                    builder: (context, _) => SegmentedButton<ThemeMode>(
+                      expandedInsets: EdgeInsets.zero,
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(value: ThemeMode.system, label: Text('기기 설정')),
+                        ButtonSegment(value: ThemeMode.light, label: Text('밝게')),
+                        ButtonSegment(value: ThemeMode.dark, label: Text('어둡게')),
+                      ],
+                      selected: {settings.themeMode},
+                      onSelectionChanged: (v) => settings.setThemeMode(v.first),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           section('도움말'),
           Card(
             clipBehavior: Clip.antiAlias,

@@ -130,7 +130,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('삭제'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, '삭제'));
+    await tester.tap(find.widgetWithText(FilledButton, '삭제'));
     await tester.pump();
     await settleIo(tester);
     await tester.pumpAndSettle();

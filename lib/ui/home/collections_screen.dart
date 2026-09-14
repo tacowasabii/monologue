@@ -5,7 +5,7 @@ import '../../data/database.dart';
 import '../../data/script_repository.dart';
 import '../../settings/home_view_settings.dart';
 import '../common/adaptive.dart';
-import '../common/korean_text.dart';
+import '../common/confirm_dialog.dart';
 import '../list/script_list_screen.dart';
 import '../settings/settings_screen.dart';
 import 'collection_name_dialog.dart';
@@ -100,22 +100,14 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
         );
         if (name != null && name != collection.name) await repo.renameCollection(collection.id, name);
       case _Action.delete:
-        final ok = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('모음 삭제'),
-            content: Text(keepWords("'${collection.name}' 모음을 삭제할까요? 모음만 지워지고 안에 있던 대본은 그대로 남아요.")),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-              TextButton(
-                style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('삭제'),
-              ),
-            ],
-          ),
+        final ok = await showConfirmDialog(
+          context,
+          title: "'${collection.name}' 모음을 삭제할까요?",
+          message: '모음만 지워지고 안에 있던 대본은 그대로 남아요.',
+          confirmLabel: '삭제',
+          destructive: true,
         );
-        if (ok == true) await repo.deleteCollection(collection.id);
+        if (ok) await repo.deleteCollection(collection.id);
     }
   }
 

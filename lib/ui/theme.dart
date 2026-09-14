@@ -67,8 +67,9 @@ const _dark = ColorScheme(
   surfaceContainer: Color(0xFF241E20),
   surfaceContainerHigh: Color(0xFF2C2528),
   surfaceContainerHighest: Color(0xFF352D31),
-  outline: Color(0xFF807378),
-  outlineVariant: Color(0xFF3A3135),
+  // 어두운 화면에서 고르지 않은 칩·입력칸 테두리가 배경에 묻히지 않을 만큼 밝게 둔다
+  outline: Color(0xFF9A8D92),
+  outlineVariant: Color(0xFF52474C),
   inverseSurface: Color(0xFFEEE6E8),
   onInverseSurface: Color(0xFF2E2629),
   inversePrimary: brandPlum,
@@ -224,7 +225,8 @@ ThemeData buildTheme(Brightness brightness) {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: scheme.surface,
+      // 창이 뒤 화면과 같은 색이면 어두운 화면에서 경계가 흐려져 떠 보이지 않는다
+      backgroundColor: brightness == Brightness.dark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       titleTextStyle: serif(text.titleLarge, size: 20),

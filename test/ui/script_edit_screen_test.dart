@@ -196,4 +196,34 @@ void main() {
     expect(find.descendant(of: sheet, matching: find.text(keepWords('바빴어.'))), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
+
+  testWidgets('글자만 입력하고 뒤로 가도 저장하지 않고 나갈지 묻고, 계속 편집을 누르면 남는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.pumpWidget(h.wrap(Builder(
+      builder: (context) => TextButton(
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ScriptEditScreen())),
+        child: const Text('열기'),
+      ),
+    )));
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, '작품명'), '햄릿');
+    await tester.pump();
+    // pageBack()은 영어 툴팁 'Back'을 찾으므로, 한국어 화면에서는 시스템 뒤로 가기를 직접 보낸다
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('저장하지 않고 나갈까요?'), findsOneWidget);
+
+    await tester.tap(find.text('계속 편집'));
+    await tester.pumpAndSettle();
+    expect(find.text('새 대본'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, '나가기'));
+    await tester.pumpAndSettle();
+    expect(find.text('열기'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
 }

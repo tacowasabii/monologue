@@ -8,6 +8,7 @@ import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
 import '../common/adaptive.dart';
+import '../common/confirm_dialog.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../common/section_header.dart';
@@ -107,7 +108,10 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     super.dispose();
   }
 
-  void _markDirty() => _dirty = true;
+  // 글자만 입력해도 뒤로 가기 전에 확인하도록, 처음 바뀔 때 다시 그려 PopScope의 canPop을 갱신한다
+  void _markDirty() {
+    if (!_dirty) setState(() => _dirty = true);
+  }
 
   void _snack(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
@@ -209,17 +213,15 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   }
 
   Future<void> _confirmLeave() async {
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: const Text('저장하지 않고 나갈까요? 입력한 내용은 사라져요.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('계속 편집')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('나가기')),
-        ],
-      ),
+    final leave = await showConfirmDialog(
+      context,
+      title: '저장하지 않고 나갈까요?',
+      message: '입력한 내용은 사라져요.',
+      cancelLabel: '계속 편집',
+      confirmLabel: '나가기',
+      destructive: true,
     );
-    if (leave == true && mounted) _leave();
+    if (leave && mounted) _leave();
   }
 
   Widget _label(String text) {

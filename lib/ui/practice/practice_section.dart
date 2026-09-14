@@ -6,6 +6,7 @@ import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../../domain/enums.dart';
 import '../../practice/media_picker.dart';
+import '../common/confirm_dialog.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import 'record_screen.dart';
@@ -147,22 +148,14 @@ class _PracticeSectionState extends State<PracticeSection> {
   Future<void> _delete(MediaItem take) async {
     final repo = AppScope.of(context).repo;
     final label = take.kind == MediaKind.audio ? '음성' : '영상';
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('기록 삭제'),
-        content: Text(keepWords('${takeTitle(take.createdAt)} $label을 지울까요? 파일도 함께 지워져요.')),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('지우기'),
-          ),
-        ],
-      ),
+    final ok = await showConfirmDialog(
+      context,
+      title: '$label 기록을 지울까요?',
+      message: '${takeTitle(take.createdAt)}에 남긴 파일도 함께 지워져요.',
+      confirmLabel: '지우기',
+      destructive: true,
     );
-    if (ok != true) return;
+    if (!ok) return;
     if (_playingId == take.id && mounted) setState(() => _playingId = null);
     await repo.deleteMedia(take.id);
   }

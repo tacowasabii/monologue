@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../practice/voice_recorder.dart';
 import '../common/adaptive.dart';
+import '../common/confirm_dialog.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import '../theme.dart';
@@ -93,22 +94,15 @@ class _RecordScreenState extends State<RecordScreen> {
   }
 
   Future<void> _confirmDiscard() async {
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('녹음을 버릴까요?'),
-        content: const Text('지금까지 녹음한 내용은 저장되지 않아요.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('계속 녹음')),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('버리기'),
-          ),
-        ],
-      ),
+    final discard = await showConfirmDialog(
+      context,
+      title: '녹음을 버릴까요?',
+      message: '지금까지 녹음한 내용은 저장되지 않아요.',
+      cancelLabel: '계속 녹음',
+      confirmLabel: '버리기',
+      destructive: true,
     );
-    if (discard != true || !mounted) return;
+    if (!discard || !mounted) return;
     final media = AppScope.of(context).media;
     await _recorder!.cancel();
     final name = _fileName;

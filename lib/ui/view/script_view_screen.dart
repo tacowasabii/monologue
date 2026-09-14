@@ -6,6 +6,7 @@ import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
 import '../../settings/reading_settings.dart';
 import '../common/adaptive.dart';
+import '../common/confirm_dialog.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../edit/script_edit_screen.dart';
@@ -45,22 +46,14 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
   }
 
   Future<void> _delete(ScriptDetail d) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('대본 삭제'),
-        content: const Text('이 대본을 삭제할까요? 원본 사진과 연습 기록도 함께 지워져요.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
+    final ok = await showConfirmDialog(
+      context,
+      title: '이 대본을 삭제할까요?',
+      message: '원본 사진과 연습 기록도 함께 지워져요.',
+      confirmLabel: '삭제',
+      destructive: true,
     );
-    if (ok != true || !mounted) return;
+    if (!ok || !mounted) return;
     final repo = AppScope.of(context).repo;
     if (widget.onDeleted case final onDeleted?) {
       onDeleted();

@@ -48,7 +48,7 @@ void main() {
     // pageBack()은 영어 툴팁 'Back'을 찾으므로, 한국어 화면에서는 시스템 뒤로 가기를 직접 보낸다
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text('저장하지 않고 나갈까요? 적은 내용은 사라져요.'), findsOneWidget);
+    expect(find.text('저장하지 않고 나갈까요?'), findsOneWidget);
 
     await tester.tap(find.text('나가기'));
     await tester.pumpAndSettle();
