@@ -19,14 +19,24 @@ flutter build ipa --release                 # Apple 계정·서명 설정 후
 
 ## Apple App Store
 
-1. [Apple Developer Program](https://developer.apple.com/programs/) 가입 (연 $99, 본인 인증에 며칠 걸릴 수 있음)
-2. Certificates, Identifiers & Profiles → Identifiers에서 `com.tacowasabii.monologue` 등록
-3. Xcode에서 `ios/Runner.xcworkspace` 열기 → Runner 타깃 → Signing & Capabilities → Team 선택, Automatically manage signing
-4. App Store Connect → 새 앱 (이름 "모노로그", 기본 언어 한국어, 번들 ID 선택)
-5. `flutter build ipa --release` → Transporter 앱 또는 `xcrun altool`로 업로드
-6. TestFlight에서 iPhone과 iPad에 설치해 확인. iPad는 가로·세로 전환, 목록 옆에 대본이 열리는지, Split View·Slide Over로 창을 줄였을 때, 카메라 촬영, 백업 공유 시트 위치, 백업 복원을 본다
-7. 등록 정보·스크린샷·개인정보 라벨("데이터를 수집하지 않음") 입력 → 심사 제출
-   - 심사 메모: "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 모든 데이터는 기기에만 저장."
+1. [Apple Developer Program](https://developer.apple.com/programs/) 개인(Individual)으로 가입 (연 $99, Apple ID 2단계 인증 필요).
+   iPhone의 Apple Developer 앱에서 가입하면 신분증 인증이 빠르다. 개인 계정은 스토어 판매자 이름에 본명이 나온다
+2. Xcode → Settings → Accounts에 그 Apple ID 추가 → `ios/Runner.xcworkspace` → Runner 타깃 → Signing & Capabilities →
+   Team을 유료 팀으로, Automatically manage signing. 번들 ID와 배포 인증서는 Xcode가 만든다.
+   지금 들어 있는 `DEVELOPMENT_TEAM = 3996SU7HLL`이 유료 팀 ID와 같은지 확인할 것
+3. [App Store Connect](https://appstoreconnect.apple.com) → 앱 → 새로운 앱: iOS, 이름 "모노로그", 기본 언어 한국어, 번들 ID 선택, SKU `monologue-ios`.
+   앱 이름은 스토어 전체에서 하나뿐이라 이미 쓰이면 "모노로그 - 독백 대본 노트"처럼 바꾼다
+4. `flutter build ipa --release` → `open build/ios/archive/Runner.xcarchive` → Organizer에서 Distribute App → App Store Connect → Upload.
+   `Info.plist`에 `ITSAppUsesNonExemptEncryption = false`가 있어 수출 규정 질문 없이 처리된다(10~30분)
+5. TestFlight에서 iPhone과 iPad에 설치해 확인. iPad는 가로·세로 전환, 목록 옆에 대본이 열리는지, Split View·Slide Over로 창을 줄였을 때, 카메라 촬영, 백업 공유 시트 위치, 백업 복원을 본다
+6. 등록 정보 입력 (`docs/store-listing.md`)
+   - 스크린샷: 6.9" iPhone 칸에 `docs/store-assets/ios-iphone-*.png`, 13" iPad 칸에 `ios-ipad-*.png`. iPad를 지원하므로 iPad 칸도 필수다
+   - 앱 개인정보 보호 "데이터를 수집하지 않음", 연령 등급 설문, 가격 무료
+   - EU에 내면 디지털 서비스법(DSA) 거래자 여부를 답해야 한다. 거래자면 주소·전화번호가 공개되니, 싫으면 사용 가능 국가에서 EU를 뺀다
+   - 심사 정보: 로그인 필요 없음. 메모 "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 모든 데이터는 기기에만 저장."
+7. 버전 페이지에서 빌드 선택 → 심사에 추가 → 제출 (보통 1~2일). 거절 사유는 App Store Connect 메시지로 온다
+
+iPad 지원(`TARGETED_DEVICE_FAMILY = "1,2"`)은 한 번 출시하면 이후 업데이트에서 뺄 수 없다.
 
 ## Google Play
 
