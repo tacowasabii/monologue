@@ -24,7 +24,7 @@ flutter build ipa --release                 # Apple 계정·서명 설정 후
 3. Xcode에서 `ios/Runner.xcworkspace` 열기 → Runner 타깃 → Signing & Capabilities → Team 선택, Automatically manage signing
 4. App Store Connect → 새 앱 (이름 "모노로그", 기본 언어 한국어, 번들 ID 선택)
 5. `flutter build ipa --release` → Transporter 앱 또는 `xcrun altool`로 업로드
-6. TestFlight에서 내 아이폰에 설치해 확인
+6. TestFlight에서 iPhone과 iPad에 설치해 확인. iPad는 가로·세로 전환, 목록 옆에 대본이 열리는지, Split View·Slide Over로 창을 줄였을 때, 카메라 촬영, 백업 공유 시트 위치, 백업 복원을 본다
 7. 등록 정보·스크린샷·개인정보 라벨("데이터를 수집하지 않음") 입력 → 심사 제출
    - 심사 메모: "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 모든 데이터는 기기에만 저장."
 

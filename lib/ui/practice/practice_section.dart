@@ -103,7 +103,7 @@ class _PracticeSectionState extends State<PracticeSection> {
     var source = _FileSource.gallery;
     if (action == _AddAction.importFile) {
       final chosen = await _choose<_FileSource>('어디서 가져올까요?', const [
-        (_FileSource.gallery, Icons.photo_library_outlined, '사진첩', '폰으로 찍어 둔 영상'),
+        (_FileSource.gallery, Icons.photo_library_outlined, '사진첩', '촬영해 둔 영상'),
         (_FileSource.files, Icons.folder_outlined, '파일', '받거나 저장해 둔 음성·영상 파일'),
       ]);
       if (chosen == null || !mounted) return;

@@ -18,7 +18,7 @@ void main() {
       '대화 대본과 내 역할',
       '대본 노트',
       '몰입 읽기',
-      '폰을 바꿀 때는 백업',
+      '기기를 바꿀 때는 백업',
     ]) {
       await tester.scrollUntilVisible(find.text(title), 200);
       expect(find.text(title), findsOneWidget, reason: title);

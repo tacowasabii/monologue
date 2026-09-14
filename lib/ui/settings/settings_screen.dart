@@ -68,9 +68,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _export() async {
+  /// [anchor]는 누른 줄의 context. iPad에서 공유 시트를 그 줄 옆에 띄운다.
+  Future<void> _export(BuildContext anchor) async {
     final services = AppScope.of(context);
-    final box = context.findRenderObject() as RenderBox?;
     final mediaBytes = await services.repo.mediaSizeBytes();
     if (!mounted) return;
     var includeMedia = false;
@@ -81,14 +81,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     setState(() => _busy = true);
     try {
-      final file = await services.backup.export(await getTemporaryDirectory(), includeMedia: includeMedia);
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'application/zip')],
-        // iPad는 공유 시트 위치가 필요하다
-        sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-      ));
-    } catch (_) {
-      if (mounted) _snack('백업 파일을 만들지 못했어요.');
+      final String path;
+      try {
+        path = (await services.backup.export(await getTemporaryDirectory(), includeMedia: includeMedia)).path;
+      } catch (_) {
+        if (mounted) _snack('백업 파일을 만들지 못했어요.');
+        return;
+      }
+      if (!anchor.mounted) return;
+      // 파일을 만드는 동안 창 크기가 바뀌었을 수 있어서 띄우기 직전에 위치를 잰다
+      final box = anchor.findRenderObject() as RenderBox?;
+      try {
+        await SharePlus.instance.share(ShareParams(
+          files: [XFile(path, mimeType: 'application/zip')],
+          sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+        ));
+      } catch (_) {
+        if (mounted) _snack('공유 화면을 열지 못했어요. 다시 시도해 주세요.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -162,12 +172,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                _SettingTile(
-                  icon: Icons.ios_share_rounded,
-                  title: '백업 내보내기',
-                  subtitle: '대본과 원본 사진을 파일 하나로 저장해요',
-                  enabled: !_busy,
-                  onTap: _export,
+                Builder(
+                  builder: (tileContext) => _SettingTile(
+                    icon: Icons.ios_share_rounded,
+                    title: '백업 내보내기',
+                    subtitle: '대본과 원본 사진을 파일 하나로 저장해요',
+                    enabled: !_busy,
+                    onTap: () => _export(tileContext),
+                  ),
                 ),
                 divider,
                 _SettingTile(
