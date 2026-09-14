@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:monologue/app_scope.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/view/script_view_screen.dart';
@@ -201,6 +204,53 @@ void main() {
 
     expect(find.text('공유 화면을 열지 못했어요'), findsOneWidget);
     expect(h.services.shareHistory.sent.single.id, id);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('업로드 중 다른 화면이 열려도 스피너 라우트만 지우고 새 화면은 남긴다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(h.services.shareHistory.markNoticeSeen);
+    final scriptId = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '대사'))))!;
+    h.shareServer.handler = (_) => jsonResponse({
+          'id': id,
+          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'deleteToken': 'secret',
+          'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
+        }, 201);
+    final completer = Completer<void>();
+    h.shareServer.beforeRespond = (_) => completer.future;
+
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(AppScope(
+      services: h.services,
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        locale: const Locale('ko'),
+        supportedLocales: const [Locale('ko')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        home: ScriptViewScreen(scriptId: scriptId),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('링크로 공유'));
+    // 스피너가 계속 도는 동안은 pumpAndSettle이 정착하지 않으므로(무한 애니메이션), 정해진 만큼만 민다.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // IncomingLinks가 업로드 도중 공유 링크를 열어 새 화면을 쌓는 상황을 흉내 낸다
+    navigatorKey.currentState!.push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('열린 링크 화면'))));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('열린 링크 화면'), findsOneWidget);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('열린 링크 화면'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 }

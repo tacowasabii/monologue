@@ -102,8 +102,13 @@ class FakeShareServer {
   http.Response Function(http.Request request) handler = (_) => http.Response('', 503);
   final requests = <http.Request>[];
 
+  /// 응답하기 전에 기다릴 것(예: 업로드가 끝나기 전에 다른 동작을 끼워 넣는 테스트용). 기본은 곧바로 응답.
+  Future<void> Function(http.Request request)? beforeRespond;
+
   late final MockClient client = MockClient((request) async {
     requests.add(request);
+    final wait = beforeRespond;
+    if (wait != null) await wait(request);
     return handler(request);
   });
 }

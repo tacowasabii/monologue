@@ -44,13 +44,16 @@ Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect?
   }
 
   if (!context.mounted) return;
-  showDialog<void>(
+  // 업로드 중 공유 링크가 열려 다른 화면이 위에 쌓일 수 있어(IncomingLinks), 맨 위 화면이 아니라
+  // 이 스피너 자신의 라우트만 지워야 한다.
+  final spinnerRoute = DialogRoute<void>(
     context: context,
     barrierDismissible: false,
     builder: (_) => const PopScope(canPop: false, child: Center(child: CircularProgressIndicator())),
   );
+  rootNavigator.push(spinnerRoute);
   final result = await services.shareClient.upload(SharePayload.fromDetail(detail, includeNote: includeNote));
-  rootNavigator.pop();
+  if (rootNavigator.mounted) rootNavigator.removeRoute(spinnerRoute);
 
   switch (result) {
     case ShareOk(:final value):

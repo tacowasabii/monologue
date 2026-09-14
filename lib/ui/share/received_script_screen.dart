@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_scope.dart';
 import '../../domain/enums.dart';
-import '../../share/sent_link.dart';
 import '../../share/share_client.dart';
+import '../../share/share_link.dart';
 import '../../share/share_payload.dart';
+import '../../share/sent_link.dart';
 import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 import '../view/script_body.dart';
@@ -49,8 +51,16 @@ class _ReceivedScriptScreenState extends State<ReceivedScriptScreen> {
     final services = AppScope.of(context);
     setState(() => _adding = true);
     try {
-      final id = await services.repo.create(payload.toDraft());
-      await services.shareHistory.markReceived(widget.shareId, id);
+      // 화면을 두 개 띄워 놓고 두 번 추가하는 것처럼, 그 사이 이미 추가됐을 수 있으니 만들기 전에 다시 확인한다
+      final existing = services.shareHistory.receivedScriptId(widget.shareId);
+      final existingScript = existing == null ? null : await services.repo.watchScript(existing).first;
+      final int id;
+      if (existingScript != null) {
+        id = existing!;
+      } else {
+        id = await services.repo.create(payload.toDraft());
+        await services.shareHistory.markReceived(widget.shareId, id);
+      }
       if (!mounted) return;
       _openScript(id);
     } catch (_) {
@@ -67,8 +77,10 @@ class _ReceivedScriptScreenState extends State<ReceivedScriptScreen> {
       body: FutureBuilder<_Loaded>(
         future: _loaded,
         builder: (context, snap) {
-          final loaded = snap.data;
-          if (loaded == null) return const Center(child: CircularProgressIndicator());
+          // FutureBuilder는 future가 바뀌어도 이전 data를 지우지 않고 connectionState만 waiting으로 되돌리므로,
+          // 다시 시도 중에도 옛 결과가 그대로 보이지 않도록 connectionState로 로딩 여부를 가린다.
+          if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
+          final loaded = snap.data!;
           final existing = loaded.existingScriptId;
           if (existing != null) {
             return _Message(
@@ -95,6 +107,7 @@ class _ReceivedScriptScreenState extends State<ReceivedScriptScreen> {
       bottomNavigationBar: FutureBuilder<_Loaded>(
         future: _loaded,
         builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) return const SizedBox.shrink();
           final result = snap.data?.result;
           if (snap.data?.existingScriptId != null || result is! ShareOk<SharePayload>) return const SizedBox.shrink();
           return SafeArea(
@@ -175,6 +188,15 @@ class _Preview extends StatelessWidget {
             dialogue: payload.dialogue,
             fontSize: settings.fontSize,
             selectable: false,
+          ),
+        ),
+        const SizedBox(height: 28),
+        GestureDetector(
+          onTap: () => launchUrl(Uri(scheme: 'mailto', path: shareReportEmail)),
+          child: Text(
+            keepWords('문제가 있는 대본은 $shareReportEmail으로 알려 주세요'),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ),
       ],

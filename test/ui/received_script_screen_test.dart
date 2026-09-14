@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:monologue/app.dart';
 import 'package:monologue/app_scope.dart';
+import 'package:monologue/share/share_link.dart';
 import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/share/received_script_screen.dart';
 import 'package:monologue/ui/view/script_view_screen.dart';
@@ -109,6 +112,74 @@ void main() {
     h.links.open(Uri.parse('monologue://s/$id'));
     await tester.pumpAndSettle();
     expect(find.byType(ReceivedScriptScreen), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('겹쳐 열린 두 받은 대본 화면에서 각각 추가해도 대본은 하나만 생긴다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    h.shareServer.handler = (_) => jsonResponse(hamlet(), 200);
+
+    // 같은 링크를 두 번 열어 화면이 겹쳐 쌓인 상황(아래 화면은 위 화면에서 추가하기 전 상태를 그대로 들고 있다)
+    await tester.pumpWidget(h.wrap(ReceivedScriptScreen(shareId: id)));
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.push(MaterialPageRoute<void>(builder: (_) => ReceivedScriptScreen(shareId: id)));
+    await tester.pumpAndSettle();
+    expect(find.text('내 대본에 추가'), findsOneWidget);
+
+    // 위 화면(나중에 연 화면)에서 먼저 추가한다
+    await tester.tap(find.text('내 대본에 추가'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ScriptViewScreen), findsOneWidget);
+    var count = await tester.runAsync(() => h.services.repo.watchScriptCount().first);
+    expect(count, 1);
+
+    // 아래 깔려 있던 화면(아직 옛 상태)으로 돌아가 다시 추가를 눌러도 대본이 하나 더 생기면 안 된다
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('내 대본에 추가'), findsOneWidget);
+    await tester.tap(find.text('내 대본에 추가'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ScriptViewScreen), findsOneWidget);
+
+    count = await tester.runAsync(() => h.services.repo.watchScriptCount().first);
+    expect(count, 1);
+    // 화면 두 개가 각자 미리보기를 받아 왔지만(GET 두 번) 추가는 하나로 합쳐진다
+    expect(h.shareServer.requests, hasLength(2));
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('다시 시도를 누르면 새로 받아오는 동안 진행 표시를 보여 준다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    h.shareServer.handler = (_) => http.Response('', 503);
+
+    await tester.pumpWidget(h.wrap(ReceivedScriptScreen(shareId: id)));
+    await tester.pumpAndSettle();
+    expect(find.text(keepWords('인터넷 연결을 확인해 주세요')), findsOneWidget);
+
+    final completer = Completer<void>();
+    h.shareServer.handler = (_) => jsonResponse(hamlet(), 200);
+    h.shareServer.beforeRespond = (_) => completer.future;
+
+    await tester.tap(find.text('다시 시도'));
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('다시 시도'), findsNothing);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+    expect(find.text(keepWords('사느냐 죽느냐')), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('받은 대본 아래에 문제를 알릴 수 있는 안내가 보인다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    h.shareServer.handler = (_) => jsonResponse(hamlet(), 200);
+
+    await tester.pumpWidget(h.wrap(ReceivedScriptScreen(shareId: id)));
+    await tester.pumpAndSettle();
+
+    expect(find.text(keepWords('문제가 있는 대본은 $shareReportEmail으로 알려 주세요')), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 }
