@@ -14,4 +14,13 @@ void main() {
     final reopened = await AppTips.load();
     expect(await reopened.takePhotoKept(), isFalse);
   });
+
+  test('처음 켰을 때의 사용 방법은 넘기고 나면 앱을 다시 켜도 보여 주지 않는다', () async {
+    final tips = await AppTips.load();
+    expect(tips.onboardingSeen, isFalse);
+
+    await tips.markOnboardingSeen();
+    expect(tips.onboardingSeen, isTrue);
+    expect((await AppTips.load()).onboardingSeen, isTrue);
+  });
 }

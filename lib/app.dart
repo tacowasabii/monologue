@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_scope.dart';
 import 'ui/home/home_screen.dart';
+import 'ui/settings/how_to_screen.dart';
 import 'ui/share/incoming_links.dart';
 import 'ui/theme.dart';
 
@@ -35,9 +36,36 @@ class _MonologueAppState extends State<MonologueApp> {
           locale: const Locale('ko'),
           supportedLocales: const [Locale('ko')],
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
-          home: const HomeScreen(),
+          home: const _StartScreen(),
         ),
       ),
+    );
+  }
+}
+
+/// 처음 켜면 사용 방법 슬라이드부터 보여 주고, 끝까지 넘기거나 건너뛰면 대본 목록으로 간다.
+/// 공유 링크로 처음 켜도 받은 대본 화면은 슬라이드 위에 열린다.
+class _StartScreen extends StatefulWidget {
+  const _StartScreen();
+
+  @override
+  State<_StartScreen> createState() => _StartScreenState();
+}
+
+class _StartScreenState extends State<_StartScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final tips = AppScope.of(context).tips;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: tips.onboardingSeen
+          ? const HomeScreen()
+          : HowToScreen(
+              firstRun: true,
+              onDone: () => setState(() {
+                tips.markOnboardingSeen();
+              }),
+            ),
     );
   }
 }

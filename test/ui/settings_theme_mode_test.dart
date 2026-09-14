@@ -21,6 +21,8 @@ void main() {
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
     final h = (await tester.runAsync(Harness.create))!;
+    // 처음 켤 때 나오는 사용 방법은 넘긴 상태로 시작한다
+    await tester.runAsync(h.services.tips.markOnboardingSeen);
     await tester.pumpWidget(AppScope(services: h.services, child: const MonologueApp()));
     await tester.pumpAndSettle();
     // 테스트 기기는 밝은 모드라, 기기 설정을 따라가면 밝게 보인다

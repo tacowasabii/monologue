@@ -160,6 +160,9 @@ void main() {
       favorite: true,
       collectionIds: [audition],
     ));
+    // 처음 켤 때 나오는 사용 방법은 넘긴 상태로 시작한다
+    final tips = await AppTips.load();
+    await tips.markOnboardingSeen();
     await tester.pumpWidget(AppScope(
       services: AppServices(
         repo: repo,
@@ -168,7 +171,7 @@ void main() {
         ocr: PlatformTextRecognizer(),
         backup: BackupService(db, repo, images),
         settings: await ReadingSettings.load(),
-        tips: await AppTips.load(),
+        tips: tips,
         homeView: await HomeViewSettings.load(),
         newRecorder: RecordVoiceRecorder.new,
         mediaPicker: PlatformMediaPicker(),

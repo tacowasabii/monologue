@@ -102,6 +102,8 @@ void main() {
 
   testWidgets('앱이 공유 링크를 받으면 받은 대본 화면을 열고, 다른 링크는 무시한다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
+    // 처음 켤 때 나오는 사용 방법은 넘긴 상태로 시작한다
+    await tester.runAsync(h.services.tips.markOnboardingSeen);
     await tester.pumpWidget(AppScope(services: h.services, child: const MonologueApp()));
     await tester.pumpAndSettle();
 
