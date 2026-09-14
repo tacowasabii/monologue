@@ -25,6 +25,7 @@ typedef _Entry = ({IconData icon, String name, int? count, VoidCallback onTap, V
 class _CollectionsScreenState extends State<CollectionsScreen> {
   Stream<List<CollectionSummary>>? _collections;
   Stream<int>? _total;
+  Stream<int>? _favorites;
 
   @override
   void didChangeDependencies() {
@@ -32,10 +33,11 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     final repo = AppScope.of(context).repo;
     _collections ??= repo.watchCollections();
     _total ??= repo.watchScriptCount();
+    _favorites ??= repo.watchFavoriteCount();
   }
 
-  void _open(Collection? collection) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => ScriptListScreen(collection: collection)),
+  void _open(Collection? collection, {bool favorites = false}) => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => ScriptListScreen(collection: collection, favorites: favorites)),
       );
 
   Future<void> _create(List<CollectionSummary> all) async {
@@ -146,48 +148,59 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
           ),
           body: StreamBuilder<int>(
             stream: _total,
-            builder: (context, totalSnap) => StreamBuilder<List<CollectionSummary>>(
-              stream: _collections,
-              builder: (context, snap) {
-                final collections = snap.data ?? const <CollectionSummary>[];
-                final entries = <_Entry>[
-                  (
-                    icon: Icons.library_books_outlined,
-                    name: '전체',
-                    count: totalSnap.data,
-                    onTap: () => _open(null),
-                    onLongPress: null,
-                  ),
-                  for (final c in collections)
+            builder: (context, totalSnap) => StreamBuilder<int>(
+              stream: _favorites,
+              builder: (context, favoriteSnap) => StreamBuilder<List<CollectionSummary>>(
+                stream: _collections,
+                builder: (context, snap) {
+                  final collections = snap.data ?? const <CollectionSummary>[];
+                  final entries = <_Entry>[
                     (
-                      icon: Icons.folder_outlined,
-                      name: c.collection.name,
-                      count: c.scriptCount,
-                      onTap: () => _open(c.collection),
-                      onLongPress: () => _manage(c, collections),
+                      icon: Icons.library_books_outlined,
+                      name: '전체',
+                      count: totalSnap.data,
+                      onTap: () => _open(null),
+                      onLongPress: null,
                     ),
-                ];
-                void create() => _create(collections);
-                return CustomScrollView(
-                  slivers: [
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-                      sliver: grid
-                          ? SliverGrid.count(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio: 1.2,
-                              children: [
-                                for (final e in entries) _CollectionCard(entry: e),
-                                _NewCollectionCard(onTap: create),
-                              ],
-                            )
-                          : SliverToBoxAdapter(child: _CollectionList(entries: entries, onCreate: create)),
+                    // 대본의 별을 누르면 저절로 모인다. 따로 넣고 빼거나 이름을 바꾸지 않는다
+                    (
+                      icon: Icons.star_outline_rounded,
+                      name: '즐겨찾기',
+                      count: favoriteSnap.data,
+                      onTap: () => _open(null, favorites: true),
+                      onLongPress: null,
                     ),
-                  ],
-                );
-              },
+                    for (final c in collections)
+                      (
+                        icon: Icons.folder_outlined,
+                        name: c.collection.name,
+                        count: c.scriptCount,
+                        onTap: () => _open(c.collection),
+                        onLongPress: () => _manage(c, collections),
+                      ),
+                  ];
+                  void create() => _create(collections);
+                  return CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                        sliver: grid
+                            ? SliverGrid.count(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 1.2,
+                                children: [
+                                  for (final e in entries) _CollectionCard(entry: e),
+                                  _NewCollectionCard(onTap: create),
+                                ],
+                              )
+                            : SliverToBoxAdapter(child: _CollectionList(entries: entries, onCreate: create)),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         );

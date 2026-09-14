@@ -213,4 +213,43 @@ void main() {
     expect((await db.select(db.scriptMedia).getSingle()).durationMs, 42000);
     await db.close();
   });
+
+  test('버전 6 DB는 모음 연결을 그대로 두고, 지금까지 보이던 최근 수정순을 모음 안 순서로 삼는다', () async {
+    final file = File('${tmp.path}/v6.sqlite');
+    final v6 = sqlite3.open(file.path);
+    // 버전 6은 버전 5의 scripts 표에 형식·역할·노트 칸을 더한 구조다
+    for (final sql in _v5Schema) {
+      v6.execute(sql);
+    }
+    for (final column in [
+      '"dialogue" INTEGER NOT NULL DEFAULT 0 CHECK ("dialogue" IN (0, 1))',
+      '"my_role" TEXT NULL',
+      '"situation" TEXT NULL',
+      '"objective" TEXT NULL',
+      '"obstacle" TEXT NULL',
+      '"author" TEXT NULL',
+      '"medium" TEXT NULL',
+      '"source_url" TEXT NULL',
+      '"synopsis" TEXT NULL',
+      '"scene_context" TEXT NULL',
+    ]) {
+      v6.execute('ALTER TABLE scripts ADD COLUMN $column');
+    }
+    v6.execute(
+      'INSERT INTO scripts (work, memo, gender, age_range, status, favorite, body, created_at, updated_at) VALUES '
+      "('오래전에 고친 대본', NULL, 'any', 'any', 'notStarted', 0, 'x', "
+      "'2026-09-10T10:00:00.000+09:00', '2026-09-10T10:00:00.000+09:00'), "
+      "('최근에 고친 대본', NULL, 'any', 'any', 'notStarted', 0, 'x', "
+      "'2026-09-10T10:00:00.000+09:00', '2026-09-14T10:00:00.000+09:00')",
+    );
+    v6.execute("INSERT INTO collections (name, created_at) VALUES ('1차 오디션', '2026-09-14T10:00:00.000+09:00')");
+    v6.execute('INSERT INTO script_collections (script_id, collection_id) VALUES (1, 1), (2, 1)');
+    v6.execute('PRAGMA user_version = 6');
+    v6.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final links = await (db.select(db.scriptCollections)..orderBy([(l) => OrderingTerm.asc(l.position)])).get();
+    expect([for (final l in links) (l.scriptId, l.position)], [(2, 0), (1, 1)]);
+    await db.close();
+  });
 }

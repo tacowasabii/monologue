@@ -7,6 +7,10 @@ import 'test_harness.dart';
 
 void main() {
   testWidgets('앱을 켜면 대본 탭에서 모든 대본이 바로 보이고, 모음 탭에서 폴더를 관리한다', (tester) async {
+    // 기본 테스트 화면(800×600)에서는 모음 카드 둘째 줄이 아래 탭에 가려진다. 실제 폰 크기로 맞춘다
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {
       final audition = await h.services.repo.createCollection('1차 오디션');

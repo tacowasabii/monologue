@@ -171,6 +171,66 @@ void main() {
     });
   });
 
+  group('순서', () {
+    Future<void> tick() => Future<void>.delayed(const Duration(milliseconds: 5));
+
+    test('정렬 기준에 따라 최근 수정순, 최근 만든 순, 작품명순으로 보여 준다', () async {
+      final b = await repo.create(const ScriptDraft(work: '나', body: 'x'));
+      await tick();
+      await repo.create(const ScriptDraft(work: '다', body: 'x'));
+      await tick();
+      // 작품명이 없으면 본문 첫머리로 줄 세운다
+      await repo.create(const ScriptDraft(body: '가나다 본문'));
+      await tick();
+      await repo.update(b, const ScriptDraft(work: '나', body: 'y'));
+
+      Future<List<String>> headings(ScriptSort sort) async => [
+            for (final s in await repo.watchScripts(ScriptFilter(sort: sort)).first) s.script.work ?? s.script.body,
+          ];
+      expect(await headings(ScriptSort.updated), ['나', '가나다 본문', '다']);
+      expect(await headings(ScriptSort.created), ['가나다 본문', '다', '나']);
+      expect(await headings(ScriptSort.work), ['가나다 본문', '나', '다']);
+    });
+
+    test('모음에 새로 넣은 대본은 맨 위에 오고, 정한 순서를 모음마다 따로 기억한다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      final exam = await repo.createCollection('입시');
+      final a = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition, exam]));
+      final b = await repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [audition, exam]));
+      final c = await repo.create(ScriptDraft(work: 'C', body: 'x', collectionIds: [audition]));
+      expect(await works(ScriptFilter(collectionId: audition)), ['C', 'B', 'A']);
+
+      await repo.reorderCollection(audition, [a, c, b]);
+      expect(await works(ScriptFilter(collectionId: audition)), ['A', 'C', 'B']);
+      expect(await works(ScriptFilter(collectionId: exam)), ['B', 'A']);
+
+      // 내용을 고치거나 다른 모음에 더 넣어도 이미 정한 순서는 그대로다
+      await tick();
+      await repo.update(b, ScriptDraft(work: 'B', body: 'y', collectionIds: [audition, exam]));
+      await repo.update(c, ScriptDraft(work: 'C', body: 'x', collectionIds: [audition, exam]));
+      expect(await works(ScriptFilter(collectionId: audition)), ['A', 'C', 'B']);
+      expect(await works(ScriptFilter(collectionId: exam)), ['C', 'B', 'A']);
+    });
+
+    test('appendToCollectionInOrder는 이미 있던 대본 뒤에 주어진 순서대로 붙인다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      await repo.create(ScriptDraft(work: '기존', body: 'x', collectionIds: [audition]));
+      final a = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition]));
+      final b = await repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [audition]));
+      await repo.appendToCollectionInOrder(audition, [a, b]);
+      expect(await works(ScriptFilter(collectionId: audition)), ['기존', 'A', 'B']);
+    });
+
+    test('즐겨찾기 수를 센다', () async {
+      final a = await repo.create(const ScriptDraft(work: 'A', body: 'x', favorite: true));
+      await repo.create(const ScriptDraft(work: 'B', body: 'x'));
+      final count = repo.watchFavoriteCount();
+      expect(await count.first, 1);
+      await repo.setFavorite(a, false);
+      expect(await count.first, 0);
+    });
+  });
+
   group('연습 기록', () {
     test('기록을 최근 순으로 보여 주고, 기록을 지우면 파일도 지운다', () async {
       final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));

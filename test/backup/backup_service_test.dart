@@ -113,6 +113,24 @@ void main() {
     expect((await dst.repo.findCollection('1차 오디션'))!.id, existing);
   });
 
+  test('모음 안 순서도 옮기고, 같은 이름의 모음에 있던 대본 뒤에 붙인다', () async {
+    final src = await newEnv('src');
+    final audition = await src.repo.createCollection('1차 오디션');
+    final a = await src.repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition]));
+    final b = await src.repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [audition]));
+    final c = await src.repo.create(ScriptDraft(work: 'C', body: 'x', collectionIds: [audition]));
+    await src.repo.reorderCollection(audition, [b, c, a]);
+    final zip = await src.backup.export(tmp);
+
+    final dst = await newEnv('dst');
+    final existing = await dst.repo.createCollection('1차 오디션');
+    await dst.repo.create(ScriptDraft(work: '기존', body: 'x', collectionIds: [existing]));
+    expect(await dst.backup.restore(zip.path), 3);
+
+    final list = await dst.repo.watchScripts(ScriptFilter(collectionId: existing)).first;
+    expect(list.map((s) => s.script.work), ['기존', 'B', 'C', 'A']);
+  });
+
   test('모음 정보가 없는 예전 백업도 복원한다', () async {
     final src = await newEnv('src');
     await src.repo.create(const ScriptDraft(work: 'A', body: 'x'));

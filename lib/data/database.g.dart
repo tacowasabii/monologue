@@ -1905,8 +1905,20 @@ class $ScriptCollectionsTable extends ScriptCollections
       'REFERENCES collections (id)',
     ),
   );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
   @override
-  List<GeneratedColumn> get $columns => [scriptId, collectionId];
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [scriptId, collectionId, position];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1938,6 +1950,12 @@ class $ScriptCollectionsTable extends ScriptCollections
     } else if (isInserting) {
       context.missing(_collectionIdMeta);
     }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    }
     return context;
   }
 
@@ -1955,6 +1973,10 @@ class $ScriptCollectionsTable extends ScriptCollections
         DriftSqlType.int,
         data['${effectivePrefix}collection_id'],
       )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
     );
   }
 
@@ -1968,12 +1990,20 @@ class ScriptCollection extends DataClass
     implements Insertable<ScriptCollection> {
   final int scriptId;
   final int collectionId;
-  const ScriptCollection({required this.scriptId, required this.collectionId});
+
+  /// 모음 안에서의 순서. 작을수록 위에 보인다. 모음마다 따로 정한다.
+  final int position;
+  const ScriptCollection({
+    required this.scriptId,
+    required this.collectionId,
+    required this.position,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['script_id'] = Variable<int>(scriptId);
     map['collection_id'] = Variable<int>(collectionId);
+    map['position'] = Variable<int>(position);
     return map;
   }
 
@@ -1981,6 +2011,7 @@ class ScriptCollection extends DataClass
     return ScriptCollectionsCompanion(
       scriptId: Value(scriptId),
       collectionId: Value(collectionId),
+      position: Value(position),
     );
   }
 
@@ -1992,6 +2023,7 @@ class ScriptCollection extends DataClass
     return ScriptCollection(
       scriptId: serializer.fromJson<int>(json['scriptId']),
       collectionId: serializer.fromJson<int>(json['collectionId']),
+      position: serializer.fromJson<int>(json['position']),
     );
   }
   @override
@@ -2000,20 +2032,26 @@ class ScriptCollection extends DataClass
     return <String, dynamic>{
       'scriptId': serializer.toJson<int>(scriptId),
       'collectionId': serializer.toJson<int>(collectionId),
+      'position': serializer.toJson<int>(position),
     };
   }
 
-  ScriptCollection copyWith({int? scriptId, int? collectionId}) =>
-      ScriptCollection(
-        scriptId: scriptId ?? this.scriptId,
-        collectionId: collectionId ?? this.collectionId,
-      );
+  ScriptCollection copyWith({
+    int? scriptId,
+    int? collectionId,
+    int? position,
+  }) => ScriptCollection(
+    scriptId: scriptId ?? this.scriptId,
+    collectionId: collectionId ?? this.collectionId,
+    position: position ?? this.position,
+  );
   ScriptCollection copyWithCompanion(ScriptCollectionsCompanion data) {
     return ScriptCollection(
       scriptId: data.scriptId.present ? data.scriptId.value : this.scriptId,
       collectionId: data.collectionId.present
           ? data.collectionId.value
           : this.collectionId,
+      position: data.position.present ? data.position.value : this.position,
     );
   }
 
@@ -2021,44 +2059,51 @@ class ScriptCollection extends DataClass
   String toString() {
     return (StringBuffer('ScriptCollection(')
           ..write('scriptId: $scriptId, ')
-          ..write('collectionId: $collectionId')
+          ..write('collectionId: $collectionId, ')
+          ..write('position: $position')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(scriptId, collectionId);
+  int get hashCode => Object.hash(scriptId, collectionId, position);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ScriptCollection &&
           other.scriptId == this.scriptId &&
-          other.collectionId == this.collectionId);
+          other.collectionId == this.collectionId &&
+          other.position == this.position);
 }
 
 class ScriptCollectionsCompanion extends UpdateCompanion<ScriptCollection> {
   final Value<int> scriptId;
   final Value<int> collectionId;
+  final Value<int> position;
   final Value<int> rowid;
   const ScriptCollectionsCompanion({
     this.scriptId = const Value.absent(),
     this.collectionId = const Value.absent(),
+    this.position = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ScriptCollectionsCompanion.insert({
     required int scriptId,
     required int collectionId,
+    this.position = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : scriptId = Value(scriptId),
        collectionId = Value(collectionId);
   static Insertable<ScriptCollection> custom({
     Expression<int>? scriptId,
     Expression<int>? collectionId,
+    Expression<int>? position,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (scriptId != null) 'script_id': scriptId,
       if (collectionId != null) 'collection_id': collectionId,
+      if (position != null) 'position': position,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2066,11 +2111,13 @@ class ScriptCollectionsCompanion extends UpdateCompanion<ScriptCollection> {
   ScriptCollectionsCompanion copyWith({
     Value<int>? scriptId,
     Value<int>? collectionId,
+    Value<int>? position,
     Value<int>? rowid,
   }) {
     return ScriptCollectionsCompanion(
       scriptId: scriptId ?? this.scriptId,
       collectionId: collectionId ?? this.collectionId,
+      position: position ?? this.position,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2084,6 +2131,9 @@ class ScriptCollectionsCompanion extends UpdateCompanion<ScriptCollection> {
     if (collectionId.present) {
       map['collection_id'] = Variable<int>(collectionId.value);
     }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2095,6 +2145,7 @@ class ScriptCollectionsCompanion extends UpdateCompanion<ScriptCollection> {
     return (StringBuffer('ScriptCollectionsCompanion(')
           ..write('scriptId: $scriptId, ')
           ..write('collectionId: $collectionId, ')
+          ..write('position: $position, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4222,12 +4273,14 @@ typedef $$ScriptCollectionsTableCreateCompanionBuilder =
     ScriptCollectionsCompanion Function({
       required int scriptId,
       required int collectionId,
+      Value<int> position,
       Value<int> rowid,
     });
 typedef $$ScriptCollectionsTableUpdateCompanionBuilder =
     ScriptCollectionsCompanion Function({
       Value<int> scriptId,
       Value<int> collectionId,
+      Value<int> position,
       Value<int> rowid,
     });
 
@@ -4289,6 +4342,11 @@ class $$ScriptCollectionsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ScriptsTableFilterComposer get scriptId {
     final $$ScriptsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4345,6 +4403,11 @@ class $$ScriptCollectionsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ScriptsTableOrderingComposer get scriptId {
     final $$ScriptsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4401,6 +4464,9 @@ class $$ScriptCollectionsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
   $$ScriptsTableAnnotationComposer get scriptId {
     final $$ScriptsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -4483,20 +4549,24 @@ class $$ScriptCollectionsTableTableManager
               ({
                 Value<int> scriptId = const Value.absent(),
                 Value<int> collectionId = const Value.absent(),
+                Value<int> position = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ScriptCollectionsCompanion(
                 scriptId: scriptId,
                 collectionId: collectionId,
+                position: position,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required int scriptId,
                 required int collectionId,
+                Value<int> position = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ScriptCollectionsCompanion.insert(
                 scriptId: scriptId,
                 collectionId: collectionId,
+                position: position,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

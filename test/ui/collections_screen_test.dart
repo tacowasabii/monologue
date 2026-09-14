@@ -35,12 +35,34 @@ void main() {
     expect(find.text('1차 오디션'), findsOneWidget);
     expect(find.text('1편'), findsOneWidget);
     expect(find.text('입시'), findsOneWidget);
-    expect(find.text('0편'), findsOneWidget);
+    expect(find.text('0편'), findsNWidgets(2)); // 입시, 즐겨찾기
 
     await tester.tap(find.text('1차 오디션'));
     await tester.pumpAndSettle();
     expect(find.text('햄릿'), findsOneWidget);
     expect(find.text('갈매기'), findsNothing);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('즐겨찾기 모음은 별을 누른 대본 수를 보여 주고, 누르면 즐겨찾기한 대본만 보인다', (tester) async {
+    usePhoneSize(tester);
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() async {
+      await h.services.repo.create(const ScriptDraft(work: '햄릿', body: 'x', favorite: true));
+      await h.services.repo.create(const ScriptDraft(work: '갈매기', body: 'x'));
+    });
+    await tester.pumpWidget(h.wrap(const CollectionsScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('즐겨찾기'), findsOneWidget);
+    expect(find.text('2편'), findsOneWidget); // 전체
+    expect(find.text('1편'), findsOneWidget); // 즐겨찾기
+
+    await tester.tap(find.text('즐겨찾기'));
+    await tester.pumpAndSettle();
+    expect(find.text('햄릿'), findsOneWidget);
+    expect(find.text('갈매기'), findsNothing);
+    expect(find.text('대본 추가'), findsNothing);
     await tester.runAsync(h.db.close);
   });
 

@@ -76,13 +76,45 @@ class ScriptRepository {
         }
         return e;
       })
-      ..orderBy([(s) => OrderingTerm.desc(s.updatedAt), (s) => OrderingTerm.desc(s.id)]);
+      ..orderBy(_orderOf(f));
     return q.watch().asyncMap(_withTags);
+  }
+
+  /// 모음 안에서는 모음에서 정한 순서, 그 밖에서는 고른 정렬 기준.
+  List<OrderClauseGenerator<$ScriptsTable>> _orderOf(ScriptFilter f) {
+    final collectionId = f.collectionId;
+    if (collectionId != null) {
+      return [
+        (s) => OrderingTerm.asc(subqueryExpression<int>(db.selectOnly(db.scriptCollections)
+          ..addColumns([db.scriptCollections.position])
+          ..where(db.scriptCollections.scriptId.equalsExp(s.id) & db.scriptCollections.collectionId.equals(collectionId)))),
+        (s) => OrderingTerm.desc(s.updatedAt),
+        (s) => OrderingTerm.desc(s.id),
+      ];
+    }
+    return switch (f.sort) {
+      ScriptSort.updated => [(s) => OrderingTerm.desc(s.updatedAt), (s) => OrderingTerm.desc(s.id)],
+      ScriptSort.created => [(s) => OrderingTerm.desc(s.createdAt), (s) => OrderingTerm.desc(s.id)],
+      // 작품명이 없는 대본은 목록 제목 자리에 보이는 본문 첫머리로 줄 세운다
+      ScriptSort.work => [
+          (s) => OrderingTerm.asc(coalesce<String>([s.work, s.body])),
+          (s) => OrderingTerm.desc(s.updatedAt),
+        ],
+    };
   }
 
   Stream<int> watchScriptCount() {
     final count = db.scripts.id.count();
     return (db.selectOnly(db.scripts)..addColumns([count])).watchSingle().map((r) => r.read(count) ?? 0);
+  }
+
+  Stream<int> watchFavoriteCount() {
+    final count = db.scripts.id.count();
+    return (db.selectOnly(db.scripts)
+          ..addColumns([count])
+          ..where(db.scripts.favorite.equals(true)))
+        .watchSingle()
+        .map((r) => r.read(count) ?? 0);
   }
 
   Future<List<ScriptSummary>> _withTags(List<Script> rows) async {
@@ -209,13 +241,52 @@ class ScriptRepository {
         ));
   }
 
+  /// 대본이 든 모음을 [collectionIds]로 맞춘다. 계속 들어 있는 모음에서는 정해 둔 순서를 지키고,
+  /// 새로 넣은 모음에서는 맨 위에 둔다.
   Future<void> _replaceCollections(int id, List<int> collectionIds) async {
-    await (db.delete(db.scriptCollections)..where((sc) => sc.scriptId.equals(id))).go();
-    await db.batch((b) => b.insertAll(
-          db.scriptCollections,
-          [for (final c in collectionIds) ScriptCollectionsCompanion.insert(scriptId: id, collectionId: c)],
-        ));
+    final current = {
+      for (final l in await (db.select(db.scriptCollections)..where((sc) => sc.scriptId.equals(id))).get())
+        l.collectionId,
+    };
+    await (db.delete(db.scriptCollections)
+          ..where((sc) => sc.scriptId.equals(id) & sc.collectionId.isNotIn(collectionIds)))
+        .go();
+    for (final c in collectionIds.where((c) => !current.contains(c))) {
+      final top = await _edgePosition(c, first: true);
+      await db.into(db.scriptCollections).insert(
+            ScriptCollectionsCompanion.insert(scriptId: id, collectionId: c, position: Value((top ?? 1) - 1)),
+          );
+    }
   }
+
+  /// 모음 안 맨 위(또는 맨 아래) 순서 값. 비어 있으면 null. [except] 대본은 빼고 본다.
+  Future<int?> _edgePosition(int collectionId, {required bool first, Iterable<int> except = const []}) async {
+    final links = db.scriptCollections;
+    final edge = first ? links.position.min() : links.position.max();
+    final row = await (db.selectOnly(links)
+          ..addColumns([edge])
+          ..where(links.collectionId.equals(collectionId) & links.scriptId.isNotIn(except)))
+        .getSingle();
+    return row.read(edge);
+  }
+
+  Future<void> _setPositions(int collectionId, List<int> scriptIds, {int start = 0}) async {
+    for (final (i, scriptId) in scriptIds.indexed) {
+      await (db.update(db.scriptCollections)
+            ..where((sc) => sc.collectionId.equals(collectionId) & sc.scriptId.equals(scriptId)))
+          .write(ScriptCollectionsCompanion(position: Value(start + i)));
+    }
+  }
+
+  /// 모음 안 순서를 [scriptIds] 차례로 정한다.
+  Future<void> reorderCollection(int collectionId, List<int> scriptIds) =>
+      db.transaction(() => _setPositions(collectionId, scriptIds));
+
+  /// [scriptIds]를 모음에 이미 있던 대본 뒤에 이 차례로 놓는다(백업 복원에서 사용).
+  Future<void> appendToCollectionInOrder(int collectionId, List<int> scriptIds) => db.transaction(() async {
+        final last = await _edgePosition(collectionId, first: false, except: scriptIds);
+        await _setPositions(collectionId, scriptIds, start: (last ?? -1) + 1);
+      });
 
   Future<void> _appendImages(int id, List<String> fileNames) async {
     if (fileNames.isEmpty) return;

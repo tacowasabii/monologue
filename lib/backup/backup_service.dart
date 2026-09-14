@@ -79,6 +79,11 @@ class BackupService {
           'tags': tags.where((t) => t.scriptId == s.id).map((t) => t.tag).toList(),
           // 모음은 기기마다 id가 달라서 이름으로 옮긴다
           'collections': [for (final l in links) if (l.scriptId == s.id) collectionNames[l.collectionId]!],
+          // 모음 안 순서. 예전 앱은 모르는 칸이라 무시하고 복원한다
+          'collectionOrder': {
+            for (final l in links)
+              if (l.scriptId == s.id) collectionNames[l.collectionId]!: l.position,
+          },
           'images': myImages,
           if (includeMedia)
             'media': [
@@ -116,6 +121,7 @@ class BackupService {
       final plans = <({
         ScriptDraft draft,
         List<String> collections,
+        Map<String, int> collectionOrder,
         DateTime createdAt,
         DateTime updatedAt,
         List<String> images,
@@ -139,6 +145,14 @@ class BackupService {
         plans.add((
           draft: _draftOf(e),
           collections: _collectionNamesOf(e),
+          // 모음 안 순서. 순서 기능이 생기기 전에 만든 백업에는 없다
+          collectionOrder: switch (e['collectionOrder']) {
+            final Map<String, Object?> m => {
+                for (final MapEntry(:key, :value) in m.entries)
+                  if (value is int) key.trim(): value,
+              },
+            _ => const <String, int>{},
+          },
           createdAt: DateTime.parse(e['createdAt'] as String),
           updatedAt: DateTime.parse(e['updatedAt'] as String),
           images: imageNames,
@@ -146,6 +160,8 @@ class BackupService {
         ));
       }
       await db.transaction(() async {
+        // 모음마다 (백업에 적힌 순서, 복원한 대본)
+        final restoredOrder = <int, List<(int, int)>>{};
         for (final plan in plans) {
           final ids = [for (final n in plan.collections) await repo.collectionIdFor(n)];
           final id = await repo.insertRestored(
@@ -154,6 +170,11 @@ class BackupService {
             updatedAt: plan.updatedAt,
             storedImageFileNames: plan.images,
           );
+          for (final (i, name) in plan.collections.indexed) {
+            if (plan.collectionOrder[name] case final position?) {
+              restoredOrder.putIfAbsent(ids[i], () => []).add((position, id));
+            }
+          }
           for (final (take, stored) in plan.takes) {
             await repo.addMedia(
               id,
@@ -163,6 +184,11 @@ class BackupService {
               createdAt: take.createdAt,
             );
           }
+        }
+        // 같은 이름의 모음에 원래 있던 대본 뒤에, 백업에 적힌 차례대로 붙인다
+        for (final MapEntry(key: collectionId, value: links) in restoredOrder.entries) {
+          links.sort((a, b) => a.$1.compareTo(b.$1));
+          await repo.appendToCollectionInOrder(collectionId, [for (final (_, scriptId) in links) scriptId]);
         }
       });
       return plans.length;

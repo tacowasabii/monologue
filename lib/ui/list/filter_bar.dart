@@ -5,7 +5,6 @@ import '../../data/script_repository.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_filter.dart';
 import '../common/pill_chip.dart';
-import '../theme.dart';
 
 /// 시트에서 고르는 필터(성별·나이대·태그) 중 적용된 개수
 int sheetFilterCount(ScriptFilter f) => [f.gender, f.ageRange, f.tag].where((v) => v != null).length;
@@ -28,26 +27,6 @@ Future<void> openFilterSheet(
     builder: (_) => _FilterSheet(initial: filter, tags: tags),
   );
   if (picked != null) onChanged(picked);
-}
-
-/// 검색창 안의 즐겨찾기 토글. 켜지면 금색 별로 채워진다.
-class FavoritesButton extends StatelessWidget {
-  const FavoritesButton({super.key, required this.filter, required this.onChanged});
-
-  final ScriptFilter filter;
-  final ValueChanged<ScriptFilter> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return IconButton(
-      tooltip: filter.favoritesOnly ? '즐겨찾기 필터 해제' : '즐겨찾기만 보기',
-      isSelected: filter.favoritesOnly,
-      icon: Icon(Icons.star_outline_rounded, color: scheme.onSurfaceVariant),
-      selectedIcon: Icon(Icons.star_rounded, color: favoriteColor(scheme)),
-      onPressed: () => onChanged(filter.copyWith(favoritesOnly: !filter.favoritesOnly)),
-    );
-  }
 }
 
 /// 검색창 오른쪽의 필터 버튼. 적용된 필터 수를 배지로 보여준다.
