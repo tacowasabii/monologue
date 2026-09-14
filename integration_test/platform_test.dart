@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:monologue/app.dart';
 import 'package:monologue/app_scope.dart';
@@ -23,6 +24,9 @@ import 'package:monologue/practice/voice_recorder.dart';
 import 'package:monologue/settings/app_tips.dart';
 import 'package:monologue/settings/home_view_settings.dart';
 import 'package:monologue/settings/reading_settings.dart';
+import 'package:monologue/share/link_source.dart';
+import 'package:monologue/share/share_client.dart';
+import 'package:monologue/share/share_history.dart';
 import 'package:monologue/ui/common/adaptive.dart';
 import 'package:monologue/ui/home/home_screen.dart';
 import 'package:path_provider/path_provider.dart';
@@ -169,6 +173,9 @@ void main() {
         newRecorder: RecordVoiceRecorder.new,
         mediaPicker: PlatformMediaPicker(),
         screen: PlatformScreenAwake(),
+        shareClient: ShareClient(http.Client()),
+        shareHistory: await ShareHistory.load(),
+        links: PlatformLinkSource(),
       ),
       child: const MonologueApp(),
     ));

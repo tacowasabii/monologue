@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:monologue/app_scope.dart';
 import 'package:monologue/backup/backup_service.dart';
 import 'package:monologue/data/database.dart';
@@ -18,6 +22,9 @@ import 'package:monologue/practice/voice_recorder.dart';
 import 'package:monologue/settings/app_tips.dart';
 import 'package:monologue/settings/home_view_settings.dart';
 import 'package:monologue/settings/reading_settings.dart';
+import 'package:monologue/share/link_source.dart';
+import 'package:monologue/share/share_client.dart';
+import 'package:monologue/share/share_history.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
@@ -90,14 +97,43 @@ class FakeMediaPicker implements MediaPicker {
   Future<Duration?> audioDuration(String path) async => audioLength;
 }
 
+/// 공유 서버 대신 [handler]가 답한다. 받은 요청은 [requests]에 남긴다. 기본은 서버 오류(503).
+class FakeShareServer {
+  http.Response Function(http.Request request) handler = (_) => http.Response('', 503);
+  final requests = <http.Request>[];
+
+  late final MockClient client = MockClient((request) async {
+    requests.add(request);
+    return handler(request);
+  });
+}
+
+/// 앱을 여는 링크를 테스트에서 직접 흘려보낸다
+class FakeLinkSource implements LinkSource {
+  final _controller = StreamController<Uri>.broadcast();
+
+  @override
+  Stream<Uri> get links => _controller.stream;
+
+  void open(Uri uri) => _controller.add(uri);
+}
+
+http.Response jsonResponse(Object? body, int status) => http.Response.bytes(
+      utf8.encode(jsonEncode(body)),
+      status,
+      headers: {'content-type': 'application/json; charset=utf-8'},
+    );
+
 class Harness {
-  Harness._(this.db, this.services, this.recorder, this.picker, this.screen);
+  Harness._(this.db, this.services, this.recorder, this.picker, this.screen, this.shareServer, this.links);
 
   final AppDatabase db;
   final AppServices services;
   final FakeRecorder recorder;
   final FakeMediaPicker picker;
   final FakeScreenAwake screen;
+  final FakeShareServer shareServer;
+  final FakeLinkSource links;
 
   static Future<Harness> create() async {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
@@ -108,6 +144,8 @@ class Harness {
     final recorder = FakeRecorder();
     final picker = FakeMediaPicker();
     final screen = FakeScreenAwake();
+    final shareServer = FakeShareServer();
+    final links = FakeLinkSource();
     return Harness._(
       db,
       AppServices(
@@ -122,10 +160,15 @@ class Harness {
         newRecorder: () => recorder,
         mediaPicker: picker,
         screen: screen,
+        shareClient: ShareClient(shareServer.client),
+        shareHistory: await ShareHistory.load(),
+        links: links,
       ),
       recorder,
       picker,
       screen,
+      shareServer,
+      links,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'app.dart';
 import 'app_scope.dart';
@@ -16,6 +17,9 @@ import 'practice/voice_recorder.dart';
 import 'settings/app_tips.dart';
 import 'settings/home_view_settings.dart';
 import 'settings/reading_settings.dart';
+import 'share/link_source.dart';
+import 'share/share_client.dart';
+import 'share/share_history.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +43,9 @@ Future<void> main() async {
       newRecorder: RecordVoiceRecorder.new,
       mediaPicker: PlatformMediaPicker(),
       screen: PlatformScreenAwake(),
+      shareClient: ShareClient(http.Client()),
+      shareHistory: await ShareHistory.load(),
+      links: PlatformLinkSource(),
     ),
     child: const MonologueApp(),
   ));

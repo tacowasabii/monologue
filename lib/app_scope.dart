@@ -11,6 +11,9 @@ import 'practice/voice_recorder.dart';
 import 'settings/app_tips.dart';
 import 'settings/home_view_settings.dart';
 import 'settings/reading_settings.dart';
+import 'share/link_source.dart';
+import 'share/share_client.dart';
+import 'share/share_history.dart';
 
 class AppServices {
   const AppServices({
@@ -25,6 +28,9 @@ class AppServices {
     required this.newRecorder,
     required this.mediaPicker,
     required this.screen,
+    required this.shareClient,
+    required this.shareHistory,
+    required this.links,
   });
 
   final ScriptRepository repo;
@@ -40,6 +46,9 @@ class AppServices {
   final VoiceRecorder Function() newRecorder;
   final MediaPicker mediaPicker;
   final ScreenAwake screen;
+  final ShareClient shareClient;
+  final ShareHistory shareHistory;
+  final LinkSource links;
 }
 
 class AppScope extends InheritedWidget {
