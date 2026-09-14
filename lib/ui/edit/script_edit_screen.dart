@@ -7,6 +7,7 @@ import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../common/section_header.dart';
@@ -273,7 +274,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
         body: Form(
           key: _form,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 48),
+            padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 4, 20, 48)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

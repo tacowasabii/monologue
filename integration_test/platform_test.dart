@@ -23,6 +23,8 @@ import 'package:monologue/practice/voice_recorder.dart';
 import 'package:monologue/settings/app_tips.dart';
 import 'package:monologue/settings/home_view_settings.dart';
 import 'package:monologue/settings/reading_settings.dart';
+import 'package:monologue/ui/common/adaptive.dart';
+import 'package:monologue/ui/home/home_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:video_player/video_player.dart';
@@ -190,9 +192,13 @@ void main() {
     await tester.tap(find.byTooltip('몰입 읽기 닫기'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(NavigationDestination, '모음'));
+    // 넓은 창(아이패드·펼친 폴드)에서는 대본이 목록 옆 칸에 열려서 닫고 돌아갈 화면이 없다
+    if (!isWideWindow(tester.element(find.byType(HomeScreen, skipOffstage: false)))) {
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+    }
+    // 탭은 폰에서는 아래에, 넓은 창에서는 왼쪽 레일에 있다
+    await tester.tap(find.text('모음'));
     await tester.pumpAndSettle();
     expect(find.text('1차 오디션'), findsOneWidget);
 

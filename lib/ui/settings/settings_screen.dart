@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_scope.dart';
 import '../../backup/backup_service.dart';
+import '../common/adaptive.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import 'how_to_screen.dart';
@@ -143,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('설정')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+        padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 0, 20, 40)),
         children: [
           section('도움말'),
           Card(

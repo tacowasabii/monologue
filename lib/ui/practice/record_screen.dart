@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
 import '../../practice/voice_recorder.dart';
+import '../common/adaptive.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import '../theme.dart';
@@ -130,7 +131,7 @@ class _RecordScreenState extends State<RecordScreen> {
         body: ListenableBuilder(
           listenable: services.settings,
           builder: (context, _) => SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(24, 8, 24, 32)),
             child: Text(
               keepWords(widget.body),
               style: TextStyle(
@@ -149,7 +150,8 @@ class _RecordScreenState extends State<RecordScreen> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+              // 넓은 창에서는 녹음 시간과 버튼이 양끝으로 멀어지지 않게 본문 폭에 맞춘다
+              padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 12, 20, 12)),
               child: Row(
                 children: [
                   if (_recording) ...[

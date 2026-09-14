@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../ocr/assemble_text.dart';
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 
 const _fontSize = 15.0;
@@ -61,7 +62,7 @@ class _PickParagraphsScreenState extends State<PickParagraphsScreen> {
         ],
       ),
       body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 4, 20, 20)),
         itemCount: total + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (context, i) {
@@ -97,7 +98,7 @@ class _PickParagraphsScreenState extends State<PickParagraphsScreen> {
         decoration: BoxDecoration(border: Border(top: BorderSide(color: scheme.outlineVariant))),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 12, 20, 12)),
             child: FilledButton(
               onPressed: _count == 0 ? null : _done,
               child: Text('선택한 $_count개로 계속'),

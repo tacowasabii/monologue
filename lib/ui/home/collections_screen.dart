@@ -4,6 +4,7 @@ import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../../data/script_repository.dart';
 import '../../settings/home_view_settings.dart';
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 import '../list/script_list_screen.dart';
 import '../settings/settings_screen.dart';
@@ -180,24 +181,28 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                       ),
                   ];
                   void create() => _create(collections);
-                  return CustomScrollView(
-                    slivers: [
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-                        sliver: grid
-                            ? SliverGrid.count(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 1.2,
-                                children: [
-                                  for (final e in entries) _CollectionCard(entry: e),
-                                  _NewCollectionCard(onTap: create),
-                                ],
-                              )
-                            : SliverToBoxAdapter(child: _CollectionList(entries: entries, onCreate: create)),
-                      ),
-                    ],
+                  const padding = EdgeInsets.fromLTRB(20, 4, 20, 32);
+                  return LayoutBuilder(
+                    builder: (context, constraints) => CustomScrollView(
+                      slivers: [
+                        SliverPadding(
+                          padding: grid ? padding : readablePadding(constraints.maxWidth, padding),
+                          // 넓은 창에서는 카드를 키우지 않고 한 줄에 더 많이 놓는다(폰에서는 두 개)
+                          sliver: grid
+                              ? SliverGrid.extent(
+                                  maxCrossAxisExtent: 220,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                  childAspectRatio: 1.2,
+                                  children: [
+                                    for (final e in entries) _CollectionCard(entry: e),
+                                    _NewCollectionCard(onTap: create),
+                                  ],
+                                )
+                              : SliverToBoxAdapter(child: _CollectionList(entries: entries, onCreate: create)),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),

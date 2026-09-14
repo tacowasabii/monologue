@@ -6,6 +6,7 @@ import '../../data/script_repository.dart';
 import '../../domain/script_draft.dart';
 import '../../domain/script_filter.dart';
 import '../../settings/home_view_settings.dart';
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 import '../common/section_header.dart';
 import '../edit/add_script.dart';
@@ -38,6 +39,13 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
 
   /// 끌어서 옮긴 순서. 저장한 순서가 목록으로 돌아올 때까지 이 순서로 보여 줘서 카드가 제자리로 튀지 않게 한다.
   List<ScriptSummary>? _moved;
+
+  /// 연 대본. 넓은 창에서는 목록 옆 칸에 보여 주고, 좁은 창에서는 목록 위에 대본 화면을 띄운다.
+  /// 폴드를 접거나 펴서 창 크기가 바뀌어도 보던 대본을 이어서 보여 주려고 기억해 둔다.
+  int? _openId;
+
+  /// 좁은 창에서 대본 화면을 띄워 두었거나 띄우려는 중이면 true
+  bool _routeOpen = false;
 
   bool get _inCollection => widget.collection != null;
 
@@ -99,6 +107,41 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
     return moved;
   }
 
+  void _open(int id) {
+    if (isWideWindow(context)) {
+      setState(() => _openId = id);
+    } else {
+      _pushScript(id);
+    }
+  }
+
+  Future<void> _pushScript(int id) async {
+    _openId = id;
+    _routeOpen = true;
+    final movedToPane = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => ScriptViewScreen(scriptId: id, popWhenWide: true)),
+    );
+    _routeOpen = false;
+    if (!mounted) return;
+    // 창이 넓어져서 대본 화면이 스스로 닫혔으면 옆 칸에서 이어 보여 주고, 사용자가 닫았으면 선택을 푼다
+    setState(() {
+      if (movedToPane != true) _openId = null;
+    });
+  }
+
+  /// 넓은 창에서 옆 칸에 대본을 보다가 창이 좁아지면(폴드를 접으면) 그 대본 화면을 띄워 이어 보게 한다.
+  /// 다른 화면에 가려졌거나 보이지 않는 탭에 있으면, 다시 보일 때 띄운다.
+  void _continueInRoute() {
+    if (_routeOpen || _openId == null || isWideWindow(context)) return;
+    if (!(ModalRoute.isCurrentOf(context) ?? true) || !Visibility.of(context)) return;
+    _routeOpen = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _routeOpen = false;
+      final id = _openId;
+      if (mounted && id != null) _pushScript(id);
+    });
+  }
+
   String get _title {
     if (widget.collection case final c?) return c.name;
     return widget.favorites ? '즐겨찾기' : '전체';
@@ -106,8 +149,10 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _continueInRoute();
     final theme = Theme.of(context);
-    return Scaffold(
+    final wide = isWideWindow(context);
+    final list = Scaffold(
       appBar: widget.home
           ? AppBar(
               toolbarHeight: 72,
@@ -163,7 +208,11 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
                     Widget card(ScriptSummary s) => Padding(
                           key: ValueKey(s.script.id),
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _ScriptCard(summary: s),
+                          child: _ScriptCard(
+                            summary: s,
+                            selected: wide && s.script.id == _openId,
+                            onTap: () => _open(s.script.id),
+                          ),
                         );
 
                     // 걸러 보는 중에는 일부만 보여서 순서를 바꾸지 않는다
@@ -219,6 +268,55 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
               icon: const Icon(Icons.add_rounded),
               label: const Text('대본 추가'),
             ),
+    );
+    final openId = _openId;
+    // 좁은 창에서도 같은 틀을 써서, 창 크기가 바뀌어도 목록(검색어·스크롤 위치)을 새로 만들지 않는다.
+    // 바깥 Scaffold는 두 칸이 SnackBar를 한 번만 보여 주게 한다
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: wide ? (constraints.maxWidth * 0.4).clamp(280.0, 400.0) : constraints.maxWidth,
+              child: list,
+            ),
+            if (wide) ...[
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: openId == null
+                    ? const _NothingOpen()
+                    : ScriptViewScreen(
+                        key: ValueKey(openId),
+                        scriptId: openId,
+                        onDeleted: () => setState(() => _openId = null),
+                      ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 넓은 창에서 아직 대본을 열지 않았을 때의 옆 칸
+class _NothingOpen extends StatelessWidget {
+  const _NothingOpen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.menu_book_outlined, size: 40, color: scheme.outline),
+          const SizedBox(height: 14),
+          Text('대본을 고르면 여기에 보여요', style: theme.textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant)),
+        ],
+      ),
     );
   }
 }
@@ -313,9 +411,13 @@ class _EmptyMessage extends StatelessWidget {
 }
 
 class _ScriptCard extends StatelessWidget {
-  const _ScriptCard({required this.summary});
+  const _ScriptCard({required this.summary, required this.selected, required this.onTap});
 
   final ScriptSummary summary;
+
+  /// 넓은 창에서 옆 칸에 열어 둔 대본이면 true
+  final bool selected;
+  final VoidCallback onTap;
 
   /// 작품명이 없으면 본문 첫 줄이 제목 자리로 올라가므로, 미리보기는 그다음 줄부터 보여 준다.
   static String _excerpt(String body, {required bool skipFirstLine}) {
@@ -337,8 +439,15 @@ class _ScriptCard extends StatelessWidget {
     final memoLine = firstLineOf(s.memo ?? '');
     return Card(
       clipBehavior: Clip.antiAlias,
+      color: selected ? scheme.primaryContainer.withValues(alpha: 0.45) : null,
+      shape: selected
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(color: scheme.primary.withValues(alpha: 0.6)),
+            )
+          : null,
       child: InkWell(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ScriptViewScreen(scriptId: s.id))),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 6, 18),
           child: Column(

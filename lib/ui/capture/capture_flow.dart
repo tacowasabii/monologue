@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../app_scope.dart';
 import '../../ocr/assemble_text.dart';
+import '../common/adaptive.dart';
 import 'pick_paragraphs_screen.dart';
 
 class CaptureResult {
@@ -254,7 +255,7 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
               child: Text('사진을 추가해 주세요', style: theme.textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant)),
             )
           : ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+              padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 4, 20, 16)),
               header: Padding(
                 padding: const EdgeInsets.fromLTRB(4, 0, 4, 14),
                 child: Text(
@@ -340,7 +341,7 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
         decoration: BoxDecoration(border: Border(top: BorderSide(color: scheme.outlineVariant))),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 12, 20, 12)),
             child: Row(
               children: [
                 IconButton.outlined(

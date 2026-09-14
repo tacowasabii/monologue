@@ -5,6 +5,7 @@ import '../../data/script_repository.dart';
 import '../../domain/dialogue.dart';
 import '../../domain/enums.dart';
 import '../../settings/reading_settings.dart';
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../edit/script_edit_screen.dart';
@@ -16,9 +17,16 @@ import 'immersive_reader_screen.dart';
 import 'script_body.dart';
 
 class ScriptViewScreen extends StatefulWidget {
-  const ScriptViewScreen({super.key, required this.scriptId});
+  const ScriptViewScreen({super.key, required this.scriptId, this.onDeleted, this.popWhenWide = false});
 
   final int scriptId;
+
+  /// 넓은 창에서 목록 옆 칸에 넣어 보여 줄 때 준다. 대본이 지워지면 부르고, 뒤로 가기 버튼은 두지 않는다.
+  final VoidCallback? onDeleted;
+
+  /// 좁은 창에서 목록 위에 띄운 화면이면 true. 창이 넓어지면(폴드를 펼치면) 스스로 닫고 true를 돌려주어
+  /// 목록 옆 칸에서 이어 보게 한다.
+  final bool popWhenWide;
 
   @override
   State<ScriptViewScreen> createState() => _ScriptViewScreenState();
@@ -26,6 +34,9 @@ class ScriptViewScreen extends StatefulWidget {
 
 class _ScriptViewScreenState extends State<ScriptViewScreen> {
   Stream<ScriptDetail?>? _detail;
+  bool _returningToList = false;
+
+  bool get _inPane => widget.onDeleted != null;
 
   @override
   void didChangeDependencies() {
@@ -51,7 +62,11 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
     );
     if (ok != true || !mounted) return;
     final repo = AppScope.of(context).repo;
-    Navigator.of(context).pop();
+    if (widget.onDeleted case final onDeleted?) {
+      onDeleted();
+    } else {
+      Navigator.of(context).pop();
+    }
     await repo.delete(d.script.id);
   }
 
@@ -117,20 +132,39 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
     );
   }
 
+  /// [ScriptViewScreen.popWhenWide] 화면이 맨 위에 있을 때 창이 넓어지면 닫고 목록 옆 칸으로 넘긴다.
+  /// 편집 화면처럼 다른 화면이 위에 떠 있으면, 그 화면을 닫고 돌아왔을 때 넘긴다.
+  void _returnToListIfWide() {
+    if (!widget.popWhenWide || _returningToList) return;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent || !isWideWindow(context)) return;
+    _returningToList = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _returningToList = false;
+      if (mounted && route.isCurrent) Navigator.of(context).pop(true);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _returnToListIfWide();
     final services = AppScope.of(context);
     return StreamBuilder<ScriptDetail?>(
       stream: _detail,
       builder: (context, snap) {
         final d = snap.data;
         if (d == null) {
+          final waiting = snap.connectionState == ConnectionState.waiting;
+          // 옆 칸에서 보던 대본이 다른 화면에서 지워졌으면 옆 칸을 비운다
+          if (!waiting && _inPane) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) widget.onDeleted!();
+            });
+          }
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(automaticallyImplyLeading: !_inPane),
             body: Center(
-              child: snap.connectionState == ConnectionState.waiting
-                  ? const CircularProgressIndicator()
-                  : const Text('대본을 찾을 수 없어요'),
+              child: waiting ? const CircularProgressIndicator() : const Text('대본을 찾을 수 없어요'),
             ),
           );
         }
@@ -151,8 +185,15 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         void openNotes() => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => NotesScreen(script: s)),
             );
+        void openReader() => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => ImmersiveReaderScreen(script: s, focusSpeaker: focus)),
+            );
+        const readerIcon = Icon(Icons.menu_book_rounded);
+        const readerLabel = Text('몰입 읽기');
         return Scaffold(
           appBar: AppBar(
+            // 목록 옆 칸에서는 뒤로 가기를 목록 쪽 화면에만 둔다
+            automaticallyImplyLeading: !_inPane,
             actions: [
               IconButton(
                 tooltip: s.favorite ? '즐겨찾기 해제' : '즐겨찾기',
@@ -207,89 +248,89 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
               const SizedBox(width: 4),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => ImmersiveReaderScreen(script: s, focusSpeaker: focus),
-            )),
-            icon: const Icon(Icons.menu_book_rounded),
-            label: const Text('몰입 읽기'),
-          ),
-          body: ListView(
-            // 몰입 읽기 버튼이 본문 끝을 가리지 않게 아래를 넉넉히 둔다
-            padding: const EdgeInsets.fromLTRB(24, 4, 24, 112),
-            children: [
-              if (source != null) Text(keepWords(source), style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
-              if (hasLabels)
-                Padding(
-                  padding: EdgeInsets.only(top: source != null ? 14 : 0),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final t in traits) _Label(t),
-                      for (final t in d.tags) _Label('#$t', accent: true),
-                    ],
+          // 목록 옆 칸에서는 같은 화면에 목록의 '대본 추가' 버튼도 있다. 화면을 넘길 때 두 버튼이 같은 기본 Hero 태그로
+          // 부딪치지 않게 이 버튼의 Hero를 끈다(폰에서는 목록 버튼이 이 버튼으로 바뀌는 효과를 그대로 둔다)
+          floatingActionButton: _inPane
+              ? FloatingActionButton.extended(heroTag: null, onPressed: openReader, icon: readerIcon, label: readerLabel)
+              : FloatingActionButton.extended(onPressed: openReader, icon: readerIcon, label: readerLabel),
+          body: LayoutBuilder(
+            builder: (context, constraints) => ListView(
+              // 몰입 읽기 버튼이 본문 끝을 가리지 않게 아래를 넉넉히 두고, 넓은 창에서는 글줄이 너무 길어지지 않게 양옆을 늘린다
+              padding: readablePadding(constraints.maxWidth, const EdgeInsets.fromLTRB(24, 4, 24, 112)),
+              children: [
+                if (source != null) Text(keepWords(source), style: theme.textTheme.headlineMedium?.copyWith(height: 1.3)),
+                if (hasLabels)
+                  Padding(
+                    padding: EdgeInsets.only(top: source != null ? 14 : 0),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final t in traits) _Label(t),
+                        for (final t in d.tags) _Label('#$t', accent: true),
+                      ],
+                    ),
+                  ),
+                if (memo != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: source != null || hasLabels ? 16 : 0),
+                    child: Text(
+                      keepWords(memo),
+                      style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
+                    ),
+                  ),
+                if (speakers.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(top: source != null || hasLabels || memo != null ? 20 : 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('내 역할', style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant)),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            for (final name in speakers)
+                              PillChip(
+                                label: name,
+                                selected: name == focus,
+                                onSelected: (_) => services.repo.setMyRole(s.id, name == focus ? null : name),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                if (note != null)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: source != null || hasLabels || memo != null || speakers.isNotEmpty ? 20 : 0,
+                    ),
+                    child: _NotePreview(note: note, onTap: openNotes),
+                  ),
+                // 위에 보여 줄 정보가 없으면 구분선 없이 본문부터 시작한다
+                if (source != null || hasLabels || memo != null || speakers.isNotEmpty || note != null) ...[
+                  const SizedBox(height: 28),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(width: 28, height: 2, color: scheme.primary.withValues(alpha: 0.5)),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                ListenableBuilder(
+                  listenable: services.settings,
+                  builder: (context, _) => ScriptBody(
+                    body: s.body,
+                    dialogue: s.dialogue,
+                    fontSize: services.settings.fontSize,
+                    focusSpeaker: focus,
                   ),
                 ),
-              if (memo != null)
-                Padding(
-                  padding: EdgeInsets.only(top: source != null || hasLabels ? 16 : 0),
-                  child: Text(
-                    keepWords(memo),
-                    style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
-                  ),
-                ),
-              if (speakers.isNotEmpty)
-                Padding(
-                  padding: EdgeInsets.only(top: source != null || hasLabels || memo != null ? 20 : 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('내 역할', style: theme.textTheme.labelLarge?.copyWith(color: scheme.onSurfaceVariant)),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: [
-                          for (final name in speakers)
-                            PillChip(
-                              label: name,
-                              selected: name == focus,
-                              onSelected: (_) => services.repo.setMyRole(s.id, name == focus ? null : name),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              if (note != null)
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: source != null || hasLabels || memo != null || speakers.isNotEmpty ? 20 : 0,
-                  ),
-                  child: _NotePreview(note: note, onTap: openNotes),
-                ),
-              // 위에 보여 줄 정보가 없으면 구분선 없이 본문부터 시작한다
-              if (source != null || hasLabels || memo != null || speakers.isNotEmpty || note != null) ...[
-                const SizedBox(height: 28),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(width: 28, height: 2, color: scheme.primary.withValues(alpha: 0.5)),
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 48),
+                PracticeSection(scriptId: s.id, body: s.body),
               ],
-              ListenableBuilder(
-                listenable: services.settings,
-                builder: (context, _) => ScriptBody(
-                  body: s.body,
-                  dialogue: s.dialogue,
-                  fontSize: services.settings.fontSize,
-                  focusSpeaker: focus,
-                ),
-              ),
-              const SizedBox(height: 48),
-              PracticeSection(scriptId: s.id, body: s.body),
-            ],
+            ),
           ),
         );
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 
 /// 설정 → 사용 방법. 한 번 보고 지나치기 쉬운 기능을 모아 둔다.
@@ -16,7 +17,7 @@ class HowToScreen extends StatelessWidget {
     (
       Icons.folder_outlined,
       '모음으로 정리하기',
-      "아래쪽 '모음' 탭의 '새 모음'으로 '1차 오디션', '입시'처럼 모음을 만들고, 대본 편집 화면에서 넣을 모음을 골라요. "
+      "'모음' 탭의 '새 모음'으로 '1차 오디션', '입시'처럼 모음을 만들고, 대본 편집 화면에서 넣을 모음을 골라요. "
           '한 대본을 여러 모음에 넣을 수 있고, 모음 안에서 대본을 추가하면 그 모음에 바로 들어가요. '
           '모음 안에서는 대본을 길게 눌러 끌면 순서를 바꿀 수 있고, 모음마다 따로 기억해요. '
           "대본의 ☆를 누르면 대본 탭 맨 위와 '즐겨찾기' 모음에 모여요. "
@@ -78,7 +79,7 @@ class HowToScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('사용 방법')),
       body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(20, 8, 20, 40)),
         itemCount: items.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, i) {

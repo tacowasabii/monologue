@@ -5,6 +5,7 @@ import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../../domain/script_draft.dart';
 import '../../platform/screen_awake.dart';
+import '../common/adaptive.dart';
 import '../common/korean_text.dart';
 import 'script_body.dart';
 
@@ -60,7 +61,7 @@ class _ImmersiveReaderScreenState extends State<ImmersiveReaderScreen> {
               child: ListenableBuilder(
                 listenable: settings,
                 builder: (context, _) => ListView(
-                  padding: const EdgeInsets.fromLTRB(28, 56, 28, 120),
+                  padding: readablePadding(MediaQuery.sizeOf(context).width, const EdgeInsets.fromLTRB(28, 56, 28, 120)),
                   children: [
                     Text(keepWords(s.work ?? firstLineOf(s.body)), style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 40),
