@@ -1,6 +1,11 @@
+import 'package:characters/characters.dart';
+
 import '../data/script_repository.dart';
 import '../domain/enums.dart';
 import '../domain/script_draft.dart';
+
+/// [title] 폴백에 쓸 최대 글자 수(자모가 아니라 사람이 보는 글자 단위)
+const _titleFallbackMaxChars = 40;
 
 /// 링크로 주고받는 대본 내용. 메모, 사진, 연습 기록, 내 역할은 담지 않는다.
 class SharePayload {
@@ -68,8 +73,13 @@ class SharePayload {
   /// 서버에서 받은 대본에만 있다
   final DateTime? expiresAt;
 
-  /// 작품명, 없으면 본문 첫 줄
-  String get title => work ?? firstLineOf(body);
+  /// 작품명, 없으면 본문 첫 줄(너무 길면 40자로 자르고 … 을 붙인다)
+  String get title => work ?? _truncated(firstLineOf(body));
+
+  static String _truncated(String text) {
+    final chars = text.characters;
+    return chars.length > _titleFallbackMaxChars ? '${chars.take(_titleFallbackMaxChars)}…' : text;
+  }
 
   Map<String, Object?> toJson() => {
         'v': 1,

@@ -3,6 +3,9 @@ const shareHost = 'tacowasabii.vercel.app';
 
 final shareApiBase = Uri.https(shareHost, '/api/monologue/shares');
 
+/// 받은 대본에 문제가 있을 때 신고받는 메일 주소
+const shareReportEmail = 'godseoril812@gmail.com';
+
 final _shareId = RegExp(r'^[A-Za-z0-9_-]{22}$');
 
 /// [uri]가 대본 공유 링크면 ID를 준다.

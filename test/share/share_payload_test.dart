@@ -1,3 +1,4 @@
+import 'package:characters/characters.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/share/sent_link.dart';
@@ -59,6 +60,25 @@ void main() {
     expect(payload.work, isNull);
     expect(payload.note, isNull);
     expect(payload.title, '대사');
+  });
+
+  test('작품명이 없으면 본문 첫 줄이 제목이 되고, 짧으면 그대로 쓴다', () {
+    const payload = SharePayload(body: '짧은 첫 줄\n나머지', dialogue: false);
+    expect(payload.title, '짧은 첫 줄');
+  });
+
+  test('작품명이 없고 본문 첫 줄이 40자를 넘으면 40자로 자르고 …을 붙인다', () {
+    final line41 = '가' * 41;
+    final payload = SharePayload(body: '$line41\n나머지', dialogue: false);
+    expect(payload.title, '${'가' * 40}…');
+    expect(payload.title.characters.length, 41); // 40자 + …
+  });
+
+  test('work가 있으면 아무리 길어도 그대로 쓴다', () {
+    final longWork = '가' * 50;
+    const body = '본문';
+    final payload = SharePayload(body: body, work: '가' * 50, dialogue: false);
+    expect(payload.title, longWork);
   });
 
   test('형식이 틀리면 FormatException', () {
