@@ -48,9 +48,16 @@ class _ReceivedScriptScreenState extends State<ReceivedScriptScreen> {
   Future<void> _add(SharePayload payload) async {
     final services = AppScope.of(context);
     setState(() => _adding = true);
-    final id = await services.repo.create(payload.toDraft());
-    await services.shareHistory.markReceived(widget.shareId, id);
-    if (mounted) _openScript(id);
+    try {
+      final id = await services.repo.create(payload.toDraft());
+      await services.shareHistory.markReceived(widget.shareId, id);
+      if (!mounted) return;
+      _openScript(id);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _adding = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('추가하지 못했어요. 다시 시도해 주세요.')));
+    }
   }
 
   @override

@@ -51,6 +51,31 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
+  testWidgets('내 대본에 추가하다가 실패하면 다시 시도할 수 있게 알려 준다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    h.shareServer.handler = (_) => jsonResponse(hamlet(), 200);
+
+    await tester.pumpWidget(h.wrap(ReceivedScriptScreen(shareId: id)));
+    await tester.pumpAndSettle();
+    expect(find.text(keepWords('사느냐 죽느냐')), findsOneWidget);
+
+    // db.close()는 이 하네스에서 다음 쿼리 때 조용히 새 메모리 DB를 여는 것으로 보여(계속 성공),
+    // 대신 표를 지워서 repo.create의 insert가 실제로 실패하게 만든다
+    await tester.runAsync(() => h.db.customStatement('DROP TABLE scripts'));
+
+    await tester.tap(find.text('내 대본에 추가'));
+    // pumpAndSettle이면 SnackBar가 뜨고 사라지는 것까지 시간이 흘러가 버려서, 뜬 직후만 확인한다
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('추가하지 못했어요. 다시 시도해 주세요.'), findsOneWidget);
+    expect(find.byType(ScriptViewScreen), findsNothing);
+    expect(
+      tester.widget<FilledButton>(find.widgetWithText(FilledButton, '내 대본에 추가')).onPressed,
+      isNotNull,
+    );
+    await tester.runAsync(h.db.close);
+  });
+
   testWidgets('만료된 링크와 연결 실패를 구분해 알려 주고, 다시 시도할 수 있다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     h.shareServer.handler = (_) => http.Response('', 404);
