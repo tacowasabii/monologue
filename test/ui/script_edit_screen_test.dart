@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_filter.dart';
+import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/ui/common/korean_text.dart';
+import 'package:monologue/ui/common/pill_chip.dart';
 import 'package:monologue/ui/edit/script_edit_screen.dart';
 
 import 'test_harness.dart';
@@ -56,6 +58,59 @@ void main() {
     await tester.pumpAndSettle();
     final list = await tester.runAsync(() => h.services.repo.watchScripts(const ScriptFilter()).first);
     expect(list!.single.script.memo, '2차 오디션 지정 대사');
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('즐겨찾기 스위치는 없고, 고른 모음과 함께 저장한다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    final repo = h.services.repo;
+    await tester.runAsync(() async {
+      await repo.createCollection('1차 오디션');
+      await repo.createCollection('입시');
+    });
+    await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '본문')));
+    await tester.pumpAndSettle();
+    expect(find.byType(SwitchListTile), findsNothing);
+
+    await tester.ensureVisible(find.text('입시'));
+    await tester.tap(find.text('입시'));
+    await tester.pump();
+    await tester.tap(find.text('저장'));
+    await tester.pumpAndSettle();
+
+    final ids = await tester.runAsync(() async {
+      final list = await repo.watchScripts(const ScriptFilter()).first;
+      final detail = await repo.watchScript(list.single.script.id).first;
+      return (detail!.collectionIds, (await repo.findCollection('입시'))!.id);
+    });
+    expect(ids!.$1, [ids.$2]);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('모음 안에서 추가하면 그 모음이 미리 선택돼 있다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    final audition = (await tester.runAsync(() => h.services.repo.createCollection('1차 오디션')))!;
+    await tester.pumpWidget(h.wrap(ScriptEditScreen(initialBody: '본문', initialCollectionIds: [audition])));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('1차 오디션'));
+    expect(tester.widget<PillChip>(find.widgetWithText(PillChip, '1차 오디션')).selected, isTrue);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('이미 만든 태그가 입력하지 않아도 보이고, 누르면 붙는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: 'x', tags: ['코미디', '슬픔'])));
+    await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '본문')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('만든 태그'));
+    expect(find.widgetWithText(ActionChip, '#코미디'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ActionChip, '#코미디'));
+    await tester.pumpAndSettle();
+    // 붙인 태그는 위쪽 칩으로 올라가고 만든 태그 목록에서는 빠진다
+    expect(find.widgetWithText(InputChip, '#코미디'), findsOneWidget);
+    expect(find.widgetWithText(ActionChip, '#코미디'), findsNothing);
+    expect(find.widgetWithText(ActionChip, '#슬픔'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 

@@ -44,12 +44,39 @@ class ScriptImages extends Table {
   IntColumn get position => integer()();
 }
 
-@DriftDatabase(tables: [Scripts, ScriptTags, ScriptImages])
+/// '1차 오디션', '입시'처럼 사용자가 만든 대본 묶음.
+class Collections extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().unique()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+/// 대본은 여러 모음에 들어갈 수 있다.
+class ScriptCollections extends Table {
+  IntColumn get scriptId => integer().references(Scripts, #id)();
+  IntColumn get collectionId => integer().references(Collections, #id)();
+
+  @override
+  Set<Column> get primaryKey => {scriptId, collectionId};
+}
+
+/// 대본에 남긴 연습 기록(녹음·영상). 파일은 MediaStore에 따로 둔다.
+@DataClassName('MediaItem')
+class ScriptMedia extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get scriptId => integer().references(Scripts, #id)();
+  TextColumn get kind => textEnum<MediaKind>()();
+  TextColumn get fileName => text()();
+  IntColumn get durationMs => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+@DriftDatabase(tables: [Scripts, ScriptTags, ScriptImages, Collections, ScriptCollections, ScriptMedia])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,8 +89,17 @@ class AppDatabase extends _$AppDatabase {
             await m.createAll();
             return;
           }
-          // 버전 4: 대화 형식·내 역할·대본 노트. 칸만 더하므로 대본은 그대로 남는다
+          // 4: 모음. 기존 대본은 그대로 두고 표만 더한다.
           if (from < 4) {
+            await m.createTable(collections);
+            await m.createTable(scriptCollections);
+          }
+          // 5: 연습 기록(녹음·영상)
+          if (from < 5) {
+            await m.createTable(scriptMedia);
+          }
+          // 6: 대화 형식·내 역할·대본 노트. 칸만 더하므로 대본은 그대로 남는다
+          if (from < 6) {
             for (final column in <GeneratedColumn>[
               scripts.dialogue,
               scripts.myRole,

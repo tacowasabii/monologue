@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'ui/list/script_list_screen.dart';
+import 'ui/home/home_screen.dart';
 import 'ui/theme.dart';
 
 class MonologueApp extends StatelessWidget {
@@ -17,7 +17,7 @@ class MonologueApp extends StatelessWidget {
       locale: const Locale('ko'),
       supportedLocales: const [Locale('ko')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      home: const ScriptListScreen(),
+      home: const HomeScreen(),
     );
   }
 }

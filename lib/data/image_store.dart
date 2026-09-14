@@ -17,19 +17,19 @@ class ImageStore {
 
   String pathOf(String fileName) => p.join(dir.path, fileName);
 
-  String _newName(String extension) {
+  String newFileName(String extension) {
     final ext = extension.isEmpty ? '.jpg' : extension.toLowerCase();
     return '${DateTime.now().microsecondsSinceEpoch}_${_seq++}$ext';
   }
 
   Future<String> importFile(String sourcePath) async {
-    final name = _newName(p.extension(sourcePath));
+    final name = newFileName(p.extension(sourcePath));
     await File(sourcePath).copy(pathOf(name));
     return name;
   }
 
   Future<String> importBytes(List<int> bytes, String extension) async {
-    final name = _newName(extension);
+    final name = newFileName(extension);
     await File(pathOf(name)).writeAsBytes(bytes, flush: true);
     return name;
   }

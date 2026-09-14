@@ -20,6 +20,7 @@ class ScriptDraft {
     this.status = PracticeStatus.notStarted,
     this.favorite = false,
     this.tags = const [],
+    this.collectionIds = const [],
     this.dialogue = false,
     this.myRole,
     this.notes = ScriptNotes.empty,
@@ -33,13 +34,14 @@ class ScriptDraft {
   final PracticeStatus status;
   final bool favorite;
   final List<String> tags;
+  final List<int> collectionIds;
   final bool dialogue;
 
   /// 대화 대본에서 강조해 읽을 인물 이름
   final String? myRole;
   final ScriptNotes notes;
 
-  /// 빈 칸은 null로, 본문·메모는 앞뒤 공백을 다듬고, 태그는 trim·중복 제거·정렬한다.
+  /// 빈 칸은 null로, 본문·메모는 앞뒤 공백을 다듬고, 태그·모음은 중복 제거·정렬한다.
   ScriptDraft normalized() {
     String? blankToNull(String? s) => (s == null || s.trim().isEmpty) ? null : s.trim();
     final cleanTags = {for (final t in tags) t.trim()}..remove('');
@@ -52,9 +54,26 @@ class ScriptDraft {
       status: status,
       favorite: favorite,
       tags: cleanTags.toList()..sort(),
+      collectionIds: {...collectionIds}.toList()..sort(),
       dialogue: dialogue,
       myRole: blankToNull(myRole),
       notes: notes.normalized(),
     );
   }
+
+  /// 모음만 바꾼 사본. 백업 복원에서 모음 이름을 id로 바꾼 뒤 쓴다.
+  ScriptDraft withCollectionIds(List<int> ids) => ScriptDraft(
+        body: body,
+        work: work,
+        memo: memo,
+        gender: gender,
+        ageRange: ageRange,
+        status: status,
+        favorite: favorite,
+        tags: tags,
+        collectionIds: ids,
+        dialogue: dialogue,
+        myRole: myRole,
+        notes: notes,
+      );
 }

@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
+import '../../data/database.dart';
 import '../../data/script_repository.dart';
 import '../../domain/script_draft.dart';
 import '../../domain/script_filter.dart';
-import '../capture/capture_flow.dart';
 import '../common/korean_text.dart';
-import '../edit/script_edit_screen.dart';
+import '../edit/add_script.dart';
 import '../settings/settings_screen.dart';
 import '../theme.dart';
 import '../view/script_view_screen.dart';
 import 'filter_bar.dart';
 
+/// 대본 목록. [collection]이 있으면 그 모음의 대본만, 없으면 전체를 보여 준다.
 class ScriptListScreen extends StatefulWidget {
-  const ScriptListScreen({super.key});
+  const ScriptListScreen({super.key, this.collection, this.home = false});
+
+  final Collection? collection;
+
+  /// 앱 첫 화면의 대본 탭으로 쓸 때. 앱 이름을 크게 보여 주고 설정 버튼을 둔다.
+  final bool home;
 
   @override
   State<ScriptListScreen> createState() => _ScriptListScreenState();
 }
 
 class _ScriptListScreenState extends State<ScriptListScreen> {
-  ScriptFilter _filter = const ScriptFilter();
+  late ScriptFilter _filter = ScriptFilter(collectionId: widget.collection?.id);
   Stream<List<ScriptSummary>>? _scripts;
   Stream<List<String>>? _tags;
 
@@ -39,35 +45,26 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
     });
   }
 
-  Future<void> _add() async {
-    final result = await runCapture(context);
-    if (result == null || !mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute<int>(
-      builder: (_) => ScriptEditScreen(
-        initialBody: result.text,
-        newImagePaths: result.imagePaths,
-        failedImages: result.failedCount,
-      ),
-    ));
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 72,
-        titleSpacing: 20,
-        title: Text('모노로그', style: theme.textTheme.headlineMedium),
-        actions: [
-          IconButton(
-            tooltip: '설정',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: widget.home
+          ? AppBar(
+              toolbarHeight: 72,
+              titleSpacing: 20,
+              title: Text('모노로그', style: theme.textTheme.headlineMedium),
+              actions: [
+                IconButton(
+                  tooltip: '설정',
+                  icon: const Icon(Icons.settings_outlined),
+                  onPressed: () =>
+                      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+                ),
+                const SizedBox(width: 8),
+              ],
+            )
+          : AppBar(title: Text(widget.collection?.name ?? '전체')),
       body: StreamBuilder<List<String>>(
         stream: _tags,
         builder: (context, tagSnap) {
@@ -95,7 +92,9 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
                   builder: (context, snap) {
                     if (!snap.hasData) return const Center(child: CircularProgressIndicator());
                     final items = snap.data!;
-                    if (items.isEmpty) return _EmptyMessage(filtered: _filter.isActive);
+                    if (items.isEmpty) {
+                      return _EmptyMessage(filtered: _filter.isActive, inCollection: widget.collection != null);
+                    }
                     return ListView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 14, 20, 112),
                       itemCount: items.length + 1,
@@ -123,7 +122,7 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _add,
+        onPressed: () => addScript(context, collectionId: widget.collection?.id),
         icon: const Icon(Icons.add_rounded),
         label: const Text('대본 추가'),
       ),
@@ -132,14 +131,24 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
 }
 
 class _EmptyMessage extends StatelessWidget {
-  const _EmptyMessage({required this.filtered});
+  const _EmptyMessage({required this.filtered, required this.inCollection});
 
   final bool filtered;
+  final bool inCollection;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final (icon, title, message) = filtered
+        ? (Icons.search_off_rounded, '조건에 맞는 대본이 없어요', '검색어나 필터를 바꿔 보세요')
+        : inCollection
+            ? (
+                Icons.folder_open_outlined,
+                '이 모음에 아직 대본이 없어요',
+                '여기서 대본을 추가하면 이 모음에 바로 들어가요.\n이미 있는 대본은 편집 화면에서 모음을 골라 넣어요',
+              )
+            : (Icons.format_quote_rounded, '아직 대본이 없어요', '대본 사진을 올리면\n글자를 읽어 노트로 정리해 드려요');
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(40, 24, 40, 96),
@@ -150,21 +159,13 @@ class _EmptyMessage extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
-              child: Icon(
-                filtered ? Icons.search_off_rounded : Icons.format_quote_rounded,
-                color: scheme.primary,
-                size: 34,
-              ),
+              child: Icon(icon, color: scheme.primary, size: 34),
             ),
             const SizedBox(height: 24),
-            Text(
-              filtered ? '조건에 맞는 대본이 없어요' : '아직 대본이 없어요',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge,
-            ),
+            Text(title, textAlign: TextAlign.center, style: theme.textTheme.titleLarge),
             const SizedBox(height: 10),
             Text(
-              filtered ? '검색어나 필터를 바꿔 보세요' : '대본 사진을 올리면\n글자를 읽어 노트로 정리해 드려요',
+              keepWords(message),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
             ),

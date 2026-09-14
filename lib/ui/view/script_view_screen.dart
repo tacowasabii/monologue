@@ -10,6 +10,7 @@ import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
 import '../edit/script_edit_screen.dart';
 import '../notes/notes_screen.dart';
+import '../practice/practice_section.dart';
 import '../theme.dart';
 import 'image_viewer_screen.dart';
 import 'immersive_reader_screen.dart';
@@ -38,7 +39,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('대본 삭제'),
-        content: const Text('이 대본을 삭제할까요? 원본 사진도 함께 지워져요.'),
+        content: const Text('이 대본을 삭제할까요? 원본 사진과 연습 기록도 함께 지워져요.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
           TextButton(
@@ -292,6 +293,8 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                   focusSpeaker: focus,
                 ),
               ),
+              const SizedBox(height: 48),
+              PracticeSection(scriptId: s.id, body: s.body),
             ],
           ),
         );

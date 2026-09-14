@@ -33,9 +33,13 @@ class _TagInputState extends State<TagInput> {
     _controller.clear();
   }
 
+  /// 이미 만든 태그 중 아직 붙이지 않은 것. 입력하지 않아도 골라 붙일 수 있게 보여 준다.
+  List<String> get _unused => [for (final s in widget.suggestions) if (!widget.tags.contains(s)) s];
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,6 +114,24 @@ class _TagInputState extends State<TagInput> {
             ),
           ),
         ),
+        if (_unused.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text('만든 태그', style: theme.textTheme.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final s in _unused)
+                ActionChip(
+                  label: Text('#$s'),
+                  labelStyle: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _add(s),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

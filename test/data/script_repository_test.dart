@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/data/database.dart';
 import 'package:monologue/data/image_store.dart';
+import 'package:monologue/data/media_store.dart';
 import 'package:monologue/data/script_repository.dart';
 import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
@@ -15,6 +16,7 @@ void main() {
   late AppDatabase db;
   late Directory tmp;
   late ImageStore images;
+  late MediaStore media;
   late ScriptRepository repo;
 
   Future<String> fakeImage(String name) async {
@@ -27,7 +29,8 @@ void main() {
     db = AppDatabase(DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true));
     tmp = await Directory.systemTemp.createTemp('monologue_test');
     images = ImageStore(await Directory('${tmp.path}/store').create());
-    repo = ScriptRepository(db, images);
+    media = MediaStore(await Directory('${tmp.path}/media').create());
+    repo = ScriptRepository(db, images, media);
   });
 
   tearDown(() async {
@@ -120,6 +123,95 @@ void main() {
     expect(await repo.watchScript(id).first, isNull);
     expect(File(file).existsSync(), isFalse);
     expect(await repo.allTags(), isEmpty);
+  });
+
+  group('모음', () {
+    test('대본을 여러 모음에 넣고, 모음으로 거르고, 대본 수를 센다', () async {
+      final audition = await repo.createCollection(' 1차 오디션 ');
+      final exam = await repo.createCollection('입시');
+      final a = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition, exam]));
+      await repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [audition]));
+      await repo.create(const ScriptDraft(work: 'C', body: 'x'));
+
+      expect((await works(ScriptFilter(collectionId: audition)))..sort(), ['A', 'B']);
+      expect(await works(ScriptFilter(collectionId: exam)), ['A']);
+      expect((await repo.watchScript(a).first)!.collectionIds, [audition, exam]..sort());
+      final summaries = await repo.watchCollections().first;
+      expect([for (final c in summaries) (c.collection.name, c.scriptCount)], [('1차 오디션', 2), ('입시', 1)]);
+      expect(await repo.watchScriptCount().first, 3);
+    });
+
+    test('update는 모음 연결을 바꾸고, 대본을 지우면 연결도 지운다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      final exam = await repo.createCollection('입시');
+      final id = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition]));
+      await repo.update(id, ScriptDraft(work: 'A', body: 'x', collectionIds: [exam]));
+      expect((await repo.watchScript(id).first)!.collectionIds, [exam]);
+
+      await repo.delete(id);
+      expect([for (final c in await repo.watchCollections().first) c.scriptCount], [0, 0]);
+    });
+
+    test('모음 이름을 바꿀 수 있고, 모음을 지워도 대본은 남는다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition]));
+      await repo.renameCollection(audition, '2차 오디션');
+      expect((await repo.findCollection('2차 오디션'))?.id, audition);
+
+      await repo.deleteCollection(audition);
+      expect(await repo.watchCollections().first, isEmpty);
+      expect(await works(const ScriptFilter()), ['A']);
+    });
+
+    test('collectionIdFor는 같은 이름이면 있는 모음을 쓴다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      expect(await repo.collectionIdFor('1차 오디션'), audition);
+      expect(await repo.collectionIdFor('입시'), isNot(audition));
+      expect(await repo.watchCollections().first, hasLength(2));
+    });
+  });
+
+  group('연습 기록', () {
+    test('기록을 최근 순으로 보여 주고, 기록을 지우면 파일도 지운다', () async {
+      final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      final video = await repo.importMedia(
+        id,
+        kind: MediaKind.video,
+        sourcePath: await fakeImage('take1.mp4'),
+        duration: const Duration(seconds: 90),
+      );
+      // 앱에서 녹음한 파일은 저장소에 바로 써진다
+      final recorded = media.newFileName('.m4a');
+      await File(media.pathOf(recorded)).writeAsBytes([1, 2]);
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await repo.addMedia(id, kind: MediaKind.audio, storedFileName: recorded, duration: const Duration(seconds: 42));
+
+      final items = await repo.watchMedia(id).first;
+      expect(items.map((m) => (m.kind, m.durationMs)), [(MediaKind.audio, 42000), (MediaKind.video, 90000)]);
+      final videoFile = media.pathOf(items.last.fileName);
+      expect(File(videoFile).existsSync(), isTrue);
+
+      await repo.deleteMedia(video);
+      expect(File(videoFile).existsSync(), isFalse);
+      expect(await repo.watchMedia(id).first, hasLength(1));
+    });
+
+    test('대본을 지우면 연습 기록과 파일도 함께 지운다', () async {
+      final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      await repo.importMedia(id, kind: MediaKind.audio, sourcePath: await fakeImage('voice.m4a'));
+      final file = media.pathOf((await repo.watchMedia(id).first).single.fileName);
+
+      await repo.delete(id);
+      expect(File(file).existsSync(), isFalse);
+      expect(await repo.watchMedia(id).first, isEmpty);
+    });
+
+    test('mediaSizeBytes는 연습 기록 파일 크기를 모두 더한다', () async {
+      final id = await repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      await repo.importMedia(id, kind: MediaKind.audio, sourcePath: await fakeImage('a.m4a'));
+      await repo.importMedia(id, kind: MediaKind.video, sourcePath: await fakeImage('b.mp4'));
+      expect(await repo.mediaSizeBytes(), 8); // fakeImage는 4바이트짜리 파일을 만든다
+    });
   });
 
   test('이미지 복사 실패 시 아무것도 저장하지 않는다', () async {
