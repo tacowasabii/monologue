@@ -12,6 +12,7 @@ import '../common/pill_chip.dart';
 import '../edit/script_edit_screen.dart';
 import '../notes/notes_screen.dart';
 import '../practice/practice_section.dart';
+import '../share/share_script_flow.dart';
 import '../theme.dart';
 import 'image_viewer_screen.dart';
 import 'immersive_reader_screen.dart';
@@ -36,6 +37,9 @@ class ScriptViewScreen extends StatefulWidget {
 class _ScriptViewScreenState extends State<ScriptViewScreen> {
   Stream<ScriptDetail?>? _detail;
   bool _returningToList = false;
+
+  /// iPad에서 공유 시트를 ⋯ 버튼 옆에 띄우려고 버튼 위치를 잰다
+  final _menuKey = GlobalKey();
 
   bool get _inPane => widget.onDeleted != null;
 
@@ -207,9 +211,15 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 ),
               ),
               PopupMenuButton<String>(
+                key: _menuKey,
                 icon: const Icon(Icons.more_horiz_rounded),
                 position: PopupMenuPosition.under,
                 onSelected: (v) {
+                  if (v == 'share') {
+                    final box = _menuKey.currentContext?.findRenderObject() as RenderBox?;
+                    shareScriptByLink(context, d, anchor: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
+                    return;
+                  }
                   if (v == 'images') {
                     Navigator.of(context).push(MaterialPageRoute<void>(
                       builder: (_) => ImageViewerScreen(
@@ -223,6 +233,10 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                   }
                 },
                 itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: _MenuRow(icon: Icons.link_rounded, text: '링크로 공유'),
+                  ),
                   if (d.images.isNotEmpty)
                     PopupMenuItem(
                       value: 'images',
