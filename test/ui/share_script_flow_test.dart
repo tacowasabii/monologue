@@ -5,11 +5,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:monologue/domain/script_draft.dart';
+import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/view/script_view_screen.dart';
 
 import 'test_harness.dart';
 
 const shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
+
+/// 공유 안내처럼 [keepWords]로 줄바꿈 금지 문자가 섞인 글은 일반 textContaining으로 못 찾으므로 걷어 내고 비교한다.
+Finder findTextContaining(String substring) => find.byWidgetPredicate(
+      (widget) => widget is Text && withoutWordJoiners(widget.data ?? '').contains(substring),
+    );
 
 void main() {
   late List<MethodCall> shareCalls;
@@ -49,7 +55,7 @@ void main() {
     await tester.pumpAndSettle();
     await openShareMenu(tester);
 
-    expect(find.textContaining('7일 동안 저장'), findsOneWidget);
+    expect(findTextContaining('7일 동안 저장'), findsOneWidget);
     await tester.tap(find.text('확인'));
     await tester.pumpAndSettle();
     expect(find.text('노트도 함께 보낼까요?'), findsOneWidget);
@@ -94,6 +100,107 @@ void main() {
     await openShareMenu(tester);
 
     expect(find.text('지금 링크를 만들 수 없어요. 인터넷 연결을 확인하고 다시 시도해 주세요'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('안내에서 취소하면 아무 요청도 보내지 않고 안내를 본 것으로 기억하지 않는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    final scriptId = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '대사'))))!;
+
+    await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: scriptId)));
+    await tester.pumpAndSettle();
+    await openShareMenu(tester);
+
+    expect(findTextContaining('7일 동안 저장'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+
+    expect(h.shareServer.requests, isEmpty);
+    expect(h.services.shareHistory.noticeSeen, isFalse);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('노트 포함 여부를 취소하면 아무 요청도 보내지 않는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(h.services.shareHistory.markNoticeSeen);
+    final scriptId = (await tester.runAsync(
+      () => h.services.repo.create(const ScriptDraft(work: '갈매기', body: '나는 갈매기', note: '호숫가')),
+    ))!;
+
+    await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: scriptId)));
+    await tester.pumpAndSettle();
+    await openShareMenu(tester);
+
+    expect(find.text('노트도 함께 보낼까요?'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+
+    expect(h.shareServer.requests, isEmpty);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('함께 보내기를 고르면 노트를 그대로 보낸다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(h.services.shareHistory.markNoticeSeen);
+    final scriptId = (await tester.runAsync(
+      () => h.services.repo.create(const ScriptDraft(work: '갈매기', body: '나는 갈매기', note: '호숫가')),
+    ))!;
+    h.shareServer.handler = (_) => jsonResponse({
+          'id': id,
+          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'deleteToken': 'secret',
+          'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
+        }, 201);
+
+    await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: scriptId)));
+    await tester.pumpAndSettle();
+    await openShareMenu(tester);
+
+    expect(find.text('노트도 함께 보낼까요?'), findsOneWidget);
+    await tester.tap(find.text('함께 보내기'));
+    await tester.pumpAndSettle();
+
+    final body = jsonDecode(h.shareServer.requests.single.body) as Map<String, Object?>;
+    expect(body['note'], '호숫가');
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('너무 자주 보내면 잠시 뒤 다시 시도하라고 알려 준다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(h.services.shareHistory.markNoticeSeen);
+    final scriptId = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '대사'))))!;
+    h.shareServer.handler = (_) => http.Response('', 429);
+
+    await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: scriptId)));
+    await tester.pumpAndSettle();
+    await openShareMenu(tester);
+
+    expect(find.text('잠시 뒤 다시 시도해 주세요'), findsOneWidget);
+    expect(h.services.shareHistory.sent, isEmpty);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('링크는 만들었지만 공유 시트를 열지 못하면 알려 주고, 링크는 기록에 남는다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(h.services.shareHistory.markNoticeSeen);
+    final scriptId = (await tester.runAsync(() => h.services.repo.create(const ScriptDraft(body: '대사'))))!;
+    h.shareServer.handler = (_) => jsonResponse({
+          'id': id,
+          'url': 'https://tacowasabii.vercel.app/monologue/s/$id',
+          'deleteToken': 'secret',
+          'expiresAt': DateTime.now().add(const Duration(days: 7)).toUtc().toIso8601String(),
+        }, 201);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(shareChannel, (call) async {
+      shareCalls.add(call);
+      throw PlatformException(code: 'x');
+    });
+
+    await tester.pumpWidget(h.wrap(ScriptViewScreen(scriptId: scriptId)));
+    await tester.pumpAndSettle();
+    await openShareMenu(tester);
+
+    expect(find.text('공유 화면을 열지 못했어요'), findsOneWidget);
+    expect(h.services.shareHistory.sent.single.id, id);
     await tester.runAsync(h.db.close);
   });
 }

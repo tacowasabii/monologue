@@ -5,6 +5,7 @@ import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../share/share_client.dart';
 import '../../share/share_payload.dart';
+import '../common/confirm_dialog.dart';
 
 /// 대본 화면 ⋯ 메뉴의 "링크로 공유". [anchor]는 iPad에서 공유 시트를 띄울 자리.
 Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect? anchor}) async {
@@ -14,18 +15,13 @@ Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect?
   void snack(String text) => messenger.showSnackBar(SnackBar(content: Text(text)));
 
   if (!services.shareHistory.noticeSeen) {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('링크로 공유'),
-        content: const Text('대본 글이 서버에 7일 동안 저장되고, 링크를 가진 사람은 누구나 볼 수 있어요. 메모, 사진, 연습 기록은 보내지 않아요.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('확인')),
-        ],
-      ),
+    final ok = await showConfirmDialog(
+      context,
+      title: '링크로 공유',
+      message: '대본 글이 서버에 7일 동안 저장되고, 링크를 가진 사람은 누구나 볼 수 있어요. 메모, 사진, 연습 기록은 보내지 않아요.',
+      confirmLabel: '확인',
     );
-    if (ok != true) return;
+    if (!ok) return;
     await services.shareHistory.markNoticeSeen();
   }
 
