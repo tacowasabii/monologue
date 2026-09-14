@@ -50,12 +50,13 @@ Google Play용 이미지는 `docs/store-assets/`에 있다. 스크린샷은 1080
 | 3 | `phone-03-dialogue.png` | 대화 장면은 내 역할만 또렷하게 |
 | 4 | `phone-04-immersive.png` | 메뉴 없이 대본에만 몰입 |
 | 5 | `phone-05-practice.png` | 연습을 녹음하고 다시 들어요 |
-| 6 | `phone-06-collections.png` | 오디션·입시별로 모음 정리 |
+| 6 | `phone-06-collections.png` | 오디션·작품별로 모음 정리 |
 | 7 | `phone-07-notes.png` | 대본 옆에 나만의 노트 |
 
 - 앱 아이콘: `icon-512.png` (512×512)
 - 대표 이미지: `feature-graphic-1024x500.png` (1024×500, 투명도 없음)
-- iOS 스크린샷(6.9", 1320×2868)은 아직 만들지 않았다.
+- iOS 스크린샷(iPhone 6.9", 1320×2868)과 iPad 스크린샷(13", 2064×2752)은 아직 만들지 않았다. 앱이 iPad를 지원하므로(`TARGETED_DEVICE_FAMILY = "1,2"`) App Store 제출에는 iPad 스크린샷도 필요하다.
+- Google Play 태블릿 스크린샷(7"·10")은 선택이지만, 넣어야 태블릿·폴드에서 큰 화면 대응 앱으로 보인다.
 
 샘플 대본·노트는 저작권이 없는 자작 문장만 쓴다.
 
