@@ -7,18 +7,19 @@ import '../../domain/script_draft.dart';
 import '../../domain/script_filter.dart';
 import '../common/korean_text.dart';
 import '../edit/add_script.dart';
+import '../settings/settings_screen.dart';
 import '../theme.dart';
 import '../view/script_view_screen.dart';
 import 'filter_bar.dart';
 
 /// 대본 목록. [collection]이 있으면 그 모음의 대본만, 없으면 전체를 보여 준다.
 class ScriptListScreen extends StatefulWidget {
-  const ScriptListScreen({super.key, this.collection, this.autofocusSearch = false});
+  const ScriptListScreen({super.key, this.collection, this.home = false});
 
   final Collection? collection;
 
-  /// 첫 화면의 검색창에서 들어오면 바로 입력할 수 있게 한다.
-  final bool autofocusSearch;
+  /// 앱 첫 화면의 대본 탭으로 쓸 때. 앱 이름을 크게 보여 주고 설정 버튼을 둔다.
+  final bool home;
 
   @override
   State<ScriptListScreen> createState() => _ScriptListScreenState();
@@ -48,7 +49,22 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(widget.collection?.name ?? '전체')),
+      appBar: widget.home
+          ? AppBar(
+              toolbarHeight: 72,
+              titleSpacing: 20,
+              title: Text('모노로그', style: theme.textTheme.headlineMedium),
+              actions: [
+                IconButton(
+                  tooltip: '설정',
+                  icon: const Icon(Icons.settings_outlined),
+                  onPressed: () =>
+                      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+                ),
+                const SizedBox(width: 8),
+              ],
+            )
+          : AppBar(title: Text(widget.collection?.name ?? '전체')),
       body: StreamBuilder<List<String>>(
         stream: _tags,
         builder: (context, tagSnap) {
@@ -58,7 +74,6 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                 child: SearchBar(
-                  autoFocus: widget.autofocusSearch,
                   hintText: '작품, 메모, 본문 검색',
                   leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
                   trailing: [

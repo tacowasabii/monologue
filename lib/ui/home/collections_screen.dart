@@ -5,12 +5,11 @@ import '../../data/database.dart';
 import '../../data/script_repository.dart';
 import '../../settings/home_view_settings.dart';
 import '../common/korean_text.dart';
-import '../edit/add_script.dart';
 import '../list/script_list_screen.dart';
 import '../settings/settings_screen.dart';
 import 'collection_name_dialog.dart';
 
-/// 첫 화면. 전체 대본과 직접 만든 모음을 그리드나 목록으로 보여 준다.
+/// 모음 탭. 전체와 직접 만든 모음을 그리드나 목록으로 보여 주고, 모음을 만들고 관리한다.
 class CollectionsScreen extends StatefulWidget {
   const CollectionsScreen({super.key});
 
@@ -24,8 +23,6 @@ enum _Action { rename, delete }
 typedef _Entry = ({IconData icon, String name, int? count, VoidCallback onTap, VoidCallback? onLongPress});
 
 class _CollectionsScreenState extends State<CollectionsScreen> {
-  // 검색창은 누르면 목록 화면으로 넘어가기만 하므로 여기서는 키보드를 띄우지 않는다
-  final _searchFocus = FocusNode(canRequestFocus: false);
   Stream<List<CollectionSummary>>? _collections;
   Stream<int>? _total;
 
@@ -37,14 +34,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     _total ??= repo.watchScriptCount();
   }
 
-  @override
-  void dispose() {
-    _searchFocus.dispose();
-    super.dispose();
-  }
-
-  void _open(Collection? collection, {bool search = false}) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => ScriptListScreen(collection: collection, autofocusSearch: search)),
+  void _open(Collection? collection) => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => ScriptListScreen(collection: collection)),
       );
 
   Future<void> _create(List<CollectionSummary> all) async {
@@ -128,7 +119,6 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final homeView = AppScope.of(context).homeView;
     return ListenableBuilder(
       listenable: homeView,
@@ -138,7 +128,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
           appBar: AppBar(
             toolbarHeight: 72,
             titleSpacing: 20,
-            title: Text('모노로그', style: theme.textTheme.headlineMedium),
+            title: Text('모음', style: theme.textTheme.headlineMedium),
             actions: [
               IconButton(
                 tooltip: grid ? '목록으로 보기' : '그리드로 보기',
@@ -159,10 +149,15 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
             builder: (context, totalSnap) => StreamBuilder<List<CollectionSummary>>(
               stream: _collections,
               builder: (context, snap) {
-                final total = totalSnap.data;
                 final collections = snap.data ?? const <CollectionSummary>[];
                 final entries = <_Entry>[
-                  (icon: Icons.library_books_outlined, name: '전체', count: total, onTap: () => _open(null), onLongPress: null),
+                  (
+                    icon: Icons.library_books_outlined,
+                    name: '전체',
+                    count: totalSnap.data,
+                    onTap: () => _open(null),
+                    onLongPress: null,
+                  ),
                   for (final c in collections)
                     (
                       icon: Icons.folder_outlined,
@@ -176,20 +171,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                 return CustomScrollView(
                   slivers: [
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                      sliver: SliverToBoxAdapter(
-                        child: SearchBar(
-                          focusNode: _searchFocus,
-                          hintText: '모든 대본에서 검색',
-                          leading: Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
-                          padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.only(start: 16, end: 16)),
-                          elevation: const WidgetStatePropertyAll(0),
-                          onTap: () => _open(null, search: true),
-                        ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                       sliver: grid
                           ? SliverGrid.count(
                               crossAxisCount: 2,
@@ -203,27 +185,10 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                             )
                           : SliverToBoxAdapter(child: _CollectionList(entries: entries, onCreate: create)),
                     ),
-                    if (total == 0)
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
-                        sliver: SliverToBoxAdapter(
-                          child: Text(
-                            '아직 대본이 없어요\n대본 추가를 눌러 사진이나 글로 첫 대본을 넣어 보세요',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.6),
-                          ),
-                        ),
-                      ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 112)),
                   ],
                 );
               },
             ),
-          ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => addScript(context),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('대본 추가'),
           ),
         );
       },

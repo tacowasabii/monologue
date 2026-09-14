@@ -114,18 +114,4 @@ void main() {
     expect(find.text('햄릿'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
-
-  testWidgets('검색창을 누르면 전체 목록으로 가서 바로 입력할 수 있다', (tester) async {
-    usePhoneSize(tester);
-    final h = (await tester.runAsync(Harness.create))!;
-    await tester.pumpWidget(h.wrap(const CollectionsScreen()));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('모든 대본에서 검색'));
-    await tester.pumpAndSettle();
-    expect(find.text('전체'), findsOneWidget); // 목록 화면 제목
-    expect(find.text('작품, 메모, 본문 검색'), findsOneWidget);
-    expect(tester.testTextInput.hasAnyClients, isTrue);
-    await tester.runAsync(h.db.close);
-  });
 }
