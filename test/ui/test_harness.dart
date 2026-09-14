@@ -52,18 +52,28 @@ class FakeRecorder implements VoiceRecorder {
   Future<void> dispose() async {}
 }
 
-/// 카메라·파일 선택 대신 [next]를 돌려준다(null이면 취소한 것).
+/// 카메라·파일 선택 대신 [next]를 돌려준다(null이면 취소한 것). 어느 쪽을 열었는지 [calls]에 남긴다.
 class FakeMediaPicker implements MediaPicker {
   PickedMedia? next;
+  final calls = <String>[];
 
   @override
-  Future<PickedMedia?> recordVideo() async => next;
+  Future<PickedMedia?> recordVideo() async {
+    calls.add('camera');
+    return next;
+  }
 
   @override
-  Future<PickedMedia?> pickVideo() async => next;
+  Future<PickedMedia?> pickFromGallery() async {
+    calls.add('gallery');
+    return next;
+  }
 
   @override
-  Future<PickedMedia?> pickAudio() async => next;
+  Future<PickedMedia?> pickFromFiles() async {
+    calls.add('files');
+    return next;
+  }
 
   /// 파일에서 읽었다고 돌려줄 길이(null이면 읽지 못한 것)
   Duration? audioLength;

@@ -63,7 +63,7 @@ void main() {
     final titles = [for (final t in tester.widgetList<ListTile>(find.byType(ListTile))) (t.title! as Text).data];
     expect(titles, ['9월 13일 오후 9:45', '9월 13일 오후 9:30']);
     expect(find.text('영상 · 1:05'), findsOneWidget);
-    expect(find.text('녹음 · 1:05'), findsOneWidget);
+    expect(find.text('음성 · 1:05'), findsOneWidget);
 
     await tester.longPress(find.text('9월 13일 오후 9:45'));
     await tester.pumpAndSettle();
@@ -150,32 +150,43 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('영상 파일 올리기: 취소하면 아무것도 남지 않고, 고르면 복사해서 기록으로 남긴다', (tester) async {
+  testWidgets('파일 올리기: 사진첩과 파일 중에 고르고, 취소하면 아무것도 남지 않는다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     final repo = h.services.repo;
     final id = (await tester.runAsync(() => repo.create(const ScriptDraft(body: '본문'))))!;
-    final source = (await tester.runAsync(() async {
-      final f = File('${(await Directory.systemTemp.createTemp('monologue_pick')).path}/take.mp4');
-      await f.writeAsBytes([7, 7, 7]);
-      return f.path;
+    final (voice, video) = (await tester.runAsync(() async {
+      final dir = await Directory.systemTemp.createTemp('monologue_pick');
+      final voice = File('${dir.path}/voice.m4a')..writeAsBytesSync([5, 5]);
+      final video = File('${dir.path}/take.mp4')..writeAsBytesSync([7, 7, 7]);
+      return (voice.path, video.path);
     }))!;
     await openScript(tester, h, id);
 
+    Future<void> importFrom(String source) async {
+      await chooseAdd(tester, '파일 올리기');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(source));
+      await tester.pump();
+      await settleIo(tester);
+    }
+
+    // 고르다가 취소
     h.picker.next = null;
-    await chooseAdd(tester, '영상 파일 올리기');
-    await tester.pump();
-    await settleIo(tester);
+    await importFrom('파일');
     expect(await tester.runAsync(() => repo.watchMedia(id).first), isEmpty);
 
-    h.picker.next = (path: source, duration: const Duration(seconds: 90));
-    await chooseAdd(tester, '영상 파일 올리기');
-    await tester.pump();
-    await settleIo(tester);
+    // 파일 앱의 음성 파일, 사진첩의 영상
+    h.picker.next = (path: voice, kind: MediaKind.audio, duration: const Duration(seconds: 42));
+    await importFrom('파일');
+    h.picker.next = (path: video, kind: MediaKind.video, duration: const Duration(seconds: 90));
+    await importFrom('사진첩');
 
+    expect(h.picker.calls, ['files', 'files', 'gallery']);
     final takes = (await tester.runAsync(() => repo.watchMedia(id).first))!;
-    expect(takes.single.kind, MediaKind.video);
-    expect(takes.single.durationMs, 90000);
-    expect(File(h.services.media.pathOf(takes.single.fileName)).readAsBytesSync(), [7, 7, 7]);
+    expect({for (final t in takes) t.kind: t.durationMs}, {MediaKind.audio: 42000, MediaKind.video: 90000});
+    final videoTake = takes.firstWhere((t) => t.kind == MediaKind.video);
+    expect(File(h.services.media.pathOf(videoTake.fileName)).readAsBytesSync(), [7, 7, 7]);
+    expect(find.text('음성 · 0:42'), findsOneWidget);
     expect(find.text('영상 · 1:30'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });

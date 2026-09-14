@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../../domain/enums.dart';
+import '../../practice/media_picker.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import 'record_screen.dart';
@@ -16,7 +17,9 @@ String takeTitle(DateTime t) {
   return '${t.month}월 ${t.day}일 ${t.hour < 12 ? '오전' : '오후'} $hour:${t.minute.toString().padLeft(2, '0')}';
 }
 
-enum _AddAction { record, recordVideo, pickAudio, pickVideo }
+enum _AddAction { record, recordVideo, importFile }
+
+enum _FileSource { gallery, files }
 
 /// 대본 화면 아래의 연습 기록(녹음·영상) 구역.
 class PracticeSection extends StatefulWidget {
@@ -44,36 +47,45 @@ class _PracticeSectionState extends State<PracticeSection> {
 
   void _snack(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
-  Future<void> _add() async {
-    final action = await showModalBottomSheet<_AddAction>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Text('연습 기록 추가', style: Theme.of(context).textTheme.titleLarge),
-              ),
-              for (final (action, icon, label) in const [
-                (_AddAction.record, Icons.mic_none_rounded, '녹음하기'),
-                (_AddAction.recordVideo, Icons.videocam_outlined, '영상 촬영'),
-                (_AddAction.pickAudio, Icons.audio_file_outlined, '음성 파일 올리기'),
-                (_AddAction.pickVideo, Icons.video_file_outlined, '영상 파일 올리기'),
-              ])
-                ListTile(leading: Icon(icon), title: Text(label), onTap: () => Navigator.pop(context, action)),
-            ],
+  /// 아래에서 올라오는 선택 창. 고른 값을 돌려주고, 닫으면 null.
+  Future<T?> _choose<T>(String title, List<(T, IconData, String, String?)> options) => showModalBottomSheet<T>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+                ),
+                for (final (value, icon, label, detail) in options)
+                  ListTile(
+                    leading: Icon(icon),
+                    title: Text(label),
+                    subtitle: detail == null ? null : Text(detail),
+                    onTap: () => Navigator.pop(context, value),
+                  ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+
+  Future<void> _add() async {
+    final action = await _choose<_AddAction>('연습 기록 추가', const [
+      (_AddAction.record, Icons.mic_none_rounded, '녹음하기', null),
+      (_AddAction.recordVideo, Icons.videocam_outlined, '영상 촬영', null),
+      (_AddAction.importFile, Icons.attach_file_rounded, '파일 올리기', '음성·영상 파일'),
+    ]);
     if (action == null || !mounted) return;
     final services = AppScope.of(context);
     final repo = services.repo;
+    final picker = services.mediaPicker;
+
     if (action == _AddAction.record) {
       final take = await Navigator.of(context).push<RecordedTake>(
         MaterialPageRoute(builder: (_) => RecordScreen(body: widget.body)),
@@ -82,26 +94,34 @@ class _PracticeSectionState extends State<PracticeSection> {
       // 녹음 화면의 타이머와 파일의 실제 길이는 수십 ms 어긋나고, 초 단위로 버려 보여 주면
       // 3.99초(0:03)와 4.04초(0:04)처럼 달라 보인다. 재생기와 같은 값을 보여 주도록
       // 파일에서 읽은 길이를 쓰고, 읽지 못할 때만 타이머 값을 쓴다.
-      final duration = await services.mediaPicker.audioDuration(services.media.pathOf(take.fileName)) ?? take.duration;
+      final duration = await picker.audioDuration(services.media.pathOf(take.fileName)) ?? take.duration;
       await repo.addMedia(widget.scriptId, kind: MediaKind.audio, storedFileName: take.fileName, duration: duration);
       return;
     }
-    final picker = services.mediaPicker;
+
+    // 폰으로 찍은 영상은 사진첩에, 받거나 저장한 파일은 파일 앱에 있어서 어디서 가져올지 한 번 더 고른다
+    var source = _FileSource.gallery;
+    if (action == _AddAction.importFile) {
+      final chosen = await _choose<_FileSource>('어디서 가져올까요?', const [
+        (_FileSource.gallery, Icons.photo_library_outlined, '사진첩', '폰으로 찍어 둔 영상'),
+        (_FileSource.files, Icons.folder_outlined, '파일', '받거나 저장해 둔 음성·영상 파일'),
+      ]);
+      if (chosen == null || !mounted) return;
+      source = chosen;
+    }
+
     try {
-      final picked = await switch (action) {
-        _AddAction.recordVideo => picker.recordVideo(),
-        _AddAction.pickAudio => picker.pickAudio(),
-        _ => picker.pickVideo(),
+      final picked = await switch ((action, source)) {
+        (_AddAction.recordVideo, _) => picker.recordVideo(),
+        (_, _FileSource.gallery) => picker.pickFromGallery(),
+        (_, _FileSource.files) => picker.pickFromFiles(),
       };
       if (picked == null || !mounted) return;
       // 영상은 복사에 시간이 걸릴 수 있어서 진행 중임을 보여 준다
       setState(() => _busy = true);
-      await repo.importMedia(
-        widget.scriptId,
-        kind: action == _AddAction.pickAudio ? MediaKind.audio : MediaKind.video,
-        sourcePath: picked.path,
-        duration: picked.duration,
-      );
+      await repo.importMedia(widget.scriptId, kind: picked.kind, sourcePath: picked.path, duration: picked.duration);
+    } on UnsupportedMediaFile {
+      if (mounted) _snack('음성이나 영상 파일만 올릴 수 있어요.');
     } on PlatformException catch (e) {
       if (mounted) {
         _snack(e.code.contains('denied') ? '카메라·사진 권한이 필요해요. 설정 앱에서 허용해 주세요.' : '가져오지 못했어요. 다시 시도해 주세요.');
@@ -126,7 +146,7 @@ class _PracticeSectionState extends State<PracticeSection> {
 
   Future<void> _delete(MediaItem take) async {
     final repo = AppScope.of(context).repo;
-    final label = take.kind == MediaKind.audio ? '녹음' : '영상';
+    final label = take.kind == MediaKind.audio ? '음성' : '영상';
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -239,7 +259,7 @@ class _TakeTile extends StatelessWidget {
         child: Icon(audio ? Icons.mic_none_rounded : Icons.videocam_outlined, size: 20, color: scheme.onPrimaryContainer),
       ),
       title: Text(takeTitle(take.createdAt)),
-      subtitle: Text([audio ? '녹음' : '영상', if (ms != null) formatDuration(Duration(milliseconds: ms))].join(' · ')),
+      subtitle: Text([audio ? '음성' : '영상', if (ms != null) formatDuration(Duration(milliseconds: ms))].join(' · ')),
       trailing: Icon(
         audio ? (playing ? Icons.expand_less_rounded : Icons.play_arrow_rounded) : Icons.play_circle_outline_rounded,
         color: scheme.primary,
@@ -250,7 +270,7 @@ class _TakeTile extends StatelessWidget {
   }
 }
 
-/// 녹음 줄을 누르면 그 아래에 펼쳐지는 재생기. 펼칠 때 만들어 바로 재생한다.
+/// 음성 줄을 누르면 그 아래에 펼쳐지는 재생기. 펼칠 때 만들어 바로 재생한다.
 class _AudioTakePlayer extends StatefulWidget {
   const _AudioTakePlayer({super.key, required this.path});
 
