@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["3996SU7HLL.com.tacowasabii.monologue"],
+        "components": [{ "/": "/s/*" }]
+      }
+    ]
+  }
+}

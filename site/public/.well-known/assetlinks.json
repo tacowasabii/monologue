@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tacowasabii.monologue",
+      "sha256_cert_fingerprints": [
+        "6C:DB:D3:4B:C1:76:8C:D6:86:36:09:CE:4F:FC:00:7A:51:7D:85:13:0F:19:81:D3:50:B4:EB:80:BF:F5:37:C6",
+        "8D:2C:88:60:7B:5B:F3:B7:C3:64:A5:E3:A2:1E:CC:67:7F:32:A7:23:65:BC:62:08:A7:F0:69:75:53:18:53:53"
+      ]
+    }
+  }
+]
