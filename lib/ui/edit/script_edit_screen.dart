@@ -244,7 +244,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     const gap = SizedBox(height: 12);
     return PopScope(
       canPop: !_dirty,
