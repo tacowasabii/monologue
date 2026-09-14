@@ -13,6 +13,7 @@ import '../common/pill_chip.dart';
 import '../common/section_header.dart';
 import '../home/collection_name_dialog.dart';
 import '../theme.dart';
+import 'dialogue_guide.dart';
 import 'tag_input.dart';
 
 class ScriptEditScreen extends StatefulWidget {
@@ -362,14 +363,11 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     _dirty = true;
                   }),
                 ),
-                if (_dialogue)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      keepWords('줄 앞에 이름과 콜론을 쓰면 인물 대사로 보여요. 괄호로만 된 줄은 지문이에요.'),
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ),
+                // 독백과 입력 칸이 같아서, 대화는 적는 법을 보여 주고 적은 내용이 어떻게 나뉘는지 바로 알려 준다
+                if (_dialogue) ...[
+                  const SizedBox(height: 12),
+                  const DialogueExample(),
+                ],
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _body,
@@ -383,6 +381,14 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty) ? '본문을 입력해 주세요' : null,
                 ),
+                if (_dialogue)
+                  ListenableBuilder(
+                    listenable: _body,
+                    builder: (context, _) => Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: DialogueCheck(body: _body.text),
+                    ),
+                  ),
               ],
             ),
           ),

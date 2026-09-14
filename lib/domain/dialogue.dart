@@ -85,3 +85,16 @@ List<String> speakersOf(List<DialogueLine> lines) => [
           if (l.speaker != null) l.speaker!,
       },
     ];
+
+/// 대화 본문에서 알아낸 인물(나온 차례대로)과 대사·지문 덩어리 수
+typedef DialogueSummary = ({List<String> speakers, int speeches, int directions});
+
+/// 편집 화면에서 대화 형식에 맞게 적었는지 보여 줄 때 쓴다.
+DialogueSummary summarizeDialogue(String body) {
+  final lines = parseDialogue(body);
+  return (
+    speakers: speakersOf(lines),
+    speeches: lines.where((l) => l.speaker != null).length,
+    directions: lines.where((l) => l.direction).length,
+  );
+}

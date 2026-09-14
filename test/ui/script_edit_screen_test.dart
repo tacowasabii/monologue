@@ -165,4 +165,35 @@ void main() {
     expect(list!.single.script.dialogue, isTrue);
     await tester.runAsync(h.db.close);
   });
+
+  testWidgets('대화를 고르면 적는 법 예시가 나오고, 적은 본문이 인물별로 어떻게 나뉘었는지 바로 알려 준다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.pumpWidget(h.wrap(const ScriptEditScreen()));
+    await tester.pumpAndSettle();
+    // 독백에는 안내가 없다
+    expect(find.text('이렇게 적어요'), findsNothing);
+
+    await tester.ensureVisible(find.text('대화'));
+    await tester.tap(find.text('대화'));
+    await tester.pumpAndSettle();
+    expect(find.text('이렇게 적어요'), findsOneWidget);
+
+    final bodyField = find.byType(TextFormField).last;
+    await tester.enterText(bodyField, '그냥 혼잣말');
+    await tester.pump();
+    expect(find.textContaining(keepWords('아직 인물 대사가 없어요')), findsOneWidget);
+
+    await tester.enterText(bodyField, '(늦은 밤)\n민수: 왜 연락 안 했어?\n지영: 바빴어.');
+    await tester.pump();
+    expect(find.text('인물 2명(민수, 지영) · 대사 2 · 지문 1'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('미리보기'));
+    await tester.tap(find.text('미리보기'));
+    await tester.pumpAndSettle();
+    expect(find.text('대본 화면에서 이렇게 보여요'), findsOneWidget);
+    final sheet = find.byType(BottomSheet);
+    expect(find.descendant(of: sheet, matching: find.text('민수')), findsOneWidget);
+    expect(find.descendant(of: sheet, matching: find.text(keepWords('바빴어.'))), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
 }
