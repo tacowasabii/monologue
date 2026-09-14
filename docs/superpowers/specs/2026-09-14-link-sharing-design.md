@@ -74,7 +74,7 @@
 ### 웹 보기 페이지 `/monologue/s/<ID>`
 
 - 요청마다 서버에서 그린다(`prerender = false`). 기존 페이지는 정적으로 둔다.
-- 작품명, 태그, 본문(대화 대본은 인물별로 나눠 보여 준다), 노트, 남은 기간, "앱에서 열기"(같은 링크), App Store·Google Play 설치 버튼. 스토어 주소가 아직 없으면 버튼 대신 "곧 출시돼요"를 보여 준다.
+- 작품명, 태그, 본문(대화 대본은 인물별로 나눠 보여 준다), 노트, 남은 기간, "앱에서 열기"(`monologue://s/<ID>` — 카톡 인앱 브라우저처럼 같은 사이트 안에서 누른 링크로는 Universal Link가 앱을 열지 않으므로 앱 전용 주소를 쓴다), App Store·Google Play 설치 버튼. 스토어 주소가 아직 없으면 버튼 대신 "곧 출시돼요"를 보여 준다.
 - 없거나 만료되면 "7일이 지나 사라졌거나 보낸 사람이 지운 링크예요" 페이지를 `404`로 보여 준다.
 - `<meta name="robots" content="noindex">`와 `X-Robots-Tag: noindex`.
 - 미리보기 메타: `og:title`은 작품명(없으면 본문 첫 줄), `og:description`은 "모노로그로 받은 대본 · 7일 뒤 사라져요". 본문은 미리보기에 넣지 않는다.
@@ -97,7 +97,7 @@
 
 ### 받기
 
-- `app_links`로 앱이 꺼진 상태에서 연 링크와 켜진 상태에서 받은 링크를 모두 받는다. 호스트가 `tacowasabii.vercel.app`이고 경로가 `/monologue/s/<22자 ID>`일 때만 처리한다.
+- `app_links`로 앱이 꺼진 상태에서 연 링크와 켜진 상태에서 받은 링크를 모두 받는다. `https://tacowasabii.vercel.app/monologue/s/<22자 ID>`와 `monologue://s/<22자 ID>`만 처리한다.
 - 받은 대본 화면: 작품명, 성별·나이대·태그, 본문(대화 대본은 기존 `ScriptBody`로), 노트, "내 대본에 추가" 버튼.
 - 추가하면 `ScriptRepository.create(ScriptDraft(...))`로 새 대본을 만들고 그 대본 화면으로 간다. 받은 ID와 만든 대본 id를 SharedPreferences에 기억해, 같은 링크를 다시 열면 "이미 추가한 대본이에요 · 열기"를 보여 준다(대본이 지워졌으면 다시 추가할 수 있다).
 - 실패 안내: `404` → "7일이 지나 사라졌거나 보낸 사람이 지운 링크예요", 연결 실패 → "인터넷 연결을 확인해 주세요"(다시 시도 버튼).
@@ -110,8 +110,8 @@
 
 ### 플랫폼 설정
 
-- iOS: `ios/Runner/Runner.entitlements`에 `com.apple.developer.associated-domains` = `applinks:tacowasabii.vercel.app`, Xcode 프로젝트의 `CODE_SIGN_ENTITLEMENTS`에 연결.
-- Android: `MainActivity`에 `android:autoVerify="true"` 인텐트 필터(VIEW, DEFAULT, BROWSABLE, `https`, 호스트 `tacowasabii.vercel.app`, `pathPrefix` `/monologue/s/`).
+- iOS: `ios/Runner/Runner.entitlements`에 `com.apple.developer.associated-domains` = `applinks:tacowasabii.vercel.app`, Xcode 프로젝트의 `CODE_SIGN_ENTITLEMENTS`에 연결. `Info.plist`에 URL 스킴 `monologue`와 `FlutterDeepLinkingEnabled` = NO(링크는 `app_links`가 받는다).
+- Android: `MainActivity`에 `android:autoVerify="true"` 인텐트 필터(VIEW, DEFAULT, BROWSABLE, `https`, 호스트 `tacowasabii.vercel.app`, `pathPrefix` `/monologue/s/`), `monologue://s` 인텐트 필터, `flutter_deeplinking_enabled` = false 메타데이터.
 - 새 패키지: `app_links`, `http`.
 
 ### 코드 단위
@@ -119,13 +119,15 @@
 | 단위 | 하는 일 |
 |---|---|
 | `lib/share/share_payload.dart` | `ScriptDraft` ↔ 서버 JSON 변환, 받은 JSON 검사 |
-| `lib/share/share_client.dart` | 올리기·가져오기·지우기 HTTP 요청, 결과를 성공/없음/너무 큼/제한/연결 실패로 나눈다 |
+| `lib/share/sent_link.dart` | 보낸 링크 한 건과 남은 날짜 계산 |
+| `lib/share/share_client.dart` | 올리기·가져오기·지우기 HTTP 요청, 결과를 성공/없음/너무 큼/제한/실패로 나눈다 |
 | `lib/share/share_link.dart` | URI가 공유 링크인지 판별하고 ID를 꺼낸다 |
-| `lib/share/share_store.dart` | 보낸 링크 목록, 받은 ID 기억, 첫 공유 안내 확인 여부 |
-| `lib/share/incoming_links.dart` | `app_links` 구독, 링크가 오면 받은 대본 화면을 연다 |
+| `lib/share/share_history.dart` | 보낸 링크 목록, 받은 ID 기억, 첫 공유 안내 확인 여부 |
+| `lib/share/link_source.dart` | `app_links` 구독(테스트에서 가짜로 바꾼다) |
+| `lib/ui/share/incoming_links.dart` | 링크가 오면 받은 대본 화면을 연다 |
 | `lib/ui/share/…` | 보내기 흐름, 받은 대본 화면, 보낸 링크 화면 |
 
-`AppServices`에 `ShareClient`, `ShareStore`를 넣어 테스트에서 가짜로 바꿀 수 있게 한다.
+`AppServices`에 `ShareClient`, `ShareHistory`, `LinkSource`를 넣어 테스트에서 가짜로 바꿀 수 있게 한다.
 
 ## 개인정보 문서
 
