@@ -23,17 +23,25 @@ flutter build ipa --release                 # Apple 계정·서명 설정 후
    iPhone의 Apple Developer 앱에서 가입하면 신분증 인증이 빠르다. 개인 계정은 스토어 판매자 이름에 본명이 나온다
 2. Xcode → Settings → Accounts에 그 Apple ID 추가 → `ios/Runner.xcworkspace` → Runner 타깃 → Signing & Capabilities →
    Team을 유료 팀으로, Automatically manage signing. 번들 ID와 배포 인증서는 Xcode가 만든다.
-   지금 들어 있는 `DEVELOPMENT_TEAM = 3996SU7HLL`이 유료 팀 ID와 같은지 확인할 것
+   지금 들어 있는 `DEVELOPMENT_TEAM = 3996SU7HLL`이 유료 팀 ID와 같은지 확인할 것.
+   App ID에 Associated Domains 기능(링크로 공유가 쓰는 Universal Link)이 켜져 있는지 확인한다. Automatically manage signing이면
+   Xcode가 자동으로 추가하지만, 아카이브가 entitlements 오류로 실패하면 [Apple 개발자 포털](https://developer.apple.com/account/resources/identifiers/list)에서
+   해당 App ID를 열어 Associated Domains을 직접 켠다
 3. [App Store Connect](https://appstoreconnect.apple.com) → 앱 → 새로운 앱: iOS, 이름 "모노로그", 기본 언어 한국어, 번들 ID 선택, SKU `monologue-ios`.
    앱 이름은 스토어 전체에서 하나뿐이라 이미 쓰이면 "모노로그 - 독백 대본 노트"처럼 바꾼다
 4. `flutter build ipa --release` → `open build/ios/archive/Runner.xcarchive` → Organizer에서 Distribute App → App Store Connect → Upload.
    `Info.plist`에 `ITSAppUsesNonExemptEncryption = false`가 있어 수출 규정 질문 없이 처리된다(10~30분)
-5. TestFlight에서 iPhone과 iPad에 설치해 확인. iPad는 가로·세로 전환, 목록 옆에 대본이 열리는지, Split View·Slide Over로 창을 줄였을 때, 카메라 촬영, 백업 공유 시트 위치, 백업 복원을 본다
+5. TestFlight에서 iPhone과 iPad에 설치해 확인. iPad는 가로·세로 전환, 목록 옆에 대본이 열리는지, Split View·Slide Over로 창을 줄였을 때, 카메라 촬영, 백업 공유 시트 위치, 백업 복원을 본다.
+   링크로 공유도 함께 본다: iPhone·iPad 각각에서 카카오톡·메모 앱에 붙인 `https://tacowasabii.vercel.app/monologue/s/…` 링크를 눌러
+   앱이 열리는지(Universal Link), iPad에서 '링크로 공유' 시트가 뜨는 위치를 확인한다.
+   **기기에서 링크 확인은 반드시 TestFlight(또는 release) 빌드로 한다** — Flutter 툴링 밖에서 실행한 iOS 디버그 빌드는
+   app_links가 링크를 등록하지 않아 앱이 열리지 않는다
 6. 등록 정보 입력 (`docs/store-listing.md`)
    - 스크린샷: 6.9" iPhone 칸에 `docs/store-assets/ios-iphone-*.png`, 13" iPad 칸에 `ios-ipad-*.png`. iPad를 지원하므로 iPad 칸도 필수다
    - 앱 개인정보 보호 "사용자 콘텐츠 → 기타 사용자 콘텐츠" 수집(앱 기능, 신원과 연결하지 않음, 추적 없음 — 답은 docs/store-listing.md), 연령 등급 설문, 가격 무료
    - EU에 내면 디지털 서비스법(DSA) 거래자 여부를 답해야 한다. 거래자면 주소·전화번호가 공개되니, 싫으면 사용 가능 국가에서 EU를 뺀다
-   - 심사 정보: 로그인 필요 없음. 메모 "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 대본은 기기에 저장되고, 대본 화면 ⋯ → 링크로 공유를 누른 대본만 7일 동안 서버에 저장됨. 받은 링크를 누르면 앱에서 '내 대본에 추가'로 가져옴." 심사 직전에 앱에서 만든 공유 링크 하나를 메모에 붙인다
+   - 심사 정보: 로그인 필요 없음. 메모 "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 대본은 기기에 저장되고, 대본 화면 ⋯ → 링크로 공유를 누른 대본만 7일 동안 서버에 저장됨. 받은 링크를 누르면 앱에서 '내 대본에 추가'로 가져옴." 심사 직전에 앱에서 만든 공유 링크 하나를 메모에 붙인다.
+     **붙인 링크는 7일 뒤 만료되니, 제출할 때(재제출 포함)마다 새로 만들어 붙인다**
 7. 버전 페이지에서 빌드 선택 → 심사에 추가 → 제출 (보통 1~2일). 거절 사유는 App Store Connect 메시지로 온다
 
 iPad 지원(`TARGETED_DEVICE_FAMILY = "1,2"`)은 한 번 출시하면 이후 업데이트에서 뺄 수 없다.
@@ -45,7 +53,10 @@ iPad 지원(`TARGETED_DEVICE_FAMILY = "1,2"`)은 한 번 출시하면 이후 업
 3. 앱 콘텐츠: 개인정보처리방침 URL, 광고 없음, 데이터 보안(ML Kit 진단 정보와 링크 공유 때문에 "수집함" — 답은 `docs/store-listing.md`의 표), 콘텐츠 등급 설문, 타깃 연령
 4. **Play 앱 서명** 사용(기본값). `app-release.aab` 업로드 → 업로드 키 인증서 자동 등록. 앱 서명 키 SHA-256은 웹사이트 `public/.well-known/assetlinks.json`에 이미 들어 있다(바뀌면 거기서 고치고 배포)
 5. 개인 계정은 프로덕션 출시 전에 **비공개 테스트** 요건이 있다(작성 시점 기준 테스터 12명 이상이 14일 연속 참여). 제출 시점의 Play Console 안내를 다시 확인할 것
-6. 비공개 테스트 트랙에 테스터 초대 → 기간 충족 후 프로덕션 신청
+6. 비공개 테스트 빌드를 설치한 뒤 `adb shell pm get-app-links com.tacowasabii.monologue`로 `tacowasabii.vercel.app`이
+   `verified`로 나오는지 확인한다(링크로 공유가 앱에서 바로 열리려면 필요하다). 아니라면 `public/.well-known/assetlinks.json` 배포와
+   서명 키 SHA-256이 맞는지 다시 본다
+7. 비공개 테스트 트랙에 테스터 초대 → 기간 충족 후 프로덕션 신청
 
 ## 참고
 
