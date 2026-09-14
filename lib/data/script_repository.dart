@@ -46,9 +46,6 @@ class ScriptRepository {
           final pattern = '%$text%';
           e = e & (s.work.like(pattern) | s.memo.like(pattern) | s.body.like(pattern) | s.note.like(pattern));
         }
-        // 성별·나이대가 '무관'인 대본은 어느 조건에도 맞는다
-        if (f.gender != null) e = e & s.gender.isIn([f.gender!.name, Gender.any.name]);
-        if (f.ageRange != null) e = e & s.ageRange.isIn([f.ageRange!.name, AgeRange.any.name]);
         if (f.favoritesOnly) e = e & s.favorite.equals(true);
         if (f.tag != null) {
           e = e &
@@ -174,8 +171,6 @@ class ScriptRepository {
       final id = await db.into(db.scripts).insert(ScriptsCompanion.insert(
             work: Value(d.work),
             memo: Value(d.memo),
-            gender: d.gender,
-            ageRange: d.ageRange,
             status: d.status,
             favorite: d.favorite,
             body: d.body,
@@ -202,8 +197,6 @@ class ScriptRepository {
               work: Value(d.work),
               memo: Value(d.memo),
               dialogue: Value(d.dialogue),
-              gender: Value(d.gender),
-              ageRange: Value(d.ageRange),
               status: Value(d.status),
               favorite: Value(d.favorite),
               body: Value(d.body),

@@ -65,14 +65,6 @@ void main() {
     expect(await works(const ScriptFilter(query: '니나')), ['C']);
   });
 
-  test('성별·나이대 필터는 무관도 포함한다', () async {
-    await repo.create(const ScriptDraft(work: '남20', body: 'x', gender: Gender.male, ageRange: AgeRange.twenties));
-    await repo.create(const ScriptDraft(work: '여30', body: 'x', gender: Gender.female, ageRange: AgeRange.thirties));
-    await repo.create(const ScriptDraft(work: '무관', body: 'x'));
-    expect((await works(const ScriptFilter(gender: Gender.male)))..sort(), ['남20', '무관']);
-    expect((await works(const ScriptFilter(ageRange: AgeRange.thirties)))..sort(), ['무관', '여30']);
-  });
-
   test('태그·즐겨찾기 필터', () async {
     final a = await repo.create(const ScriptDraft(work: 'A', body: 'x', tags: ['코미디']));
     await repo.create(const ScriptDraft(work: 'B', body: 'x'));

@@ -1,7 +1,6 @@
 import 'package:characters/characters.dart';
 
 import '../data/script_repository.dart';
-import '../domain/enums.dart';
 import '../domain/script_draft.dart';
 
 /// [title] 폴백에 쓸 최대 글자 수(자모가 아니라 사람이 보는 글자 단위)
@@ -13,8 +12,6 @@ class SharePayload {
     required this.body,
     this.work,
     this.dialogue = false,
-    this.gender = Gender.any,
-    this.ageRange = AgeRange.any,
     this.tags = const [],
     this.note,
     this.expiresAt,
@@ -26,14 +23,13 @@ class SharePayload {
       body: s.body,
       work: s.work,
       dialogue: s.dialogue,
-      gender: s.gender,
-      ageRange: s.ageRange,
       tags: detail.tags,
       note: includeNote ? s.note : null,
     );
   }
 
   /// 서버 응답을 읽는다. 형식이 맞지 않으면 [FormatException].
+  /// 예전 앱이 올린 대본에 남아 있는 성별·나이대 같은 칸은 읽지 않는다.
   factory SharePayload.fromJson(Object? json) {
     if (json is! Map<String, Object?>) throw const FormatException('share');
     final body = json['body'];
@@ -54,8 +50,6 @@ class SharePayload {
       body: body,
       work: text('work'),
       dialogue: dialogue,
-      gender: Gender.values.asNameMap()[json['gender']] ?? Gender.any,
-      ageRange: AgeRange.values.asNameMap()[json['ageRange']] ?? AgeRange.any,
       tags: tags.cast<String>(),
       note: text('note'),
       expiresAt: expires is String ? DateTime.tryParse(expires) : null,
@@ -65,8 +59,6 @@ class SharePayload {
   final String body;
   final String? work;
   final bool dialogue;
-  final Gender gender;
-  final AgeRange ageRange;
   final List<String> tags;
   final String? note;
 
@@ -86,8 +78,6 @@ class SharePayload {
         'work': work,
         'dialogue': dialogue,
         'body': body,
-        'gender': gender.name,
-        'ageRange': ageRange.name,
         'tags': tags,
         'note': note,
       };
@@ -96,8 +86,6 @@ class SharePayload {
         body: body,
         work: work,
         dialogue: dialogue,
-        gender: gender,
-        ageRange: ageRange,
         tags: tags,
         note: note,
       );

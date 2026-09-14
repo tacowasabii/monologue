@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_scope.dart';
-import '../../domain/enums.dart';
 import '../../share/share_client.dart';
 import '../../share/share_link.dart';
 import '../../share/share_payload.dart';
@@ -146,8 +145,6 @@ class _Preview extends StatelessWidget {
     final scheme = theme.colorScheme;
     final settings = AppScope.of(context).settings;
     final labels = [
-      if (payload.gender != Gender.any) payload.gender.label,
-      if (payload.ageRange != AgeRange.any) payload.ageRange.label,
       for (final t in payload.tags) '#$t',
     ];
     final expiresAt = payload.expiresAt;

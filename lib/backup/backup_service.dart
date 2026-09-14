@@ -31,8 +31,9 @@ class BackupService {
 
   static const format = 'monologue-backup';
   // 2: 대화 형식·내 역할·대본 노트를 더했다.
-  // 3: 여러 칸이던 노트(notes)를 자유 글 한 칸(note)으로 바꿨다. 1·2도 계속 복원한다
-  static const version = 3;
+  // 3: 여러 칸이던 노트(notes)를 자유 글 한 칸(note)으로 바꿨다.
+  // 4: 성별·나이대를 뺐다(예전 백업에 있으면 무시한다). 1~3도 계속 복원한다
+  static const version = 4;
   static const _manifest = 'backup.json';
 
   final AppDatabase db;
@@ -67,8 +68,6 @@ class BackupService {
         entries.add({
           'work': s.work,
           'memo': s.memo,
-          'gender': s.gender.name,
-          'ageRange': s.ageRange.name,
           'status': s.status.name,
           'favorite': s.favorite,
           'body': s.body,
@@ -246,8 +245,6 @@ class BackupService {
         body: e['body'] as String,
         work: e['work'] as String?,
         memo: e['memo'] as String?,
-        gender: Gender.values.byName(e['gender'] as String),
-        ageRange: AgeRange.values.byName(e['ageRange'] as String),
         status: PracticeStatus.values.byName(e['status'] as String),
         favorite: e['favorite'] as bool,
         tags: (e['tags'] as List).cast<String>(),

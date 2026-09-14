@@ -78,7 +78,7 @@ void main() {
     return (db, ScriptRepository(db, images, media), images, media);
   }
 
-  testWidgets('기기 sqlite에서 DB 버전 7을 8로 올리며 노트 칸을 한 글로 합치고 예전 칸을 지운다', (tester) async {
+  testWidgets('기기 sqlite에서 DB 버전 7을 최신으로 올리며 노트 칸을 한 글로 합치고 예전 칸을 지운다', (tester) async {
     final file = File('${tmp.path}/v7.sqlite');
     final raw = sqlite3.open(file.path);
     for (final sql in _v7Schema) {
@@ -97,7 +97,7 @@ void main() {
     await db.close();
 
     final after = sqlite3.open(file.path);
-    expect(after.select('PRAGMA user_version').single.values.single, 8);
+    expect(after.select('PRAGMA user_version').single.values.single, 9);
     final columns = [for (final r in after.select("SELECT name FROM pragma_table_info('scripts')")) r['name']];
     expect(columns, allOf(contains('note'), isNot(contains('situation'))));
     after.close();

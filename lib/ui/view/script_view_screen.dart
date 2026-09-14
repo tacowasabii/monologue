@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/dialogue.dart';
-import '../../domain/enums.dart';
 import '../../settings/reading_settings.dart';
 import '../common/adaptive.dart';
 import '../common/confirm_dialog.dart';
@@ -170,11 +169,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
         final scheme = theme.colorScheme;
         final source = s.work;
         final memo = s.memo;
-        final traits = [
-          if (s.gender != Gender.any) s.gender.label,
-          if (s.ageRange != AgeRange.any) s.ageRange.label,
-        ];
-        final hasLabels = traits.isNotEmpty || d.tags.isNotEmpty;
+        final hasLabels = d.tags.isNotEmpty;
         final speakers = s.dialogue ? speakersOf(parseDialogue(s.body)) : const <String>[];
         // 본문을 고쳐 저장된 역할이 사라졌으면 강조하지 않는다
         final focus = speakers.contains(s.myRole) ? s.myRole : null;
@@ -273,7 +268,6 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        for (final t in traits) _Label(t),
                         for (final t in d.tags) _Label('#$t', accent: true),
                       ],
                     ),

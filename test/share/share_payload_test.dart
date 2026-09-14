@@ -1,17 +1,14 @@
 import 'package:characters/characters.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:monologue/domain/enums.dart';
 import 'package:monologue/share/sent_link.dart';
 import 'package:monologue/share/share_payload.dart';
 
 void main() {
-  test('서버로 보낼 JSON은 버전과 enum 이름을 쓴다', () {
+  test('서버로 보낼 JSON에는 버전과 대본 내용만 담고 성별·나이대는 없다', () {
     const payload = SharePayload(
       body: '엄마: 뭐 해?',
       work: '새벽 세 시의 부엌',
       dialogue: true,
-      gender: Gender.female,
-      ageRange: AgeRange.fiftiesPlus,
       tags: ['가족'],
     );
     expect(payload.toJson(), {
@@ -19,8 +16,6 @@ void main() {
       'work': '새벽 세 시의 부엌',
       'dialogue': true,
       'body': '엄마: 뭐 해?',
-      'gender': 'female',
-      'ageRange': 'fiftiesPlus',
       'tags': ['가족'],
       'note': null,
     });
@@ -43,8 +38,6 @@ void main() {
     final draft = payload.toDraft();
     expect(draft.work, '햄릿');
     expect(draft.body, '사느냐 죽느냐');
-    expect(draft.gender, Gender.male);
-    expect(draft.ageRange, AgeRange.twenties);
     expect(draft.tags, ['고전']);
     expect(draft.note, '고뇌');
     expect(draft.dialogue, isFalse);
@@ -52,11 +45,9 @@ void main() {
     expect(draft.myRole, isNull);
   });
 
-  test('모르는 성별·나이대는 무관으로, 빈 작품명·노트는 없음으로 읽는다', () {
+  test('예전 앱이 올린 성별·나이대는 무시하고, 빈 작품명·노트는 없음으로 읽는다', () {
     final payload = SharePayload.fromJson(
         {'body': '대사', 'dialogue': false, 'tags': <Object?>[], 'gender': 'x', 'ageRange': 'y', 'work': ' ', 'note': ''});
-    expect(payload.gender, Gender.any);
-    expect(payload.ageRange, AgeRange.any);
     expect(payload.work, isNull);
     expect(payload.note, isNull);
     expect(payload.title, '대사');

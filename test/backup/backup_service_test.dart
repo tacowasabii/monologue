@@ -66,8 +66,6 @@ void main() {
         work: '갈매기',
         memo: '4막 니나 독백',
         body: '나는 갈매기...',
-        gender: Gender.female,
-        ageRange: AgeRange.twenties,
         status: PracticeStatus.practicing,
         favorite: true,
         tags: ['슬픔'],
@@ -88,7 +86,6 @@ void main() {
     final nina = list.firstWhere((s) => s.script.work == '갈매기');
     final detail = (await dst.repo.watchScript(nina.script.id).first)!;
     expect(detail.script.memo, '4막 니나 독백');
-    expect(detail.script.gender, Gender.female);
     expect(detail.script.status, PracticeStatus.practicing);
     expect(detail.script.favorite, isTrue);
     expect(detail.tags, ['슬픔']);

@@ -1,5 +1,3 @@
-import 'enums.dart';
-
 /// 대본 탭·전체·즐겨찾기 목록의 정렬. 모음 안에서는 사용자가 끌어서 정한 순서를 쓴다.
 enum ScriptSort {
   updated('최근 수정순'),
@@ -14,8 +12,6 @@ enum ScriptSort {
 class ScriptFilter {
   const ScriptFilter({
     this.query = '',
-    this.gender,
-    this.ageRange,
     this.tag,
     this.favoritesOnly = false,
     this.collectionId,
@@ -23,8 +19,6 @@ class ScriptFilter {
   });
 
   final String query;
-  final Gender? gender;
-  final AgeRange? ageRange;
   final String? tag;
 
   /// 즐겨찾기 모음. 화면의 범위라서 걸어 둔 조건([isActive])으로 치지 않는다.
@@ -36,20 +30,16 @@ class ScriptFilter {
 
   final ScriptSort sort;
 
-  bool get isActive => query.trim().isNotEmpty || gender != null || ageRange != null || tag != null;
+  bool get isActive => query.trim().isNotEmpty || tag != null;
 
-  // nullable 필드는 함수로 받아 null로 되돌릴 수 있게 한다: copyWith(gender: () => null)
+  // nullable 필드는 함수로 받아 null로 되돌릴 수 있게 한다: copyWith(tag: () => null)
   ScriptFilter copyWith({
     String? query,
-    Gender? Function()? gender,
-    AgeRange? Function()? ageRange,
     String? Function()? tag,
     ScriptSort? sort,
   }) =>
       ScriptFilter(
         query: query ?? this.query,
-        gender: gender != null ? gender() : this.gender,
-        ageRange: ageRange != null ? ageRange() : this.ageRange,
         tag: tag != null ? tag() : this.tag,
         favoritesOnly: favoritesOnly,
         collectionId: collectionId,

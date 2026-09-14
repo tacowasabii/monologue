@@ -168,8 +168,6 @@ void main() {
     // 옛 구조가 남아 있으면 제목 칸(NOT NULL) 때문에 저장이 실패한다
     await db.into(db.scripts).insert(ScriptsCompanion.insert(
           memo: const Value('메모'),
-          gender: Gender.any,
-          ageRange: AgeRange.any,
           status: PracticeStatus.notStarted,
           favorite: false,
           body: '새 대본',
@@ -314,5 +312,35 @@ void main() {
     final columns = [for (final r in raw.select("SELECT name FROM pragma_table_info('scripts')")) r['name']];
     expect(columns, allOf(contains('situation'), isNot(contains('note'))));
     expect(raw.select('SELECT situation FROM scripts').single['situation'], '호숫가 무대');
+  });
+  test('버전 8 DB는 대본·태그·노트를 그대로 두고 성별·나이대 칸을 지운다', () async {
+    final file = File('${tmp.path}/v8.sqlite');
+    final v8 = sqlite3.open(file.path);
+    for (final sql in _v5Schema) {
+      v8.execute(sql);
+    }
+    for (final column in [
+      '"dialogue" INTEGER NOT NULL DEFAULT 0 CHECK ("dialogue" IN (0, 1))',
+      '"my_role" TEXT NULL',
+      '"note" TEXT NULL',
+    ]) {
+      v8.execute('ALTER TABLE scripts ADD COLUMN $column');
+    }
+    v8.execute('ALTER TABLE script_collections ADD COLUMN "position" INTEGER NOT NULL DEFAULT 0');
+    v8.execute(
+      'INSERT INTO scripts (work, memo, gender, age_range, status, favorite, body, created_at, updated_at, note) '
+      "VALUES ('갈매기', '니나', 'female', 'twenties', 'notStarted', 1, '나는 갈매기', "
+      "'2026-09-14T10:00:00.000+09:00', '2026-09-14T10:00:00.000+09:00', '호숫가 무대')",
+    );
+    v8.execute("INSERT INTO script_tags (script_id, tag) VALUES (1, '슬픔')");
+    v8.execute('PRAGMA user_version = 8');
+    v8.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    final row = await db.select(db.scripts).getSingle();
+    expect((row.work, row.memo, row.favorite, row.note), ('갈매기', '니나', true, '호숫가 무대'));
+    expect((await db.select(db.scriptTags).getSingle()).tag, '슬픔');
+    expect(await scriptColumns(db), allOf(isNot(contains('gender')), isNot(contains('age_range')), contains('note')));
+    await db.close();
   });
 }

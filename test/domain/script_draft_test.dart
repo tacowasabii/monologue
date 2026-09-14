@@ -21,18 +21,15 @@ void main() {
   });
 
   test('enum 라벨', () {
-    expect(Gender.values.map((g) => g.label), ['무관', '남', '여']);
-    expect(AgeRange.fiftiesPlus.label, '50대 이상');
     expect(PracticeStatus.memorized.label, '다 외움');
   });
 
   test('ScriptFilter.copyWith는 nullable 값을 null로 되돌릴 수 있다', () {
-    const f = ScriptFilter(gender: Gender.male, tag: '슬픔');
+    const f = ScriptFilter(query: '햄릿', tag: '슬픔');
     expect(f.isActive, isTrue);
-    final cleared = f.copyWith(gender: () => null, tag: () => null);
-    expect(cleared.gender, isNull);
+    final cleared = f.copyWith(query: '', tag: () => null);
     expect(cleared.tag, isNull);
     expect(cleared.isActive, isFalse);
-    expect(f.copyWith(query: '햄릿').gender, Gender.male);
+    expect(f.copyWith(query: '갈매기').tag, '슬픔');
   });
 }

@@ -14,8 +14,6 @@ class ScriptDraft {
     required this.body,
     this.work,
     this.memo,
-    this.gender = Gender.any,
-    this.ageRange = AgeRange.any,
     this.status = PracticeStatus.notStarted,
     this.favorite = false,
     this.tags = const [],
@@ -28,8 +26,6 @@ class ScriptDraft {
   final String body;
   final String? work;
   final String? memo;
-  final Gender gender;
-  final AgeRange ageRange;
   final PracticeStatus status;
   final bool favorite;
   final List<String> tags;
@@ -50,8 +46,6 @@ class ScriptDraft {
       body: body.trim(),
       work: blankToNull(work),
       memo: blankToNull(memo),
-      gender: gender,
-      ageRange: ageRange,
       status: status,
       favorite: favorite,
       tags: cleanTags.toList()..sort(),
@@ -67,8 +61,6 @@ class ScriptDraft {
         body: body,
         work: work,
         memo: memo,
-        gender: gender,
-        ageRange: ageRange,
         status: status,
         favorite: favorite,
         tags: tags,

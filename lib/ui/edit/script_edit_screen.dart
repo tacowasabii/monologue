@@ -44,8 +44,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
   late final TextEditingController _work;
   late final TextEditingController _memo;
   late final TextEditingController _body;
-  late Gender _gender;
-  late AgeRange _ageRange;
   // 연습 상태와 즐겨찾기는 이 화면에서 고르지 않지만(즐겨찾기는 목록·대본 화면의 별로 바꾼다),
   // 저장된 값은 덮어쓰지 않고 그대로 넘긴다
   late final PracticeStatus _status;
@@ -70,8 +68,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     _work = TextEditingController(text: s?.work ?? '');
     _memo = TextEditingController(text: s?.memo ?? '');
     _body = TextEditingController(text: s?.body ?? widget.initialBody);
-    _gender = s?.gender ?? Gender.any;
-    _ageRange = s?.ageRange ?? AgeRange.any;
     _status = s?.status ?? PracticeStatus.notStarted;
     _favorite = s?.favorite ?? false;
     // 새 대본은 '이름:' 줄이 두 줄 이상이면 대화 형식으로 시작한다
@@ -168,8 +164,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
       body: _body.text,
       work: _work.text,
       memo: _memo.text,
-      gender: _gender,
-      ageRange: _ageRange,
       status: _status,
       favorite: _favorite,
       tags: _tags,
@@ -236,14 +230,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
     );
   }
 
-  Widget _choices<T>(List<T> values, T selected, String Function(T) labelOf, ValueChanged<T> onSelected) => Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final v in values) PillChip(label: labelOf(v), selected: v == selected, onSelected: (_) => onSelected(v)),
-        ],
-      );
-
   @override
   Widget build(BuildContext context) {
     const gap = SizedBox(height: 12);
@@ -302,18 +288,6 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                     alignLabelWithHint: true,
                   ),
                 ),
-                const SectionHeader('배역'),
-                _label('성별'),
-                _choices<Gender>(Gender.values, _gender, (g) => g.label, (g) => setState(() {
-                      _gender = g;
-                      _dirty = true;
-                    })),
-                const SizedBox(height: 20),
-                _label('나이대'),
-                _choices<AgeRange>(AgeRange.values, _ageRange, (a) => a.label, (a) => setState(() {
-                      _ageRange = a;
-                      _dirty = true;
-                    })),
                 const SectionHeader('모음 · 태그'),
                 _label('모음'),
                 StreamBuilder<List<Collection>>(

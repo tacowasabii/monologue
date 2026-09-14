@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:monologue/domain/enums.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/list/script_list_screen.dart';
@@ -55,7 +54,7 @@ void main() {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {
       await h.services.repo.create(const ScriptDraft(work: '햄릿', body: '사느냐 죽느냐'));
-      await h.services.repo.create(const ScriptDraft(work: '갈매기', body: '나는 갈매기', gender: Gender.female));
+      await h.services.repo.create(const ScriptDraft(work: '갈매기', body: '나는 갈매기'));
     });
     await tester.pumpWidget(h.wrap(const ScriptListScreen()));
     await tester.pumpAndSettle();
@@ -179,51 +178,34 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('필터 시트로 목록을 거른다', (tester) async {
+  testWidgets('필터 시트에서 태그로 목록을 거르고, 성별·나이대 항목은 없다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {
       final r = h.services.repo;
-      await r.create(const ScriptDraft(
-        work: '햄릿',
-        body: '사느냐 죽느냐',
-        gender: Gender.male,
-        ageRange: AgeRange.twenties,
-      ));
-      await r.create(const ScriptDraft(
-        work: '갈매기',
-        body: '나는 갈매기',
-        gender: Gender.female,
-        ageRange: AgeRange.twenties,
-        favorite: true,
-      ));
-      await r.create(const ScriptDraft(
-        work: '벚꽃 동산',
-        body: '안녕, 나의 동산',
-        gender: Gender.female,
-        ageRange: AgeRange.fiftiesPlus,
-      ));
+      await r.create(const ScriptDraft(work: '햄릿', body: '사느냐 죽느냐', tags: ['고전']));
+      await r.create(const ScriptDraft(work: '갈매기', body: '나는 갈매기', tags: ['고전', '슬픔'], favorite: true));
+      await r.create(const ScriptDraft(work: '벚꽃 동산', body: '안녕, 나의 동산', tags: ['슬픔']));
     });
     await tester.pumpWidget(h.wrap(const ScriptListScreen()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('필터'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('여'));
+    final sheet = find.byType(BottomSheet);
+    expect(find.descendant(of: sheet, matching: find.text('성별')), findsNothing);
+    expect(find.descendant(of: sheet, matching: find.text('나이대')), findsNothing);
+    await tester.tap(find.descendant(of: sheet, matching: find.text('#슬픔')));
     await tester.pumpAndSettle();
-    expect(find.text('대본 2편 보기'), findsOneWidget);
-    await tester.tap(find.text('50대 이상'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('대본 1편 보기'));
+    await tester.tap(find.text('대본 2편 보기'));
     await tester.pumpAndSettle();
 
     expect(find.text('벚꽃 동산'), findsOneWidget);
-    expect(find.text('갈매기'), findsNothing);
-    expect(find.text('성별 여'), findsOneWidget);
+    expect(find.text('햄릿'), findsNothing);
+    expect(find.widgetWithText(InputChip, '#슬픔'), findsOneWidget);
 
     await tester.tap(find.text('초기화'));
     await tester.pumpAndSettle();
     expect(find.text('햄릿'), findsOneWidget);
-    expect(find.text('갈매기'), findsOneWidget);
     await tester.runAsync(h.db.close);
   });
 }

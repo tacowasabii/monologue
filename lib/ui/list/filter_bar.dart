@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
-import '../../domain/enums.dart';
 import '../../domain/script_filter.dart';
 import '../common/pill_chip.dart';
 
-/// 시트에서 고르는 필터(성별·나이대·태그) 중 적용된 개수
-int sheetFilterCount(ScriptFilter f) => [f.gender, f.ageRange, f.tag].where((v) => v != null).length;
+/// 시트에서 고르는 필터(태그) 중 적용된 개수
+int sheetFilterCount(ScriptFilter f) => f.tag == null ? 0 : 1;
 
 ScriptFilter _clearSheetFilters(ScriptFilter f) =>
-    f.copyWith(gender: () => null, ageRange: () => null, tag: () => null);
+    f.copyWith(tag: () => null);
 
-/// 성별·나이대·태그를 한 시트에서 고른다. 그냥 닫으면 바뀌지 않는다.
+/// 태그를 시트에서 고른다. 그냥 닫으면 바뀌지 않는다.
 Future<void> openFilterSheet(
   BuildContext context, {
   required ScriptFilter filter,
@@ -68,8 +67,6 @@ class FilterBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final pills = <({String label, ScriptFilter without})>[
-      if (filter.gender case final g?) (label: '성별 ${g.label}', without: filter.copyWith(gender: () => null)),
-      if (filter.ageRange case final a?) (label: a.label, without: filter.copyWith(ageRange: () => null)),
       if (filter.tag case final t?) (label: '#$t', without: filter.copyWith(tag: () => null)),
     ];
     return AnimatedSize(
@@ -215,32 +212,15 @@ class _FilterSheetState extends State<_FilterSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _group(
-                      '성별',
-                      _choices<Gender>(
-                        Gender.values.where((g) => g != Gender.any).toList(),
-                        d.gender,
-                        (g) => g.label,
-                        (f, g) => f.copyWith(gender: () => g),
-                      ),
-                    ),
-                    _group(
-                      '나이대',
-                      _choices<AgeRange>(
-                        AgeRange.values.where((a) => a != AgeRange.any).toList(),
-                        d.ageRange,
-                        (a) => a.label,
-                        (f, a) => f.copyWith(ageRange: () => a),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Text(
-                        '성별이나 나이대를 ‘무관’으로 둔 대본은 어느 조건에서나 함께 보여요',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                    if (tags.isNotEmpty)
+                    if (tags.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Text(
+                          '대본에 태그를 붙이면 여기서 골라 볼 수 있어요',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      )
+                    else
                       _group('태그', _choices<String>(tags, d.tag, (t) => '#$t', (f, t) => f.copyWith(tag: () => t))),
                   ],
                 ),

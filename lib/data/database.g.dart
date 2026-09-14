@@ -40,24 +40,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     requiredDuringInsert: false,
   );
   @override
-  late final GeneratedColumnWithTypeConverter<Gender, String> gender =
-      GeneratedColumn<String>(
-        'gender',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Gender>($ScriptsTable.$convertergender);
-  @override
-  late final GeneratedColumnWithTypeConverter<AgeRange, String> ageRange =
-      GeneratedColumn<String>(
-        'age_range',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<AgeRange>($ScriptsTable.$converterageRange);
-  @override
   late final GeneratedColumnWithTypeConverter<PracticeStatus, String> status =
       GeneratedColumn<String>(
         'status',
@@ -149,8 +131,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     id,
     work,
     memo,
-    gender,
-    ageRange,
     status,
     favorite,
     body,
@@ -258,18 +238,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
         DriftSqlType.string,
         data['${effectivePrefix}memo'],
       ),
-      gender: $ScriptsTable.$convertergender.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}gender'],
-        )!,
-      ),
-      ageRange: $ScriptsTable.$converterageRange.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}age_range'],
-        )!,
-      ),
       status: $ScriptsTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -312,10 +280,6 @@ class $ScriptsTable extends Scripts with TableInfo<$ScriptsTable, Script> {
     return $ScriptsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<Gender, String, String> $convertergender =
-      const EnumNameConverter<Gender>(Gender.values);
-  static JsonTypeConverter2<AgeRange, String, String> $converterageRange =
-      const EnumNameConverter<AgeRange>(AgeRange.values);
   static JsonTypeConverter2<PracticeStatus, String, String> $converterstatus =
       const EnumNameConverter<PracticeStatus>(PracticeStatus.values);
 }
@@ -324,8 +288,6 @@ class Script extends DataClass implements Insertable<Script> {
   final int id;
   final String? work;
   final String? memo;
-  final Gender gender;
-  final AgeRange ageRange;
   final PracticeStatus status;
   final bool favorite;
   final String body;
@@ -340,8 +302,6 @@ class Script extends DataClass implements Insertable<Script> {
     required this.id,
     this.work,
     this.memo,
-    required this.gender,
-    required this.ageRange,
     required this.status,
     required this.favorite,
     required this.body,
@@ -360,16 +320,6 @@ class Script extends DataClass implements Insertable<Script> {
     }
     if (!nullToAbsent || memo != null) {
       map['memo'] = Variable<String>(memo);
-    }
-    {
-      map['gender'] = Variable<String>(
-        $ScriptsTable.$convertergender.toSql(gender),
-      );
-    }
-    {
-      map['age_range'] = Variable<String>(
-        $ScriptsTable.$converterageRange.toSql(ageRange),
-      );
     }
     {
       map['status'] = Variable<String>(
@@ -395,8 +345,6 @@ class Script extends DataClass implements Insertable<Script> {
       id: Value(id),
       work: work == null && nullToAbsent ? const Value.absent() : Value(work),
       memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
-      gender: Value(gender),
-      ageRange: Value(ageRange),
       status: Value(status),
       favorite: Value(favorite),
       body: Value(body),
@@ -419,12 +367,6 @@ class Script extends DataClass implements Insertable<Script> {
       id: serializer.fromJson<int>(json['id']),
       work: serializer.fromJson<String?>(json['work']),
       memo: serializer.fromJson<String?>(json['memo']),
-      gender: $ScriptsTable.$convertergender.fromJson(
-        serializer.fromJson<String>(json['gender']),
-      ),
-      ageRange: $ScriptsTable.$converterageRange.fromJson(
-        serializer.fromJson<String>(json['ageRange']),
-      ),
       status: $ScriptsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -444,12 +386,6 @@ class Script extends DataClass implements Insertable<Script> {
       'id': serializer.toJson<int>(id),
       'work': serializer.toJson<String?>(work),
       'memo': serializer.toJson<String?>(memo),
-      'gender': serializer.toJson<String>(
-        $ScriptsTable.$convertergender.toJson(gender),
-      ),
-      'ageRange': serializer.toJson<String>(
-        $ScriptsTable.$converterageRange.toJson(ageRange),
-      ),
       'status': serializer.toJson<String>(
         $ScriptsTable.$converterstatus.toJson(status),
       ),
@@ -467,8 +403,6 @@ class Script extends DataClass implements Insertable<Script> {
     int? id,
     Value<String?> work = const Value.absent(),
     Value<String?> memo = const Value.absent(),
-    Gender? gender,
-    AgeRange? ageRange,
     PracticeStatus? status,
     bool? favorite,
     String? body,
@@ -481,8 +415,6 @@ class Script extends DataClass implements Insertable<Script> {
     id: id ?? this.id,
     work: work.present ? work.value : this.work,
     memo: memo.present ? memo.value : this.memo,
-    gender: gender ?? this.gender,
-    ageRange: ageRange ?? this.ageRange,
     status: status ?? this.status,
     favorite: favorite ?? this.favorite,
     body: body ?? this.body,
@@ -497,8 +429,6 @@ class Script extends DataClass implements Insertable<Script> {
       id: data.id.present ? data.id.value : this.id,
       work: data.work.present ? data.work.value : this.work,
       memo: data.memo.present ? data.memo.value : this.memo,
-      gender: data.gender.present ? data.gender.value : this.gender,
-      ageRange: data.ageRange.present ? data.ageRange.value : this.ageRange,
       status: data.status.present ? data.status.value : this.status,
       favorite: data.favorite.present ? data.favorite.value : this.favorite,
       body: data.body.present ? data.body.value : this.body,
@@ -516,8 +446,6 @@ class Script extends DataClass implements Insertable<Script> {
           ..write('id: $id, ')
           ..write('work: $work, ')
           ..write('memo: $memo, ')
-          ..write('gender: $gender, ')
-          ..write('ageRange: $ageRange, ')
           ..write('status: $status, ')
           ..write('favorite: $favorite, ')
           ..write('body: $body, ')
@@ -535,8 +463,6 @@ class Script extends DataClass implements Insertable<Script> {
     id,
     work,
     memo,
-    gender,
-    ageRange,
     status,
     favorite,
     body,
@@ -553,8 +479,6 @@ class Script extends DataClass implements Insertable<Script> {
           other.id == this.id &&
           other.work == this.work &&
           other.memo == this.memo &&
-          other.gender == this.gender &&
-          other.ageRange == this.ageRange &&
           other.status == this.status &&
           other.favorite == this.favorite &&
           other.body == this.body &&
@@ -569,8 +493,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
   final Value<int> id;
   final Value<String?> work;
   final Value<String?> memo;
-  final Value<Gender> gender;
-  final Value<AgeRange> ageRange;
   final Value<PracticeStatus> status;
   final Value<bool> favorite;
   final Value<String> body;
@@ -583,8 +505,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     this.id = const Value.absent(),
     this.work = const Value.absent(),
     this.memo = const Value.absent(),
-    this.gender = const Value.absent(),
-    this.ageRange = const Value.absent(),
     this.status = const Value.absent(),
     this.favorite = const Value.absent(),
     this.body = const Value.absent(),
@@ -598,8 +518,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     this.id = const Value.absent(),
     this.work = const Value.absent(),
     this.memo = const Value.absent(),
-    required Gender gender,
-    required AgeRange ageRange,
     required PracticeStatus status,
     required bool favorite,
     required String body,
@@ -608,9 +526,7 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     this.dialogue = const Value.absent(),
     this.myRole = const Value.absent(),
     this.note = const Value.absent(),
-  }) : gender = Value(gender),
-       ageRange = Value(ageRange),
-       status = Value(status),
+  }) : status = Value(status),
        favorite = Value(favorite),
        body = Value(body),
        createdAt = Value(createdAt),
@@ -619,8 +535,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     Expression<int>? id,
     Expression<String>? work,
     Expression<String>? memo,
-    Expression<String>? gender,
-    Expression<String>? ageRange,
     Expression<String>? status,
     Expression<bool>? favorite,
     Expression<String>? body,
@@ -634,8 +548,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
       if (id != null) 'id': id,
       if (work != null) 'work': work,
       if (memo != null) 'memo': memo,
-      if (gender != null) 'gender': gender,
-      if (ageRange != null) 'age_range': ageRange,
       if (status != null) 'status': status,
       if (favorite != null) 'favorite': favorite,
       if (body != null) 'body': body,
@@ -651,8 +563,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     Value<int>? id,
     Value<String?>? work,
     Value<String?>? memo,
-    Value<Gender>? gender,
-    Value<AgeRange>? ageRange,
     Value<PracticeStatus>? status,
     Value<bool>? favorite,
     Value<String>? body,
@@ -666,8 +576,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
       id: id ?? this.id,
       work: work ?? this.work,
       memo: memo ?? this.memo,
-      gender: gender ?? this.gender,
-      ageRange: ageRange ?? this.ageRange,
       status: status ?? this.status,
       favorite: favorite ?? this.favorite,
       body: body ?? this.body,
@@ -690,16 +598,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
     }
     if (memo.present) {
       map['memo'] = Variable<String>(memo.value);
-    }
-    if (gender.present) {
-      map['gender'] = Variable<String>(
-        $ScriptsTable.$convertergender.toSql(gender.value),
-      );
-    }
-    if (ageRange.present) {
-      map['age_range'] = Variable<String>(
-        $ScriptsTable.$converterageRange.toSql(ageRange.value),
-      );
     }
     if (status.present) {
       map['status'] = Variable<String>(
@@ -736,8 +634,6 @@ class ScriptsCompanion extends UpdateCompanion<Script> {
           ..write('id: $id, ')
           ..write('work: $work, ')
           ..write('memo: $memo, ')
-          ..write('gender: $gender, ')
-          ..write('ageRange: $ageRange, ')
           ..write('status: $status, ')
           ..write('favorite: $favorite, ')
           ..write('body: $body, ')
@@ -2240,8 +2136,6 @@ typedef $$ScriptsTableCreateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
   Value<String?> work,
   Value<String?> memo,
-  required Gender gender,
-  required AgeRange ageRange,
   required PracticeStatus status,
   required bool favorite,
   required String body,
@@ -2255,8 +2149,6 @@ typedef $$ScriptsTableUpdateCompanionBuilder = ScriptsCompanion Function({
   Value<int> id,
   Value<String?> work,
   Value<String?> memo,
-  Value<Gender> gender,
-  Value<AgeRange> ageRange,
   Value<PracticeStatus> status,
   Value<bool> favorite,
   Value<String> body,
@@ -2370,18 +2262,6 @@ class $$ScriptsTableFilterComposer
     column: $table.memo,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnWithTypeConverterFilters<Gender, Gender, String> get gender =>
-      $composableBuilder(
-        column: $table.gender,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnWithTypeConverterFilters<AgeRange, AgeRange, String> get ageRange =>
-      $composableBuilder(
-        column: $table.ageRange,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
 
   ColumnWithTypeConverterFilters<PracticeStatus, PracticeStatus, String>
   get status => $composableBuilder(
@@ -2549,16 +2429,6 @@ class $$ScriptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get gender => $composableBuilder(
-    column: $table.gender,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get ageRange => $composableBuilder(
-    column: $table.ageRange,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -2617,12 +2487,6 @@ class $$ScriptsTableAnnotationComposer
 
   GeneratedColumn<String> get memo =>
       $composableBuilder(column: $table.memo, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<Gender, String> get gender =>
-      $composableBuilder(column: $table.gender, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<AgeRange, String> get ageRange =>
-      $composableBuilder(column: $table.ageRange, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<PracticeStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -2786,8 +2650,6 @@ class $$ScriptsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String?> work = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
-                Value<Gender> gender = const Value.absent(),
-                Value<AgeRange> ageRange = const Value.absent(),
                 Value<PracticeStatus> status = const Value.absent(),
                 Value<bool> favorite = const Value.absent(),
                 Value<String> body = const Value.absent(),
@@ -2800,8 +2662,6 @@ class $$ScriptsTableTableManager
                 id: id,
                 work: work,
                 memo: memo,
-                gender: gender,
-                ageRange: ageRange,
                 status: status,
                 favorite: favorite,
                 body: body,
@@ -2816,8 +2676,6 @@ class $$ScriptsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String?> work = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
-                required Gender gender,
-                required AgeRange ageRange,
                 required PracticeStatus status,
                 required bool favorite,
                 required String body,
@@ -2830,8 +2688,6 @@ class $$ScriptsTableTableManager
                 id: id,
                 work: work,
                 memo: memo,
-                gender: gender,
-                ageRange: ageRange,
                 status: status,
                 favorite: favorite,
                 body: body,

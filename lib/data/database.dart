@@ -11,8 +11,6 @@ class Scripts extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get work => text().nullable()();
   TextColumn get memo => text().nullable()();
-  TextColumn get gender => textEnum<Gender>()();
-  TextColumn get ageRange => textEnum<AgeRange>()();
   TextColumn get status => textEnum<PracticeStatus>()();
   BoolColumn get favorite => boolean()();
   TextColumn get body => text()();
@@ -87,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -160,6 +158,11 @@ class AppDatabase extends _$AppDatabase {
           await m.dropColumn(scripts, column);
         }
       }
+    }
+    // 9: 성별·나이대 칸을 없앤다. 버전 3보다 오래된 DB는 위에서 지금 구조로 새로 만들었다
+    if (from < 9) {
+      await m.dropColumn(scripts, 'gender');
+      await m.dropColumn(scripts, 'age_range');
     }
   }
 
