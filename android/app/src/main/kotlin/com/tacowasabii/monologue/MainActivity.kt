@@ -1,6 +1,7 @@
 package com.tacowasabii.monologue
 
 import android.net.Uri
+import android.util.Log
 import android.view.WindowManager
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
@@ -33,6 +34,8 @@ class MainActivity : FlutterActivity() {
             val image = try {
                 InputImage.fromFilePath(this, Uri.fromFile(File(path)))
             } catch (e: Exception) {
+                // 앱에서는 "글자를 찾지 못했어요"로만 보이므로, 원인은 로그로 남긴다
+                Log.e(TAG, "OCR: cannot read image $path", e)
                 result.error("ocr_failed", e.message, null)
                 return@setMethodCallHandler
             }
@@ -52,7 +55,10 @@ class MainActivity : FlutterActivity() {
                     }
                     result.success(lines)
                 }
-                .addOnFailureListener { e -> result.error("ocr_failed", e.message, null) }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "OCR: recognition failed for $path", e)
+                    result.error("ocr_failed", e.message, null)
+                }
         }
         // 몰입 읽기 동안 화면이 꺼지지 않게 한다. Dart의 PlatformScreenAwake와 짝을 이룬다.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "monologue/screen").setMethodCallHandler { call, result ->
@@ -72,5 +78,9 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         if (recognizerDelegate.isInitialized()) recognizer.close()
         super.onDestroy()
+    }
+
+    private companion object {
+        const val TAG = "Monologue"
     }
 }
