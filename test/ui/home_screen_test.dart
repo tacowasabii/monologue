@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_draft.dart';
@@ -47,4 +48,17 @@ void main() {
     expect(find.text('갈매기'), findsNothing);
     await tester.runAsync(h.db.close);
   });
+
+  testWidgets(
+    '아이폰에서는 아래 탭을 낮춰 홈 인디케이터 위가 크게 비지 않게 한다',
+    (tester) async {
+      final h = (await tester.runAsync(Harness.create))!;
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await tester.pumpAndSettle();
+      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(bar.height, defaultTargetPlatform == TargetPlatform.iOS ? 60 : isNull);
+      await tester.runAsync(h.db.close);
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.iOS, TargetPlatform.android}),
+  );
 }

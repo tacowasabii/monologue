@@ -29,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
           children: const [ScriptListScreen(home: true), CollectionsScreen()],
         ),
         bottomNavigationBar: NavigationBar(
+          // 아이폰은 기본 높이(80) 아래에 홈 인디케이터 여백(34)이 더 붙어 글자 아래가 크게 빈다.
+          // 아이폰 기본 탭 바처럼 보이게 낮춘다
+          height: Theme.of(context).platform == TargetPlatform.iOS ? 60 : null,
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
           destinations: const [
