@@ -53,3 +53,4 @@ site/dist/
 site/.astro/
 site/.vercel/
 site/public/downloads/*.apk
+.gstack/
