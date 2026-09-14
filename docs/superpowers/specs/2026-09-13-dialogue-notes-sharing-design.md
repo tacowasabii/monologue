@@ -25,7 +25,7 @@
 | 공유 파일 형식 | 백업과 같은 zip(`backup.json` + `images/`)에 대본 1개를 담는다. 확장자만 `.monologue` |
 | 받기 | ① 카카오톡·파일 앱 등에서 `.monologue` 파일을 모노로그로 연다(iOS 문서 타입, Android VIEW/SEND 인텐트). ② 설정의 `파일에서 가져오기`(기존 `백업에서 복원`을 대체, `.zip`·`.monologue` 모두 받음). 가져오기 전에 확인하고, 대본 하나를 받았으면 끝난 뒤 그 대본을 연다. 항상 새 대본으로 추가한다 |
 | 백업 형식 | version 2. 대본 항목에 `dialogue`(bool), `myRole`, `notes`(객체)를 더한다. version 1 백업도 계속 복원한다(`dialogue`=false, 역할·노트 없음) |
-| DB | schemaVersion 4. `scripts`에 `dialogue` bool(기본 false), `my_role`, 노트 컬럼 8개(nullable text, `medium`은 enum 이름)를 추가한다. 버전 3에서 올라오면 컬럼만 더해 대본을 유지하고, 1·2는 기존 규칙대로 비우고 다시 만든다 |
+| DB | schemaVersion 6 (main의 4: 모음, 5: 연습 기록 다음). `scripts`에 `dialogue` bool(기본 false), `my_role`, 노트 컬럼 8개(nullable text, `medium`은 enum 이름)를 추가한다. 버전 3~5에서 올라오면 컬럼만 더해 대본·모음·연습 기록을 유지하고, 1·2는 기존 규칙대로 비우고 다시 만든다 |
 | 사용 방법 화면 | 설정 → 사용 방법에 대화 대본·대본 노트·몰입 읽기·대본 공유 항목을 더하고, 백업 항목의 `백업에서 복원`을 `파일에서 가져오기`로 고친다 |
 | 개인정보 | 서버 전송 없음 유지. 스토어 개인정보 표시 "데이터를 수집하지 않음" 유지. 새 권한 없음 |
 | 연습 상태 | UI에서는 이미 제거됨. DB 컬럼·백업 필드는 그대로 둔다 |
