@@ -182,11 +182,12 @@ ThemeData buildTheme(Brightness brightness) {
         visualDensity: VisualDensity.standard,
         side: WidgetStatePropertyAll(hairline),
         shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: radius12)),
+        // 고른 쪽은 칩과 같은 연한 자주 바탕 + 자주 글자(검은색·흰색으로 채우지 않는다)
         backgroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? scheme.onSurface : scheme.surfaceContainerLowest,
+          (s) => s.contains(WidgetState.selected) ? scheme.primaryContainer : scheme.surfaceContainerLowest,
         ),
         foregroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? scheme.surface : scheme.onSurfaceVariant,
+          (s) => s.contains(WidgetState.selected) ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
         ),
         textStyle: WidgetStatePropertyAll(text.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w600)),
       ),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/script_filter.dart';
-import '../common/pill_chip.dart';
 import '../design/design.dart';
 
 /// 시트에서 고르는 필터(태그) 중 적용된 개수
@@ -86,18 +85,9 @@ class FilterBar extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: Center(
-                        child: InputChip(
-                          label: Text(p.label),
-                          labelStyle: TextStyle(
-                            color: scheme.onPrimaryContainer,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          backgroundColor: scheme.primaryContainer,
-                          side: BorderSide.none,
-                          deleteIcon: const Icon(Icons.close_rounded, size: 16),
-                          deleteIconColor: scheme.onPrimaryContainer,
-                          deleteButtonTooltipMessage: '${p.label} 해제',
+                        child: AppTagChip(
+                          label: p.label,
+                          deleteTooltip: '${p.label} 해제',
                           onDeleted: () => onChanged(p.without),
                           onPressed: () => openFilterSheet(context, filter: filter, tags: tags, onChanged: onChanged),
                         ),
@@ -158,9 +148,9 @@ class _FilterSheetState extends State<_FilterSheet> {
     ScriptFilter Function(ScriptFilter draft, T? v) apply,
   ) =>
       [
-        PillChip(label: '전체', selected: value == null, onSelected: (_) => _set(apply(_draft, null))),
+        AppChoiceChip(label: '전체', selected: value == null, onSelected: (_) => _set(apply(_draft, null))),
         for (final o in options)
-          PillChip(
+          AppChoiceChip(
             label: labelOf(o),
             selected: o == value,
             onSelected: (_) => _set(apply(_draft, o == value ? null : o)),

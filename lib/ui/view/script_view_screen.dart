@@ -6,7 +6,6 @@ import '../../domain/dialogue.dart';
 import '../../settings/reading_settings.dart';
 import '../common/adaptive.dart';
 import '../common/korean_text.dart';
-import '../common/pill_chip.dart';
 import '../design/design.dart';
 import '../edit/script_edit_screen.dart';
 import '../notes/notes_screen.dart';
@@ -292,7 +291,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                           runSpacing: 4,
                           children: [
                             for (final name in speakers)
-                              PillChip(
+                              AppChoiceChip(
                                 label: name,
                                 selected: name == focus,
                                 onSelected: (_) => services.repo.setMyRole(s.id, name == focus ? null : name),

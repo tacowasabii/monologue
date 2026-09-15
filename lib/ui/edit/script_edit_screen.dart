@@ -8,7 +8,6 @@ import '../../domain/enums.dart';
 import '../../domain/script_draft.dart';
 import '../capture/capture_flow.dart';
 import '../common/adaptive.dart';
-import '../common/pill_chip.dart';
 import '../common/section_header.dart';
 import '../design/design.dart';
 import '../home/collection_name_dialog.dart';
@@ -320,7 +319,7 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                             runSpacing: AppSpace.sm,
                             children: [
                               for (final c in all)
-                                PillChip(
+                                AppChoiceChip(
                                   label: c.name,
                                   selected: _collectionIds.contains(c.id),
                                   onSelected: (_) => _toggleCollection(c.id),

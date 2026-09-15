@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_filter.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/ui/common/korean_text.dart';
-import 'package:monologue/ui/common/pill_chip.dart';
 import 'package:monologue/ui/design/design.dart';
 import 'package:monologue/ui/edit/script_edit_screen.dart';
 
@@ -94,7 +93,7 @@ void main() {
     await tester.pumpWidget(h.wrap(ScriptEditScreen(initialBody: '본문', initialCollectionIds: [audition])));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('1차 오디션'));
-    expect(tester.widget<PillChip>(find.widgetWithText(PillChip, '1차 오디션')).selected, isTrue);
+    expect(tester.widget<AppChoiceChip>(find.widgetWithText(AppChoiceChip, '1차 오디션')).selected, isTrue);
     await tester.runAsync(h.db.close);
   });
 
@@ -107,7 +106,7 @@ void main() {
     await tester.ensureVisible(button);
     expect(find.text('아직 모음이 없어요'), findsOneWidget);
     // 칩 줄에는 모음만 있다
-    expect(find.widgetWithText(PillChip, '새 모음'), findsNothing);
+    expect(find.widgetWithText(AppChoiceChip, '새 모음'), findsNothing);
 
     await tester.tap(button);
     await tester.pumpAndSettle();
@@ -117,7 +116,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('아직 모음이 없어요'), findsNothing);
-    expect(tester.widget<PillChip>(find.widgetWithText(PillChip, '워크숍')).selected, isTrue);
+    expect(tester.widget<AppChoiceChip>(find.widgetWithText(AppChoiceChip, '워크숍')).selected, isTrue);
     await tester.runAsync(h.db.close);
   });
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../design/design.dart';
+
 /// 쉼표나 완료 키로 태그를 추가하고, 기존 태그를 자동완성으로 제안한다.
 class TagInput extends StatefulWidget {
   const TagInput({super.key, required this.tags, required this.suggestions, required this.onChanged});
@@ -45,19 +47,11 @@ class _TagInputState extends State<TagInput> {
       children: [
         if (widget.tags.isNotEmpty) ...[
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: AppSpace.sm,
+            runSpacing: AppSpace.sm,
             children: [
               for (final t in widget.tags)
-                InputChip(
-                  label: Text('#$t'),
-                  labelStyle: TextStyle(color: scheme.onPrimaryContainer, fontSize: 13, fontWeight: FontWeight.w600),
-                  backgroundColor: scheme.primaryContainer,
-                  side: BorderSide.none,
-                  deleteIcon: const Icon(Icons.close_rounded, size: 16),
-                  deleteIconColor: scheme.onPrimaryContainer,
-                  onDeleted: () => widget.onChanged([...widget.tags]..remove(t)),
-                ),
+                AppTagChip(label: '#$t', onDeleted: () => widget.onChanged([...widget.tags]..remove(t))),
             ],
           ),
           const SizedBox(height: 10),
@@ -119,16 +113,10 @@ class _TagInputState extends State<TagInput> {
           Text('만든 태그', style: theme.textTheme.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 6),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: AppSpace.sm,
+            runSpacing: AppSpace.sm,
             children: [
-              for (final s in _unused)
-                ActionChip(
-                  label: Text('#$s'),
-                  labelStyle: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => _add(s),
-                ),
+              for (final s in _unused) AppSuggestionChip(label: '#$s', onPressed: () => _add(s)),
             ],
           ),
         ],
