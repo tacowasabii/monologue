@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'design/tokens.dart';
+
 /// 제목과 대본 본문에 쓰는 명조체. 번들 폰트에 없는 글자는 시스템 글꼴로 대체된다.
 const serifFamily = 'GowunBatang';
 
@@ -101,8 +103,8 @@ ThemeData buildTheme(Brightness brightness) {
     bodyMedium: text.bodyMedium?.copyWith(letterSpacing: -0.1),
   );
   final hairline = BorderSide(color: scheme.outlineVariant);
-  final radius12 = BorderRadius.circular(12);
-  final radius16 = BorderRadius.circular(16);
+  final radius12 = BorderRadius.circular(AppRadius.small);
+  final radius16 = BorderRadius.circular(AppRadius.medium);
 
   return base.copyWith(
     scaffoldBackgroundColor: scheme.surface,
@@ -207,7 +209,7 @@ ThemeData buildTheme(Brightness brightness) {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: hairline),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.large), side: hairline),
     ),
     listTileTheme: ListTileThemeData(
       iconColor: scheme.onSurfaceVariant,
@@ -222,13 +224,13 @@ ThemeData buildTheme(Brightness brightness) {
       showDragHandle: true,
       dragHandleColor: scheme.outline.withValues(alpha: 0.5),
       dragHandleSize: const Size(36, 4),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet))),
     ),
     dialogTheme: DialogThemeData(
       // 창이 뒤 화면과 같은 색이면 어두운 화면에서 경계가 흐려져 떠 보이지 않는다
       backgroundColor: brightness == Brightness.dark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.dialog)),
       titleTextStyle: serif(text.titleLarge, size: 20),
       contentTextStyle: text.bodyMedium?.copyWith(fontSize: 15, height: 1.55, color: scheme.onSurfaceVariant),
     ),

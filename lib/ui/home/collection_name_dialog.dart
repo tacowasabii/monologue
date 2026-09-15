@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../design/design.dart';
+
 /// 모음 이름을 묻는다. 비었거나 [takenNames]에 있는 이름이면 확인 버튼을 막는다. 취소하면 null.
 Future<String?> askCollectionName(
   BuildContext context, {
@@ -53,8 +55,8 @@ class _CollectionNameDialogState extends State<_CollectionNameDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        title: Text(widget.title),
+  Widget build(BuildContext context) => AppDialog(
+        title: widget.title,
         content: TextField(
           controller: _controller,
           autofocus: true,
@@ -67,8 +69,8 @@ class _CollectionNameDialogState extends State<_CollectionNameDialog> {
           onSubmitted: (_) => _submit(),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(onPressed: _valid ? _submit : null, child: Text(widget.confirmLabel)),
+          AppAction('취소', kind: AppActionKind.secondary, onPressed: () => Navigator.pop(context)),
+          AppAction(widget.confirmLabel, onPressed: _valid ? _submit : null),
         ],
       );
 }

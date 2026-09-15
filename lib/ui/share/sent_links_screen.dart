@@ -5,7 +5,7 @@ import '../../app_scope.dart';
 import '../../share/sent_link.dart';
 import '../../share/share_client.dart';
 import '../common/adaptive.dart';
-import '../common/confirm_dialog.dart';
+import '../design/design.dart';
 import '../common/korean_text.dart';
 
 /// 설정 → 보낸 링크. 7일 동안 링크를 다시 복사하거나 먼저 지운다.

@@ -133,7 +133,17 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('모음 안에서는 정렬 버튼 대신 길게 눌러 끌어서 순서를 바꾸고, 바꾼 순서를 저장한다', (tester) async {
+  Finder cardOf(String work) => find.ancestor(of: find.text(work), matching: find.byType(Card));
+
+  /// 파일 삭제 같은 실제 입출력이 끝나도록 실제 시간으로 기다렸다가 화면을 갱신한다.
+  Future<void> settleIo(WidgetTester tester) async {
+    for (var i = 0; i < 15; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+  }
+
+  testWidgets('모음 안에서는 길게 눌러 편집 모드로 들어가 손잡이를 끌어 순서를 바꾸고, 바꾼 순서를 저장한다', (tester) async {
     usePhoneSize(tester);
     final h = (await tester.runAsync(Harness.create))!;
     final repo = h.services.repo;
@@ -146,17 +156,23 @@ void main() {
     }))!;
     await tester.pumpWidget(h.wrap(ScriptListScreen(collection: audition)));
     await tester.pumpAndSettle();
-    expect(find.text('대본 3편 · 길게 눌러 끌면 순서를 바꿔요'), findsOneWidget);
+    expect(find.text('대본 3편 · 길게 누르면 고르거나 순서를 바꿔요'), findsOneWidget);
     expect(find.byTooltip('정렬 · 최근 수정순'), findsNothing);
+    expect(find.byIcon(Icons.drag_handle_rounded), findsNothing);
     // 새로 넣은 대본이 맨 위
     expect(top(tester, 'C'), lessThan(top(tester, 'B')));
     expect(top(tester, 'B'), lessThan(top(tester, 'A')));
 
-    // 맨 위의 C를 A 아래로 끌어내린다
-    final start = tester.getCenter(find.text('C'));
-    final target = tester.getBottomLeft(find.ancestor(of: find.text('A'), matching: find.byType(Card))).dy + 40;
+    await tester.longPress(find.text('C'));
+    await tester.pumpAndSettle();
+    expect(find.text('대본 3편 · ≡를 끌어 순서를 바꿔요'), findsOneWidget);
+    expect(find.byIcon(Icons.drag_handle_rounded), findsNWidgets(3));
+
+    // 맨 위 C의 손잡이를 A 아래로 끌어내린다
+    final start = tester.getCenter(find.descendant(of: cardOf('C'), matching: find.byIcon(Icons.drag_handle_rounded)));
+    final target = tester.getBottomLeft(cardOf('A')).dy + 40;
     final gesture = await tester.startGesture(start);
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 50));
     for (var i = 1; i <= 10; i++) {
       await gesture.moveTo(Offset(start.dx, start.dy + (target - start.dy) * i / 10));
       await tester.pump(const Duration(milliseconds: 16));
@@ -170,11 +186,110 @@ void main() {
     }
 
     expectOrder();
+    await tester.tap(find.byTooltip('편집 끝내기'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.drag_handle_rounded), findsNothing);
     // 화면을 새로 열어도 저장한 순서 그대로다
     await tester.pumpWidget(const SizedBox());
     await tester.pumpWidget(h.wrap(ScriptListScreen(collection: audition)));
     await tester.pumpAndSettle();
     expectOrder();
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('대본을 길게 누르면 편집 모드가 되고, 여러 편을 골라 확인한 뒤 한꺼번에 지운다', (tester) async {
+    usePhoneSize(tester);
+    final h = (await tester.runAsync(Harness.create))!;
+    final repo = h.services.repo;
+    await tester.runAsync(() async {
+      for (final work in ['햄릿', '갈매기', '벚꽃 동산']) {
+        await repo.create(ScriptDraft(work: work, body: 'x'));
+      }
+    });
+    await tester.pumpWidget(h.wrap(const ScriptListScreen()));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('햄릿'));
+    await tester.pumpAndSettle();
+    expect(find.text('1편 선택'), findsOneWidget);
+    expect(find.text('대본 추가'), findsNothing);
+    // 모음 밖에서는 지우기만 있다
+    expect(find.text('모음에서 빼기'), findsNothing);
+
+    // 편집 중에는 카드를 누르면 열지 않고 고른다
+    await tester.tap(find.text('갈매기'));
+    await tester.pumpAndSettle();
+    expect(find.text('2편 선택'), findsOneWidget);
+    expect(find.byTooltip('선택 해제'), findsNWidgets(2));
+
+    await tester.tap(find.widgetWithText(FilledButton, '삭제'));
+    await tester.pumpAndSettle();
+    expect(find.text('대본 2편을 삭제할까요?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, '삭제').last);
+    await tester.pump();
+    await settleIo(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('햄릿'), findsNothing);
+    expect(find.text('갈매기'), findsNothing);
+    expect(find.text('벚꽃 동산'), findsOneWidget);
+    expect(find.text('대본 2편을 삭제했어요'), findsOneWidget);
+    expect(find.text('대본 추가'), findsOneWidget);
+    expect(await tester.runAsync(() => repo.watchScriptCount().first), 1);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('편집 모드에서 모두 고르거나 풀 수 있고, 뒤로 가면 화면을 닫지 않고 편집만 끝낸다', (tester) async {
+    usePhoneSize(tester);
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() async {
+      await h.services.repo.create(const ScriptDraft(work: 'A', body: 'x'));
+      await h.services.repo.create(const ScriptDraft(work: 'B', body: 'x'));
+    });
+    await tester.pumpWidget(h.wrap(const ScriptListScreen()));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('A'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('모두 선택'));
+    await tester.pumpAndSettle();
+    expect(find.text('2편 선택'), findsOneWidget);
+
+    await tester.tap(find.text('선택 해제'));
+    await tester.pumpAndSettle();
+    expect(find.text('대본 고르기'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, '삭제')).onPressed, isNull);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('대본 고르기'), findsNothing);
+    expect(find.text('대본 추가'), findsOneWidget);
+    expect(find.text('A'), findsOneWidget);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('모음 안 편집 모드에서 모음에서 빼면 목록에서만 빠지고 대본은 남는다', (tester) async {
+    usePhoneSize(tester);
+    final h = (await tester.runAsync(Harness.create))!;
+    final repo = h.services.repo;
+    final audition = (await tester.runAsync(() async {
+      final id = await repo.createCollection('1차 오디션');
+      await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [id]));
+      await repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [id]));
+      return repo.findCollection('1차 오디션');
+    }))!;
+    await tester.pumpWidget(h.wrap(ScriptListScreen(collection: audition)));
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('A'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, '모음에서 빼기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('A'), findsNothing);
+    expect(find.text('B'), findsOneWidget);
+    expect(find.textContaining('모음에서 1편을 뺐어요'), findsOneWidget);
+    expect(await tester.runAsync(() => repo.watchScriptCount().first), 2);
     await tester.runAsync(h.db.close);
   });
 

@@ -4,6 +4,7 @@ import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/script_filter.dart';
 import '../common/pill_chip.dart';
+import '../design/design.dart';
 
 /// 시트에서 고르는 필터(태그) 중 적용된 개수
 int sheetFilterCount(ScriptFilter f) => f.tag == null ? 0 : 1;
@@ -198,14 +199,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(child: Text('필터', style: theme.textTheme.titleLarge)),
-                TextButton(
-                  onPressed: sheetFilterCount(d) == 0 ? null : () => _set(_clearSheetFilters(d)),
-                  child: const Text('초기화'),
-                ),
-              ],
+            AppSheetHeader(
+              title: '필터',
+              trailing: TextButton(
+                onPressed: sheetFilterCount(d) == 0 ? null : () => _set(_clearSheetFilters(d)),
+                child: const Text('초기화'),
+              ),
             ),
             Flexible(
               child: SingleChildScrollView(

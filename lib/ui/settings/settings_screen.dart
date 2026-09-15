@@ -8,9 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app_scope.dart';
 import '../../backup/backup_service.dart';
 import '../common/adaptive.dart';
-import '../common/confirm_dialog.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
+import '../design/design.dart';
 import '../share/sent_links_screen.dart';
 import 'how_to_screen.dart';
 
@@ -43,27 +43,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('백업 내보내기'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(keepWords('대본과 원본 사진은 항상 들어가요.')),
-              const SizedBox(height: 8),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: include,
-                onChanged: (v) => setDialogState(() => include = v ?? false),
-                title: const Text('녹음·영상도 넣기'),
-                subtitle: Text(keepWords('약 ${formatBytes(mediaBytes)} · 파일이 커서 만들고 옮기는 데 오래 걸릴 수 있어요')),
-              ),
-            ],
+        builder: (context, setDialogState) => AppDialog(
+          title: '백업 내보내기',
+          message: '대본과 원본 사진은 항상 들어가요.',
+          content: CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            value: include,
+            onChanged: (v) => setDialogState(() => include = v ?? false),
+            title: const Text('녹음·영상도 넣기'),
+            subtitle: Text(keepWords('약 ${formatBytes(mediaBytes)} · 파일이 커서 만들고 옮기는 데 오래 걸릴 수 있어요')),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-            TextButton(onPressed: () => Navigator.pop(context, include), child: const Text('내보내기')),
+            AppAction('취소', kind: AppActionKind.secondary, onPressed: () => Navigator.pop(context)),
+            AppAction('내보내기', onPressed: () => Navigator.pop(context, include)),
           ],
         ),
       ),

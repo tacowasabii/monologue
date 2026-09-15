@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:monologue/ui/common/confirm_dialog.dart';
 import 'package:monologue/ui/common/korean_text.dart';
+import 'package:monologue/ui/design/design.dart';
 import 'package:monologue/ui/theme.dart';
 
 void main() {
@@ -58,5 +58,53 @@ void main() {
     final button = tester.widget<FilledButton>(find.byType(FilledButton));
     final context = tester.element(find.byType(FilledButton));
     expect(button.style?.backgroundColor?.resolve({}), Theme.of(context).colorScheme.error);
+  });
+
+  Future<void> pumpDialog(WidgetTester tester, AppDialog dialog) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(Brightness.light),
+      home: Builder(
+        builder: (context) => TextButton(
+          onPressed: () => showDialog<void>(context: context, builder: (_) => dialog),
+          child: const Text('열기'),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('버튼이 셋이면 위에서부터 같은 폭으로 쌓고, 가장 약한 버튼은 글자만 둔다', (tester) async {
+    await pumpDialog(
+      tester,
+      AppDialog(
+        title: '노트도 함께 보낼까요?',
+        actions: [
+          AppAction('함께 보내기', onPressed: () {}),
+          AppAction('노트 빼고 보내기', kind: AppActionKind.secondary, onPressed: () {}),
+          AppAction('취소', kind: AppActionKind.quiet, onPressed: () {}),
+        ],
+      ),
+    );
+    final primary = find.widgetWithText(FilledButton, '함께 보내기');
+    final secondary = find.widgetWithText(OutlinedButton, '노트 빼고 보내기');
+    final quiet = find.widgetWithText(TextButton, '취소');
+    expect(tester.getTopLeft(primary).dy, lessThan(tester.getTopLeft(secondary).dy));
+    expect(tester.getTopLeft(secondary).dy, lessThan(tester.getTopLeft(quiet).dy));
+    expect(tester.getSize(primary).width, tester.getSize(secondary).width);
+    expect(tester.getSize(secondary).width, tester.getSize(quiet).width);
+  });
+
+  testWidgets('확인할 수 없는 동안에는 권하는 버튼을 누를 수 없다', (tester) async {
+    await pumpDialog(
+      tester,
+      const AppDialog(
+        title: '새 모음',
+        content: TextField(),
+        actions: [AppAction('만들기', onPressed: null)],
+      ),
+    );
+    expect(find.byType(TextField), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, '만들기')).onPressed, isNull);
   });
 }

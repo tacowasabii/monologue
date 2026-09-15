@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/settings/home_view_settings.dart';
 import 'package:monologue/ui/common/korean_text.dart';
+import 'package:monologue/ui/design/design.dart';
 import 'package:monologue/ui/home/collections_screen.dart';
 
 import 'test_harness.dart';
@@ -14,7 +15,7 @@ void usePhoneSize(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-Finder get nameField => find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField));
+Finder get nameField => find.descendant(of: find.byType(AppDialog), matching: find.byType(TextField));
 
 void main() {
   testWidgets('첫 화면은 전체와 모음을 대본 수와 함께 보여 주고, 모음을 누르면 그 대본만 보인다', (tester) async {
@@ -66,19 +67,21 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('새 모음을 만들 수 있고, 이미 있는 이름은 막는다', (tester) async {
+  testWidgets('떠 있는 새 모음 버튼으로 모음을 만들 수 있고, 이미 있는 이름은 막는다', (tester) async {
     usePhoneSize(tester);
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() => h.services.repo.createCollection('입시'));
     await tester.pumpWidget(h.wrap(const CollectionsScreen()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('새 모음'));
+    await tester.tap(find.widgetWithText(FloatingActionButton, '새 모음'));
+    await tester.pump();
     await tester.pumpAndSettle();
+    expect(find.text('새 모음'), findsNWidgets(2)); // 버튼과 창 제목
     await tester.enterText(nameField, '입시');
     await tester.pump();
     expect(find.text('이미 있는 모음이에요'), findsOneWidget);
-    expect(tester.widget<TextButton>(find.widgetWithText(TextButton, '만들기')).onPressed, isNull);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, '만들기')).onPressed, isNull);
 
     await tester.enterText(nameField, '1차 오디션');
     await tester.pump();
@@ -127,7 +130,8 @@ void main() {
     expect(find.byType(SliverGrid), findsNothing);
     expect(find.widgetWithText(ListTile, '전체'), findsOneWidget);
     expect(find.widgetWithText(ListTile, '1차 오디션'), findsOneWidget);
-    expect(find.widgetWithText(ListTile, '새 모음'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, '새 모음'), findsNothing);
+    expect(find.widgetWithText(FloatingActionButton, '새 모음'), findsOneWidget);
     expect(find.text('1편'), findsNWidgets(2)); // 전체, 1차 오디션
     expect(h.services.homeView.layout, HomeLayout.list);
 

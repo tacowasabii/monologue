@@ -6,9 +6,9 @@ import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../../domain/enums.dart';
 import '../../practice/media_picker.dart';
-import '../common/confirm_dialog.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
+import '../design/design.dart';
 import 'record_screen.dart';
 import 'video_player_screen.dart';
 
@@ -49,31 +49,13 @@ class _PracticeSectionState extends State<PracticeSection> {
   void _snack(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
   /// 아래에서 올라오는 선택 창. 고른 값을 돌려주고, 닫으면 null.
-  Future<T?> _choose<T>(String title, List<(T, IconData, String, String?)> options) => showModalBottomSheet<T>(
-        context: context,
-        showDragHandle: true,
-        builder: (context) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(title, style: Theme.of(context).textTheme.titleLarge),
-                ),
-                for (final (value, icon, label, detail) in options)
-                  ListTile(
-                    leading: Icon(icon),
-                    title: Text(label),
-                    subtitle: detail == null ? null : Text(detail),
-                    onTap: () => Navigator.pop(context, value),
-                  ),
-              ],
-            ),
-          ),
-        ),
+  Future<T?> _choose<T>(String title, List<(T, IconData, String, String?)> options) => showAppSheet<T>(
+        context,
+        title: title,
+        children: (context) => [
+          for (final (value, icon, label, detail) in options)
+            AppSheetTile(icon: icon, title: label, subtitle: detail, onTap: () => Navigator.pop(context, value)),
+        ],
       );
 
   Future<void> _add() async {

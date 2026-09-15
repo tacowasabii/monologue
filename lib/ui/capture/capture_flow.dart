@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../app_scope.dart';
 import '../../ocr/assemble_text.dart';
 import '../common/adaptive.dart';
+import '../design/design.dart';
 import 'pick_paragraphs_screen.dart';
 
 class CaptureResult {
@@ -26,49 +27,31 @@ final _picker = ImagePicker();
 
 /// 사진 선택 → 순서 정렬 → 글자 인식. 취소하면 null.
 Future<CaptureResult?> runCapture(BuildContext context, {bool allowManual = true}) async {
-  final source = await showModalBottomSheet<_Source>(
-    context: context,
-    showDragHandle: true,
-    builder: (context) {
-      final theme = Theme.of(context);
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(allowManual ? '대본 추가' : '사진으로 이어쓰기', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 4),
-              Text(
-                '대본이 담긴 사진을 고르면 글자를 읽어 와요',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 18),
-              _SourceTile(
-                icon: Icons.photo_library_outlined,
-                title: '사진첩에서 선택',
-                subtitle: '여러 장을 골라 하나로 합칠 수 있어요',
-                onTap: () => Navigator.pop(context, _Source.gallery),
-              ),
-              _SourceTile(
-                icon: Icons.photo_camera_outlined,
-                title: '카메라로 촬영',
-                subtitle: '종이 대본을 바로 찍어요',
-                onTap: () => Navigator.pop(context, _Source.camera),
-              ),
-              if (allowManual)
-                _SourceTile(
-                  icon: Icons.edit_note_rounded,
-                  title: '직접 입력',
-                  subtitle: '사진 없이 글로 적어요',
-                  onTap: () => Navigator.pop(context, _Source.manual),
-                ),
-            ],
-          ),
+  final source = await showAppSheet<_Source>(
+    context,
+    title: allowManual ? '대본 추가' : '사진으로 이어쓰기',
+    subtitle: '대본이 담긴 사진을 고르면 글자를 읽어 와요',
+    children: (context) => [
+      AppSheetTile(
+        icon: Icons.photo_library_outlined,
+        title: '사진첩에서 선택',
+        subtitle: '여러 장을 골라 하나로 합칠 수 있어요',
+        onTap: () => Navigator.pop(context, _Source.gallery),
+      ),
+      AppSheetTile(
+        icon: Icons.photo_camera_outlined,
+        title: '카메라로 촬영',
+        subtitle: '종이 대본을 바로 찍어요',
+        onTap: () => Navigator.pop(context, _Source.camera),
+      ),
+      if (allowManual)
+        AppSheetTile(
+          icon: Icons.edit_note_rounded,
+          title: '직접 입력',
+          subtitle: '사진 없이 글로 적어요',
+          onTap: () => Navigator.pop(context, _Source.manual),
         ),
-      );
-    },
+    ],
   );
   if (source == null || !context.mounted) return null;
   if (source == _Source.manual) return const CaptureResult(text: '', imagePaths: []);
@@ -96,44 +79,6 @@ Future<List<String>> _pick(BuildContext context, _Source source) async {
       ));
     }
     return const [];
-  }
-}
-
-class _SourceTile extends StatelessWidget {
-  const _SourceTile({required this.icon, required this.title, required this.subtitle, required this.onTap});
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: scheme.surfaceContainerLowest,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          leading: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, size: 22, color: scheme.onPrimaryContainer),
-          ),
-          title: Text(title),
-          subtitle: Text(subtitle),
-          trailing: Icon(Icons.chevron_right_rounded, color: scheme.outline),
-          onTap: onTap,
-        ),
-      ),
-    );
   }
 }
 
@@ -167,8 +112,8 @@ class _ArrangeScreenState extends State<_ArrangeScreen> {
       barrierDismissible: false,
       builder: (_) => PopScope(
         canPop: false,
-        child: AlertDialog(
-          title: const Text('글자를 읽는 중이에요'),
+        child: AppDialog(
+          title: '글자를 읽는 중이에요',
           content: ValueListenableBuilder<int>(
             valueListenable: progress,
             builder: (context, done, _) => Column(

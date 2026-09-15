@@ -5,7 +5,7 @@ import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../share/share_client.dart';
 import '../../share/share_payload.dart';
-import '../common/confirm_dialog.dart';
+import '../design/design.dart';
 
 /// 대본 화면 ⋯ 메뉴의 "링크로 공유". [anchor]는 iPad에서 공유 시트를 띄울 자리.
 Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect? anchor}) async {
@@ -30,12 +30,13 @@ Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect?
     if (!context.mounted) return;
     final choice = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('노트도 함께 보낼까요?'),
+      builder: (context) => AppDialog(
+        title: '노트도 함께 보낼까요?',
+        message: '함께 보내면 링크를 가진 사람도 노트를 볼 수 있어요.',
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('노트 빼고 보내기')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('함께 보내기')),
+          AppAction('함께 보내기', onPressed: () => Navigator.pop(context, true)),
+          AppAction('노트 빼고 보내기', kind: AppActionKind.secondary, onPressed: () => Navigator.pop(context, false)),
+          AppAction('취소', kind: AppActionKind.quiet, onPressed: () => Navigator.pop(context)),
         ],
       ),
     );

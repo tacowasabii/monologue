@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/database.dart';
 import '../common/adaptive.dart';
-import '../common/confirm_dialog.dart';
+import '../design/design.dart';
 
 /// 대본에 대해 형식 없이 자유롭게 적는 노트. 저장 버튼을 누를 때만 반영한다.
 class NotesScreen extends StatefulWidget {

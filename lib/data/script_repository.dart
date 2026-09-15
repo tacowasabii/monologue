@@ -311,6 +311,13 @@ class ScriptRepository {
     }
   }
 
+  /// 목록 편집 모드에서 고른 대본을 한꺼번에 지운다. 원본 사진과 연습 기록도 함께 지운다.
+  Future<void> deleteAll(Iterable<int> ids) async {
+    for (final id in ids) {
+      await delete(id);
+    }
+  }
+
   JoinedSelectStatement<$ScriptTagsTable, dynamic> _distinctTags() =>
       db.selectOnly(db.scriptTags, distinct: true)..addColumns([db.scriptTags.tag]);
 
@@ -352,6 +359,13 @@ class ScriptRepository {
 
   Future<void> renameCollection(int id, String name) =>
       (db.update(db.collections)..where((c) => c.id.equals(id))).write(CollectionsCompanion(name: Value(name.trim())));
+
+  /// 대본은 남기고 [collectionId] 모음에서만 뺀다. 남은 대본의 순서는 그대로다.
+  Future<void> removeFromCollection(int collectionId, Iterable<int> scriptIds) async {
+    await (db.delete(db.scriptCollections)
+          ..where((sc) => sc.collectionId.equals(collectionId) & sc.scriptId.isIn(scriptIds)))
+        .go();
+  }
 
   /// 모음만 지우고 안에 든 대본은 남긴다.
   Future<void> deleteCollection(int id) => db.transaction(() async {

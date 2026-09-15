@@ -5,9 +5,9 @@ import '../../data/script_repository.dart';
 import '../../domain/dialogue.dart';
 import '../../settings/reading_settings.dart';
 import '../common/adaptive.dart';
-import '../common/confirm_dialog.dart';
 import '../common/korean_text.dart';
 import '../common/pill_chip.dart';
+import '../design/design.dart';
 import '../edit/script_edit_screen.dart';
 import '../notes/notes_screen.dart';
 import '../practice/practice_section.dart';
@@ -83,8 +83,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('글자 크기', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 16),
+                  const AppSheetHeader(title: '글자 크기'),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),

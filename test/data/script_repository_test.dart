@@ -116,6 +116,21 @@ void main() {
     expect(await repo.allTags(), isEmpty);
   });
 
+  test('deleteAll은 고른 대본만 사진·연습 기록 파일과 함께 지운다', () async {
+    final a = await repo.create(const ScriptDraft(work: 'A', body: 'x'), imagePaths: [await fakeImage('a.png')]);
+    final b = await repo.create(const ScriptDraft(work: 'B', body: 'x'));
+    await repo.create(const ScriptDraft(work: 'C', body: 'x'));
+    final image = images.pathOf((await repo.watchScript(a).first)!.images.single.fileName);
+    final take = media.newFileName('.m4a');
+    File(media.pathOf(take)).writeAsBytesSync([1, 2, 3]);
+    await repo.addMedia(b, kind: MediaKind.audio, storedFileName: take);
+
+    await repo.deleteAll([a, b]);
+    expect(await works(const ScriptFilter()), ['C']);
+    expect(File(image).existsSync(), isFalse);
+    expect(File(media.pathOf(take)).existsSync(), isFalse);
+  });
+
   group('모음', () {
     test('대본을 여러 모음에 넣고, 모음으로 거르고, 대본 수를 센다', () async {
       final audition = await repo.createCollection(' 1차 오디션 ');
@@ -159,6 +174,18 @@ void main() {
       expect(await repo.collectionIdFor('1차 오디션'), audition);
       expect(await repo.collectionIdFor('입시'), isNot(audition));
       expect(await repo.watchCollections().first, hasLength(2));
+    });
+
+    test('removeFromCollection은 그 모음에서만 빼고, 대본과 다른 모음의 자리는 남긴다', () async {
+      final audition = await repo.createCollection('1차 오디션');
+      final workshop = await repo.createCollection('워크숍');
+      final a = await repo.create(ScriptDraft(work: 'A', body: 'x', collectionIds: [audition, workshop]));
+      await repo.create(ScriptDraft(work: 'B', body: 'x', collectionIds: [audition]));
+
+      await repo.removeFromCollection(audition, [a]);
+      expect(await works(ScriptFilter(collectionId: audition)), ['B']);
+      expect(await works(ScriptFilter(collectionId: workshop)), ['A']);
+      expect(await works(const ScriptFilter()), unorderedEquals(['A', 'B']));
     });
   });
 

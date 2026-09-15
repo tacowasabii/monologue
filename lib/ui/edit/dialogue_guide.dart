@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../domain/dialogue.dart';
 import '../common/korean_text.dart';
+import '../design/design.dart';
 import '../theme.dart';
 import '../view/script_body.dart';
 
@@ -68,8 +69,7 @@ class DialogueCheck extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
           children: [
-            Text('대본 화면에서 이렇게 보여요', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 20),
+            const AppSheetHeader(title: '대본 화면에서 이렇게 보여요'),
             ScriptBody(body: body, dialogue: true, fontSize: fontSize, selectable: false),
           ],
         ),

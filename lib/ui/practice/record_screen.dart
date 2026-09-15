@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../practice/voice_recorder.dart';
 import '../common/adaptive.dart';
-import '../common/confirm_dialog.dart';
+import '../design/design.dart';
 import '../common/format.dart';
 import '../common/korean_text.dart';
 import '../theme.dart';

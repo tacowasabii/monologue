@@ -265,23 +265,25 @@ class CollectionsArt extends StatelessWidget {
             _Folder(icon: Icons.star_rounded, iconColor: favoriteColor(scheme), name: '즐겨찾기', count: '3편'),
             const _Folder(icon: Icons.folder_rounded, name: '1차 오디션', count: '5편'),
             const _Folder(icon: Icons.folder_rounded, name: '워크숍', count: '2편'),
-            Container(
+            // 모음 탭 오른쪽 아래에 떠 있는 '새 모음' 버튼
+            SizedBox(
               width: 128,
               height: 90,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: scheme.outline.withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_rounded, size: 20, color: scheme.onSurfaceVariant),
-                  const SizedBox(height: 2),
-                  _Text(
-                    '새 모음',
-                    style: _style(context, 11.5, weight: FontWeight.w600, color: scheme.onSurfaceVariant),
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: ShapeDecoration(color: scheme.onSurface, shape: const StadiumBorder()),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_rounded, size: 16, color: scheme.surface),
+                      const SizedBox(width: 4),
+                      _Text('새 모음', style: _style(context, 11.5, weight: FontWeight.w600, color: scheme.surface)),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],

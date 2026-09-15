@@ -193,15 +193,16 @@ void main() {
   testWidgets('모음 그리드는 넓은 창에서 한 줄에 더 많이 놓는다', (tester) async {
     setWindow(tester, phone);
     final h = (await tester.runAsync(Harness.create))!;
+    await tester.runAsync(() => h.services.repo.createCollection('워크숍'));
     await tester.pumpWidget(h.wrap(const CollectionsScreen()));
     await tester.pumpAndSettle();
     double rowOf(String name) => tester.getTopLeft(find.ancestor(of: find.text(name), matching: find.byType(InkWell)).first).dy;
     expect(rowOf('즐겨찾기'), rowOf('전체'));
-    expect(rowOf('새 모음'), greaterThan(rowOf('전체')));
+    expect(rowOf('워크숍'), greaterThan(rowOf('전체')));
 
     setWindow(tester, unfoldedFold);
     await tester.pumpAndSettle();
-    expect(rowOf('새 모음'), rowOf('전체'));
+    expect(rowOf('워크숍'), rowOf('전체'));
     await tester.runAsync(h.db.close);
   });
 
