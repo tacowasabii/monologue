@@ -286,27 +286,47 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                   ),
                 ),
                 const SectionHeader('모음 · 태그'),
-                _label('모음'),
                 StreamBuilder<List<Collection>>(
                   stream: _collections,
                   builder: (context, snap) {
                     final all = snap.data ?? const <Collection>[];
-                    return Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    final theme = Theme.of(context);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (final c in all)
-                          PillChip(
-                            label: c.name,
-                            selected: _collectionIds.contains(c.id),
-                            onSelected: (_) => _toggleCollection(c.id),
-                          ),
-                        PillChip(
-                          label: '새 모음',
-                          icon: Icons.add_rounded,
-                          selected: false,
-                          onSelected: (_) => _newCollection(all),
+                        // 만들기 버튼은 칩 사이에 섞으면 모음 이름처럼 보여서, 대본 화면 '연습 기록 · + 추가'처럼 제목 줄 오른쪽에 둔다
+                        Row(
+                          children: [
+                            Expanded(child: _label('모음')),
+                            TextButton.icon(
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpace.sm),
+                              ),
+                              onPressed: () => _newCollection(all),
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('새 모음'),
+                            ),
+                          ],
                         ),
+                        if (all.isEmpty)
+                          Text(
+                            '아직 모음이 없어요',
+                            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          )
+                        else
+                          Wrap(
+                            spacing: AppSpace.sm,
+                            runSpacing: AppSpace.sm,
+                            children: [
+                              for (final c in all)
+                                PillChip(
+                                  label: c.name,
+                                  selected: _collectionIds.contains(c.id),
+                                  onSelected: (_) => _toggleCollection(c.id),
+                                ),
+                            ],
+                          ),
                       ],
                     );
                   },

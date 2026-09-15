@@ -6,6 +6,7 @@ import 'package:monologue/domain/script_filter.dart';
 import 'package:monologue/domain/script_draft.dart';
 import 'package:monologue/ui/common/korean_text.dart';
 import 'package:monologue/ui/common/pill_chip.dart';
+import 'package:monologue/ui/design/design.dart';
 import 'package:monologue/ui/edit/script_edit_screen.dart';
 
 import 'test_harness.dart';
@@ -94,6 +95,29 @@ void main() {
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('1차 오디션'));
     expect(tester.widget<PillChip>(find.widgetWithText(PillChip, '1차 오디션')).selected, isTrue);
+    await tester.runAsync(h.db.close);
+  });
+
+  testWidgets('새 모음은 모음 제목 줄 오른쪽 버튼으로 만들고, 만든 모음은 칩 줄에 골라진 채로 생긴다', (tester) async {
+    final h = (await tester.runAsync(Harness.create))!;
+    await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '본문')));
+    await tester.pumpAndSettle();
+
+    final button = find.widgetWithText(TextButton, '새 모음');
+    await tester.ensureVisible(button);
+    expect(find.text('아직 모음이 없어요'), findsOneWidget);
+    // 칩 줄에는 모음만 있다
+    expect(find.widgetWithText(PillChip, '새 모음'), findsNothing);
+
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.descendant(of: find.byType(AppDialog), matching: find.byType(TextField)), '워크숍');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, '만들기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('아직 모음이 없어요'), findsNothing);
+    expect(tester.widget<PillChip>(find.widgetWithText(PillChip, '워크숍')).selected, isTrue);
     await tester.runAsync(h.db.close);
   });
 
