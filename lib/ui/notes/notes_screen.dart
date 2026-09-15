@@ -78,7 +78,7 @@ class _NotesScreenState extends State<NotesScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('노트'),
+          title: const Text('연기 노트'),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),

@@ -375,7 +375,7 @@ class NoteReadingArt extends StatelessWidget {
                       Icon(Icons.sticky_note_2_outlined, size: 14, color: scheme.onTertiaryContainer),
                       const SizedBox(width: 5),
                       _Text(
-                        '노트',
+                        '연기 노트',
                         style: _style(context, 11, weight: FontWeight.w700, color: scheme.onTertiaryContainer),
                       ),
                     ],

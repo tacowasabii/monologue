@@ -187,7 +187,7 @@ void main() {
 
     await tester.tap(find.text('햄릿'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('노트'));
+    await tester.tap(find.byTooltip('연기 노트'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '상황: 햄릿이 떠난 직후');
     await tester.tap(find.text('저장'));

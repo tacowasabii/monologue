@@ -31,11 +31,11 @@ Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect?
     final choice = await showDialog<bool>(
       context: context,
       builder: (context) => AppDialog(
-        title: '노트도 함께 보낼까요?',
-        message: '함께 보내면 링크를 가진 사람도 노트를 볼 수 있어요.',
+        title: '연기 노트도 함께 보낼까요?',
+        message: '함께 보내면 링크를 가진 사람도 연기 노트를 볼 수 있어요.',
         actions: [
           AppAction('함께 보내기', onPressed: () => Navigator.pop(context, true)),
-          AppAction('노트 빼고 보내기', kind: AppActionKind.secondary, onPressed: () => Navigator.pop(context, false)),
+          AppAction('연기 노트 빼고 보내기', kind: AppActionKind.secondary, onPressed: () => Navigator.pop(context, false)),
           AppAction('취소', kind: AppActionKind.quiet, onPressed: () => Navigator.pop(context)),
         ],
       ),

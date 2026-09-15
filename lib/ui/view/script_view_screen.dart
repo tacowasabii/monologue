@@ -192,7 +192,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 onPressed: () => services.repo.setFavorite(s.id, !s.favorite),
               ),
               IconButton(
-                tooltip: '노트',
+                tooltip: '연기 노트',
                 icon: const Icon(Icons.sticky_note_2_outlined),
                 onPressed: openNotes,
               ),
@@ -390,7 +390,7 @@ class _NotePreview extends StatelessWidget {
                 children: [
                   Icon(Icons.sticky_note_2_outlined, size: 16, color: scheme.primary),
                   const SizedBox(width: 6),
-                  Text('노트', style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700)),
+                  Text('연기 노트', style: theme.textTheme.labelMedium?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700)),
                 ],
               ),
               const SizedBox(height: 6),

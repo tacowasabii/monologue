@@ -179,7 +179,7 @@ class _Preview extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('노트', style: theme.textTheme.labelLarge?.copyWith(color: scheme.primary)),
+                    Text('연기 노트', style: theme.textTheme.labelLarge?.copyWith(color: scheme.primary)),
                     const SizedBox(height: 6),
                     Text(keepWords(note), style: theme.textTheme.bodyMedium?.copyWith(height: 1.6)),
                   ],

@@ -61,8 +61,8 @@ void main() {
     expect(findTextContaining('7일 동안 저장'), findsOneWidget);
     await tester.tap(find.text('확인'));
     await tester.pumpAndSettle();
-    expect(find.text('노트도 함께 보낼까요?'), findsOneWidget);
-    await tester.tap(find.text('노트 빼고 보내기'));
+    expect(find.text('연기 노트도 함께 보낼까요?'), findsOneWidget);
+    await tester.tap(find.text('연기 노트 빼고 보내기'));
     await tester.pumpAndSettle();
 
     final body = jsonDecode(h.shareServer.requests.single.body) as Map<String, Object?>;
@@ -86,7 +86,7 @@ void main() {
     await tester.pumpAndSettle();
     await openShareMenu(tester);
 
-    expect(find.text('노트도 함께 보낼까요?'), findsNothing);
+    expect(find.text('연기 노트도 함께 보낼까요?'), findsNothing);
     expect(find.text('대본이 너무 길어서 링크로 보낼 수 없어요'), findsOneWidget);
     expect(shareCalls, isEmpty);
     expect(h.services.shareHistory.sent, isEmpty);
@@ -134,7 +134,7 @@ void main() {
     await tester.pumpAndSettle();
     await openShareMenu(tester);
 
-    expect(find.text('노트도 함께 보낼까요?'), findsOneWidget);
+    expect(find.text('연기 노트도 함께 보낼까요?'), findsOneWidget);
     await tester.tap(find.text('취소'));
     await tester.pumpAndSettle();
 
@@ -159,7 +159,7 @@ void main() {
     await tester.pumpAndSettle();
     await openShareMenu(tester);
 
-    expect(find.text('노트도 함께 보낼까요?'), findsOneWidget);
+    expect(find.text('연기 노트도 함께 보낼까요?'), findsOneWidget);
     await tester.tap(find.text('함께 보내기'));
     await tester.pumpAndSettle();
 
