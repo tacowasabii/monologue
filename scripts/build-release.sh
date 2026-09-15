@@ -84,7 +84,7 @@ fi
 {
   echo "모노로그 $version"
   echo
-  echo "app-release.aab             Play 업로드용. versionCode $build. $(date '+%Y-%m-%d %H:%M') $where에서 빌드"
+  echo "app-release.aab             Play 업로드용. versionCode $build. $(date '+%Y-%m-%d %H:%M') ${where}에서 빌드"
   # --split-per-abi는 arm64 APK의 versionCode 앞에 2를 붙인다(2000 + 빌드 번호)
   echo "monologue-android-test.apk  monologue.ink 테스트 APK(arm64). versionCode $((2000 + build))"
   echo "코드 기준: $commit"
