@@ -54,7 +54,7 @@ Google Play용 이미지는 `docs/store-assets/`에 있다. 스크린샷은 1080
 | 4 | `phone-04-immersive.png` | 메뉴 없이 대본에만 몰입 |
 | 5 | `phone-05-practice.png` | 연습을 녹음하고 다시 들어요 |
 | 6 | `phone-06-collections.png` | 오디션·작품별로 모음 정리 |
-| 7 | `phone-07-notes.png` | 대본 옆에 나만의 노트 |
+| 7 | `phone-07-notes.png` | 대본 옆에 나만의 연기 노트 |
 
 - 앱 아이콘: `icon-512.png` (512×512)
 - 대표 이미지: `feature-graphic-1024x500.png` (1024×500, 투명도 없음)
@@ -72,7 +72,7 @@ iPhone 6.9"(1320×2868)와 iPad 13"(2752×2064, 가로) 스크린샷도 같은 �
 | 4 | `ios-iphone-04-immersive.png` | 메뉴 없이 대본에만 몰입 |
 | 5 | `ios-iphone-05-practice.png` | 연습을 녹음하고 다시 들어요 |
 | 6 | `ios-iphone-06-collections.png` | 오디션·작품별로 모음 정리 |
-| 7 | `ios-iphone-07-notes.png` | 대본 옆에 나만의 노트 |
+| 7 | `ios-iphone-07-notes.png` | 대본 옆에 나만의 연기 노트 |
 
 ### iPad·태블릿
 

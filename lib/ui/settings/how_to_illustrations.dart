@@ -818,13 +818,21 @@ class _RoleChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+      // 앱의 고르는 칩(AppChoiceChip)과 같은 색: 고르면 연한 자주 바탕 + 자주 글자
       decoration: ShapeDecoration(
-        color: selected ? scheme.onSurface : Colors.transparent,
-        shape: StadiumBorder(side: BorderSide(color: selected ? scheme.onSurface : scheme.outlineVariant)),
+        color: selected ? scheme.primaryContainer : scheme.surfaceContainerLowest,
+        shape: StadiumBorder(
+          side: BorderSide(color: selected ? scheme.primary.withValues(alpha: 0.4) : scheme.outlineVariant),
+        ),
       ),
       child: _Text(
         label,
-        style: _style(context, 11.5, weight: FontWeight.w600, color: selected ? scheme.surface : scheme.onSurface),
+        style: _style(
+          context,
+          11.5,
+          weight: FontWeight.w600,
+          color: selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+        ),
       ),
     );
   }
