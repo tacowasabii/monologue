@@ -2,7 +2,7 @@
 
 ## 준비된 것
 
-- 번들 ID / applicationId: `com.tacowasabii.monologue`, 버전 `1.0.0+2` (`pubspec.yaml`)
+- 번들 ID / applicationId: `com.tacowasabii.monologue`, 버전 `1.0.0+3` (`pubspec.yaml`)
 - 앱 아이콘: `assets/icon/` → `dart run flutter_launcher_icons`
 - Android 업로드 키: `~/.monologue-keys/upload-keystore.jks` + `key.properties` (저장소 밖, `android/key.properties`는 gitignore).
   **이 폴더를 안전한 곳(비밀번호 관리자, 외장 저장소)에 백업할 것.** 잃어버리면 Play Console에서 업로드 키 재설정을 요청해야 한다.
