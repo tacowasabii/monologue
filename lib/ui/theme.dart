@@ -236,11 +236,16 @@ ThemeData buildTheme(Brightness brightness) {
       contentTextStyle: text.bodyMedium?.copyWith(fontSize: 15, height: 1.55, color: scheme.onSurfaceVariant),
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: scheme.surfaceContainerLowest,
+      color: brightness == Brightness.dark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
-      elevation: 3,
-      shadowColor: scheme.shadow.withValues(alpha: 0.25),
-      shape: RoundedRectangleBorder(borderRadius: radius16, side: hairline),
+      // 테두리 대신 옅고 넓은 그림자로 띄운다. 어두운 화면은 그림자가 안 보여서 가는 테두리를 남긴다
+      elevation: 8,
+      shadowColor: scheme.shadow.withValues(alpha: 0.16),
+      shape: RoundedRectangleBorder(
+        borderRadius: radius16,
+        side: brightness == Brightness.dark ? hairline : BorderSide.none,
+      ),
+      menuPadding: const EdgeInsets.symmetric(vertical: 6),
       textStyle: text.bodyLarge?.copyWith(fontSize: 15, color: scheme.onSurface),
     ),
     snackBarTheme: SnackBarThemeData(

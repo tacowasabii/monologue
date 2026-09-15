@@ -124,8 +124,14 @@ void main() {
 
     await tester.tap(find.byTooltip('정렬 · 최근 수정순'));
     await tester.pumpAndSettle();
+    Finder menuItem(String label) =>
+        find.ancestor(of: find.text(label), matching: find.byWidgetPredicate((w) => w is PopupMenuItem));
+    // 검색창을 가리지 않게 아래로 뜨고, 고른 기준에만 ✓가 있다
+    expect(tester.getTopLeft(find.text('최근 수정순')).dy, greaterThan(tester.getBottomLeft(find.byType(SearchBar)).dy));
+    expect(find.descendant(of: menuItem('최근 수정순'), matching: find.byIcon(Icons.check_rounded)), findsOneWidget);
+    expect(find.descendant(of: menuItem('작품명순'), matching: find.byIcon(Icons.check_rounded)), findsNothing);
     // 글자가 아니라 메뉴 항목을 누른다(글자 자리는 눌림 판정에서 빠져 경고가 난다)
-    await tester.tap(find.ancestor(of: find.text('작품명순'), matching: find.byWidgetPredicate((w) => w is CheckedPopupMenuItem)));
+    await tester.tap(menuItem('작품명순'));
     await tester.pumpAndSettle();
     expect(top(tester, '가'), lessThan(top(tester, '나')));
     expect(find.byTooltip('정렬 · 작품명순'), findsOneWidget);

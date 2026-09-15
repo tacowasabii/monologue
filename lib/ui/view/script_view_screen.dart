@@ -225,23 +225,22 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     _delete(d);
                   }
                 },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(
-                    value: 'share',
-                    child: _MenuRow(icon: Icons.link_rounded, text: '링크로 공유'),
-                  ),
+                itemBuilder: (context) => [
+                  appMenuItem(context, value: 'share', label: '링크로 공유', icon: Icons.link_rounded),
                   if (d.images.isNotEmpty)
-                    PopupMenuItem(
+                    appMenuItem(
+                      context,
                       value: 'images',
-                      child: _MenuRow(icon: Icons.photo_library_outlined, text: '원본 보기 (${d.images.length})'),
+                      label: '원본 보기 (${d.images.length})',
+                      icon: Icons.photo_library_outlined,
                     ),
-                  const PopupMenuItem(
-                    value: 'fontSize',
-                    child: _MenuRow(icon: Icons.format_size_rounded, text: '글자 크기'),
-                  ),
-                  PopupMenuItem(
+                  appMenuItem(context, value: 'fontSize', label: '글자 크기', icon: Icons.format_size_rounded),
+                  appMenuItem(
+                    context,
                     value: 'delete',
-                    child: _MenuRow(icon: Icons.delete_outline_rounded, text: '삭제', color: scheme.error),
+                    label: '삭제',
+                    icon: Icons.delete_outline_rounded,
+                    destructive: true,
                   ),
                 ],
               ),
@@ -333,26 +332,6 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _MenuRow extends StatelessWidget {
-  const _MenuRow({required this.icon, required this.text, this.color});
-
-  final IconData icon;
-  final String text;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 20, color: color ?? Theme.of(context).colorScheme.onSurfaceVariant),
-        const SizedBox(width: 12),
-        Text(text, style: color == null ? null : TextStyle(color: color)),
-      ],
     );
   }
 }

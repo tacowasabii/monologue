@@ -4,5 +4,6 @@ library;
 export 'app_action.dart';
 export 'app_chip.dart';
 export 'app_dialog.dart';
+export 'app_menu.dart';
 export 'app_sheet.dart';
 export 'tokens.dart';

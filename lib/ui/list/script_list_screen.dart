@@ -485,10 +485,13 @@ class _SortButton extends StatelessWidget {
     return PopupMenuButton<ScriptSort>(
       tooltip: '정렬 · ${sort.label}',
       icon: Icon(Icons.swap_vert_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
-      initialValue: sort,
+      // 검색창을 가리지 않게 버튼 아래로 띄운다
+      position: PopupMenuPosition.under,
+      offset: const Offset(0, AppSpace.sm),
+      constraints: const BoxConstraints(minWidth: 200),
       onSelected: onChanged,
       itemBuilder: (context) => [
-        for (final s in ScriptSort.values) CheckedPopupMenuItem(value: s, checked: s == sort, child: Text(s.label)),
+        for (final s in ScriptSort.values) appMenuItem(context, value: s, label: s.label, selected: s == sort),
       ],
     );
   }
