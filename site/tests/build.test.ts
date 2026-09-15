@@ -10,6 +10,13 @@ describe('build output', () => {
     expect(existsSync(clientFile('s'))).toBe(false);
   });
 
+  it('링크 미리보기 이미지가 정적으로 나오고, 페이지는 절대 주소로 가리킨다', () => {
+    expect(existsSync(clientFile('og-image.png'))).toBe(true);
+    for (const page of ['index.html', 'privacy/index.html']) {
+      expect(readFileSync(clientFile(page), 'utf8')).toContain('<meta property="og:image" content="https://monologue.ink/og-image.png"');
+    }
+  });
+
   it('앱 링크 인증 파일이 정적으로 나온다', () => {
     const aasa = JSON.parse(readFileSync(clientFile('.well-known/apple-app-site-association'), 'utf8'));
     expect(aasa.applinks.details[0].appIDs).toEqual(['3996SU7HLL.com.tacowasabii.monologue']);

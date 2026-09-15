@@ -1,5 +1,8 @@
 export const SITE_ORIGIN = 'https://monologue.ink';
 
+/** 카카오톡·문자 링크 미리보기 이미지. 미리보기 서버가 읽을 수 있게 절대 주소로 쓴다 */
+export const OG_IMAGE = { url: `${SITE_ORIGIN}/og-image.png`, width: 1024, height: 500 } as const;
+
 /** 지운 링크가 캐시에 남지 않고 검색 엔진에 실리지 않게 한다 */
 export const NO_STORE_HEADERS: Record<string, string> = {
   'Cache-Control': 'no-store',

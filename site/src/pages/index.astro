@@ -5,6 +5,7 @@ import paragraphs from '../assets/02-paragraphs.png';
 import dialogue from '../assets/03-dialogue.png';
 import immersive from '../assets/04-immersive.png';
 import practice from '../assets/05-practice.png';
+import { OG_IMAGE, SITE_ORIGIN } from '../lib/share/http';
 
 const shots = [
   { src: list, alt: '즐겨찾기한 대본이 위에 모인 대본 목록 화면', caption: '캡처해 둔 대본을 한곳에' },
@@ -32,6 +33,15 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="캡처해 둔 독백 대본을 사진으로 올리면 글자를 인식해 한곳에 모아 주는 연기 연습 노트" />
     <title>모노로그</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={`${SITE_ORIGIN}/`} />
+    <meta property="og:site_name" content="모노로그" />
+    <meta property="og:title" content="모노로그" />
+    <meta property="og:description" content="사진으로 모으는 독백 대본 노트" />
+    <meta property="og:image" content={OG_IMAGE.url} />
+    <meta property="og:image:width" content={String(OG_IMAGE.width)} />
+    <meta property="og:image:height" content={String(OG_IMAGE.height)} />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href={favicon} />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   </head>
