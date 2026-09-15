@@ -54,3 +54,6 @@ site/.astro/
 site/.vercel/
 site/public/downloads/*.apk
 .gstack/
+
+# 출시용 AAB·APK와 BUILD.txt (scripts/build-release.sh가 만든다)
+/releases/

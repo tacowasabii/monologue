@@ -13,11 +13,13 @@
 
 ```bash
 flutter test
-flutter build appbundle --release          # build/app/outputs/bundle/release/app-release.aab
+scripts/build-release.sh "바뀐 점 한 줄"   # releases/<버전>/app-release.aab, monologue-android-test.apk, BUILD.txt
 flutter build ipa --release                 # Apple 계정·서명 설정 후
 ```
 
-만든 파일은 `~/monologue-releases/<버전>/`에 복사하고 `BUILD.txt`에 커밋·versionCode·SHA-256을 남긴 뒤, 스토어에는 그 폴더의 파일을 올린다(`CLAUDE.md`의 "출시 파일 보관").
+Android는 `scripts/build-release.sh`가 서명 키 연결, AAB·APK 빌드, `releases/<버전>/`(main 체크아웃, git 제외)에 복사, `BUILD.txt`(커밋·versionCode·서명 인증서·SHA-256) 작성을 한 번에 한다.
+스토어에는 그 폴더의 파일을 올리고, 출시 노트는 같은 폴더의 `release-notes.txt`에 남긴다(`CLAUDE.md`의 "출시 파일 보관").
+이미 Play에 올린 버전이면 스크립트가 멈추니 아래 "버전 올리기"부터 한다.
 
 ## Apple App Store
 
@@ -77,7 +79,7 @@ iPad 지원(`TARGETED_DEVICE_FAMILY = "1,2"`)은 한 번 출시하면 이후 업
 - Xcode가 "iOS 26.x is not installed"라고 하면 `xcodebuild -downloadPlatform iOS`.
 - macOS의 `/usr/bin/keytool`, `jarsigner`는 Java가 없으면 아무것도 출력하지 않는다. Android Studio에 든 것을 쓴다:
   `"/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/jarsigner" -verify -verbose -certs app-release.aab`
-- git worktree에서 릴리스 빌드할 때는 `android/key.properties`가 없으므로 `ln -s ~/.monologue-keys/key.properties android/key.properties`.
+- git worktree에서도 `scripts/build-release.sh`가 서명 키를 잠깐 넣었다가 빼고, 결과는 main 체크아웃의 `releases/`에 넣는다. 스크립트 없이 직접 빌드할 때만 `ln -s ~/.monologue-keys/key.properties android/key.properties`.
 
 ## 버전 올리기
 

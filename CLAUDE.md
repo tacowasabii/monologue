@@ -14,19 +14,26 @@ Flutter 앱 "모노로그"(com.tacowasabii.monologue)와 앱 사이트(`site/`, 
 
 사용자에게 보이는 앱 변경을 main에 병합했으면 소개 페이지 APK도 함께 바꾼다.
 
-1. `cp ~/.monologue-keys/key.properties android/key.properties && flutter build apk --release --split-per-abi`, 끝나면 `rm android/key.properties`
-2. `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk`를 `site/public/downloads/monologue-android-test.apk`로 복사한다 (`.gitignore`로 git에서는 빠지지만, Vercel은 `.vercelignore`를 따르므로 배포에는 포함된다).
+1. `scripts/build-release.sh "바뀐 점 한 줄"`로 AAB와 테스트 APK를 만든다(아래 "출시 파일 보관").
+2. `cp releases/<버전>/monologue-android-test.apk site/public/downloads/monologue-android-test.apk` (`.gitignore`로 git에서는 빠지지만, Vercel은 `.vercelignore`를 따르므로 배포에는 포함된다).
 3. 크기가 바뀌었으면 `site/src/pages/index.astro`의 "APK …MB" 문구를 고친다.
-4. `cd site && vercel --prod` 후 `curl -sI https://monologue.ink/downloads/monologue-android-test.apk`로 content-length를 확인한다.
-5. 올린 APK를 아래 "출시 파일 보관" 폴더에도 복사한다.
+4. `site/.vercel/project.json`의 `projectName`이 `monologue`인지 확인한다. 연결이 없거나 다르면 `vercel --prod --yes`가 새 프로젝트를 만들어 거기에 배포한다.
+5. `cd site && vercel --prod` 후 `curl -sI https://monologue.ink/downloads/monologue-android-test.apk`로 content-length가 올린 파일 크기와 같은지 확인한다.
 
 ## 출시 파일 보관
 
-스토어에 올리거나 배포할 AAB·APK·IPA는 빌드한 폴더에 두지 않는다. worktree(`~/orca/workspaces/monologue/…`)의 `build/`는 세션이 끝나면 지워질 수 있고, 여러 폴더에 옛 파일이 섞여 헷갈린다.
+스토어에 올리거나 배포할 AAB·APK·IPA는 이 저장소의 `releases/<pubspec 버전>/`(예: `releases/1.0.0+3/`)에 모은다. git에는 올리지 않는다(`.gitignore`).
+worktree(`~/orca/workspaces/monologue/…`)의 `build/`는 세션이 끝나면 지워질 수 있으니, 어디서 빌드했든 main 체크아웃(`~/monologue`)의 `releases/`에 둔다.
 
-- 어디서 빌드했든 `~/monologue-releases/<pubspec 버전>/`(예: `~/monologue-releases/1.0.0+2/`)에 복사한다. Play 업로드용은 `app-release.aab`, 테스트 APK는 `monologue-android-test.apk` 이름을 쓴다.
-- 같은 폴더의 `BUILD.txt`에 빌드한 커밋, 날짜, versionCode, 파일별 SHA-256(`shasum -a 256`)을 적는다.
-- 같은 버전을 다시 빌드하면 파일을 덮어쓰고 `BUILD.txt`도 고친다. 버전을 올렸으면 새 폴더를 만든다.
+- Android 출시 빌드는 `scripts/build-release.sh ["바뀐 점 한 줄"]`로 한다. 한 번에 하는 일:
+  - 서명 키(`~/.monologue-keys/key.properties`)를 잠깐 넣었다가 뺀다.
+  - `flutter build appbundle`, `flutter build apk --split-per-abi`
+  - main 체크아웃의 `releases/<버전>/`에 `app-release.aab`(Play 업로드용), `monologue-android-test.apk`(arm64 테스트 APK)를 복사한다.
+  - `BUILD.txt`에 날짜, 빌드한 곳, 커밋, versionCode, 서명 인증서, 파일별 SHA-256을 적는다.
+  - worktree에서 실행해도 main 체크아웃의 `releases/`에 넣는다.
+- 커밋하지 않은 변경이 있으면 멈춘다. `BUILD.txt`의 커밋과 파일 내용이 어긋나기 때문이다.
+- 그 버전 폴더에 AAB가 이미 있으면 멈춘다. Play에 올린 versionCode는 다시 올릴 수 없으니 `pubspec.yaml`의 빌드 번호를 먼저 올린다. 올리지 않은 빌드를 다시 만들 때만 `--overwrite`를 붙인다.
+- 스토어에 적은 출시 노트는 같은 폴더의 `release-notes.txt`에 남긴다.
 
 ## 공유 서버 주의
 
