@@ -273,15 +273,17 @@ class _ScriptEditScreenState extends State<ScriptEditScreen> {
                 const SectionHeader('기본 정보', first: true),
                 TextFormField(controller: _work, decoration: const InputDecoration(labelText: '작품명')),
                 gap,
+                // 목록에서 같은 작품의 대본을 구분하는 한 줄. 긴 생각은 노트에 적도록 한 줄 칸으로 둔다
+                // (예전에 여러 줄로 적은 내용은 지우지 않고 칸이 늘어나 보여 준다)
                 TextFormField(
                   controller: _memo,
-                  minLines: 2,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
+                  minLines: 1,
+                  maxLines: 3,
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: '메모',
-                    hintText: '인물, 배우, 회차·장면, 오디션 날짜 등',
-                    alignLabelWithHint: true,
+                    labelText: '한 줄 설명',
+                    hintText: '예: 수아 역 · 2차 오디션 자유연기',
+                    helperText: '목록과 대본 화면에서 제목 아래에 보여요',
                   ),
                 ),
                 const SectionHeader('모음 · 태그'),

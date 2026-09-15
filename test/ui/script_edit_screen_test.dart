@@ -37,23 +37,26 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('기본 정보는 작품명·메모이고 제목·인물 칸은 없다', (tester) async {
+  testWidgets('기본 정보는 작품명·한 줄 설명이고 제목·인물·메모 칸은 없다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.pumpWidget(h.wrap(const ScriptEditScreen()));
     await tester.pumpAndSettle();
     expect(find.text('제목'), findsNothing);
     expect(find.text('인물'), findsNothing);
-    for (final label in ['작품명', '메모']) {
+    // 노트와 헷갈리지 않게 '메모'라는 이름은 쓰지 않는다
+    expect(find.text('메모'), findsNothing);
+    expect(find.text('목록과 대본 화면에서 제목 아래에 보여요'), findsOneWidget);
+    for (final label in ['작품명', '한 줄 설명']) {
       expect(find.widgetWithText(TextFormField, label), findsOneWidget, reason: label);
     }
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('메모를 적어 저장하면 대본과 함께 저장된다', (tester) async {
+  testWidgets('한 줄 설명을 적어 저장하면 대본과 함께 저장된다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.pumpWidget(h.wrap(const ScriptEditScreen(initialBody: '괜찮다는 말은\n참 편리하더라')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextFormField, '메모'), '2차 오디션 지정 대사');
+    await tester.enterText(find.widgetWithText(TextFormField, '한 줄 설명'), '2차 오디션 지정 대사');
     await tester.tap(find.text('저장'));
     await tester.pumpAndSettle();
     final list = await tester.runAsync(() => h.services.repo.watchScripts(const ScriptFilter()).first);

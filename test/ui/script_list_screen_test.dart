@@ -15,7 +15,7 @@ void main() {
     await tester.runAsync(h.db.close);
   });
 
-  testWidgets('카드 제목은 작품명(없으면 본문 첫 줄)이고, 그 아래 메모 첫 줄이 붙는다', (tester) async {
+  testWidgets('카드 제목은 작품명(없으면 본문 첫 줄)이고, 그 아래 한 줄 설명의 첫 줄이 붙는다', (tester) async {
     final h = (await tester.runAsync(Harness.create))!;
     await tester.runAsync(() async {
       await h.services.repo.create(
@@ -27,7 +27,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('햄릿'), findsOneWidget);
-    // 같은 작품의 독백이 여러 개여도 구분되도록 메모는 첫 줄만 보여 준다
+    // 같은 작품의 독백이 여러 개여도 구분되도록 한 줄 설명은 첫 줄만 보여 준다(예전에 여러 줄로 적은 경우)
     expect(find.text('오필리어 · 1차 오디션'), findsOneWidget);
     expect(find.textContaining('지정 대사'), findsNothing);
     expect(find.text(keepWords('그분이 미치셨다니')), findsOneWidget);

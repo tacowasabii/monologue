@@ -18,7 +18,7 @@ Future<void> shareScriptByLink(BuildContext context, ScriptDetail detail, {Rect?
     final ok = await showConfirmDialog(
       context,
       title: '링크로 공유',
-      message: '대본 글이 서버에 7일 동안 저장되고, 링크를 가진 사람은 누구나 볼 수 있어요. 메모, 사진, 연습 기록은 보내지 않아요.',
+      message: '대본 글이 서버에 7일 동안 저장되고, 링크를 가진 사람은 누구나 볼 수 있어요. 한 줄 설명, 사진, 연습 기록은 보내지 않아요.',
       confirmLabel: '확인',
     );
     if (!ok) return;

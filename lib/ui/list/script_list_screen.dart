@@ -272,7 +272,7 @@ class _ScriptListScreenState extends State<ScriptListScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpace.page, 0, AppSpace.page, AppSpace.xs),
                 child: SearchBar(
-                  hintText: '작품, 메모, 본문 검색',
+                  hintText: '작품, 설명, 본문 검색',
                   leading: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
                   trailing: [
                     // 모음 안에서는 직접 정한 순서로 보여 주므로 정렬 기준을 고르지 않는다
