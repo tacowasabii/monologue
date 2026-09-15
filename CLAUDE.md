@@ -7,6 +7,7 @@ Flutter 앱 "모노로그"(com.tacowasabii.monologue)와 앱 사이트(`site/`, 
 
 - 소개 페이지(`/`), 개인정보처리방침(`/privacy`), 공유 대본 페이지(`/s/<ID>`), 공유 API(`/api/shares`), 앱 링크 파일(`/.well-known/…`), 테스트 APK(`/downloads/…`)가 모두 여기 있다.
 - Astro + Vercel 프로젝트 `monologue`, 도메인 monologue.ink. 배포: `cd site && vercel --prod`
+- **사이트만 고쳐도 배포에는 그 폴더의 `site/public/downloads/` APK가 함께 올라간다.** 이 APK는 git에 없어서 worktree에는 옛 파일이 남아 있기 쉽고, 그대로 배포하면 최신 테스트 APK를 덮어쓴다(2026-09-15 실제로 있었음). 배포 전에 `shasum -a 256`으로 `~/monologue/releases/<최신 버전>/monologue-android-test.apk`와 같은지 확인하고, 다르면 복사한 뒤 배포한다. 배포 후에도 받은 파일의 SHA-256으로 확인한다(버전이 달라도 크기가 같을 수 있어 content-length로는 모른다).
 - 검증: `cd site && npm test` (빌드 + vitest)
 - 개인 사이트 `~/website`(tacowasabii.vercel.app)에는 모노로그 코드가 없다. 옛 `/monologue…`, `/api/monologue/shares…` 주소를 monologue.ink로 넘기는 `vercel.json` 리다이렉트만 남아 있으니 모노로그 작업으로 건드리지 않는다.
 
