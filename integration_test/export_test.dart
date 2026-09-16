@@ -124,7 +124,9 @@ void main() {
     expect((await Clipboard.getData(Clipboard.kTextPlain))?.text, body);
     expect(find.text('본문을 복사했어요'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('문서로 내보내기'));
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('문서로 내보내기'));
     await tester.pumpAndSettle();
     expect(find.text('PDF'), findsOneWidget);
     expect(find.text('워드 문서 (.docx)'), findsOneWidget);

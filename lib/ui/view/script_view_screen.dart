@@ -199,6 +199,16 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 onPressed: openNotes,
               ),
               IconButton(
+                tooltip: '본문 복사',
+                icon: const Icon(Icons.copy_rounded),
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: s.body));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('본문을 복사했어요')));
+                  }
+                },
+              ),
+              IconButton(
                 tooltip: '편집',
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () => Navigator.of(context).push(
@@ -215,6 +225,11 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                     shareScriptByLink(context, d, anchor: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
                     return;
                   }
+                  if (v == 'export') {
+                    final box = _menuKey.currentContext?.findRenderObject() as RenderBox?;
+                    exportScript(context, d, anchor: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
+                    return;
+                  }
                   if (v == 'images') {
                     Navigator.of(context).push(MaterialPageRoute<void>(
                       builder: (_) => ImageViewerScreen(
@@ -229,6 +244,7 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                 },
                 itemBuilder: (context) => [
                   appMenuItem(context, value: 'share', label: '링크로 공유', icon: Icons.link_rounded),
+                  appMenuItem(context, value: 'export', label: '문서로 내보내기', icon: Icons.file_download_outlined),
                   if (d.images.isNotEmpty)
                     appMenuItem(
                       context,
@@ -318,38 +334,6 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                   ),
                   const SizedBox(height: 24),
                 ],
-                // 인쇄하거나 다른 곳에 옮겨 적는 사람이 많아, 본문 바로 위에 복사·내보내기를 둔다
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      tooltip: '본문 복사',
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.copy_rounded, size: 20),
-                      onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: s.body));
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('본문을 복사했어요')));
-                        }
-                      },
-                    ),
-                    Builder(
-                      builder: (context) => IconButton(
-                        tooltip: '문서로 내보내기',
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.file_download_outlined, size: 20),
-                        onPressed: () {
-                          final box = context.findRenderObject() as RenderBox?;
-                          exportScript(
-                            context,
-                            d,
-                            anchor: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
                 ListenableBuilder(
                   listenable: services.settings,
                   builder: (context, _) => ScriptBody(

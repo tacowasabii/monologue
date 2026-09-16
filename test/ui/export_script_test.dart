@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:monologue/domain/script_draft.dart';
@@ -55,7 +56,15 @@ void main() {
     return h;
   }
 
-  testWidgets('본문 옆 복사 버튼은 본문 전체를 복사한다', (tester) async {
+  /// ⋯ 메뉴에서 문서로 내보내기를 고른다
+  Future<void> openExport(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('문서로 내보내기'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('위쪽 복사 버튼은 본문 전체를 복사한다', (tester) async {
     String? copied;
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
       if (call.method == 'Clipboard.setData') copied = (call.arguments as Map)['text'] as String;
@@ -74,8 +83,7 @@ void main() {
 
   testWidgets('내보내기는 양식을 고르게 하고, 고른 파일을 공유 시트로 넘긴다', (tester) async {
     final h = await openScript(tester);
-    await tester.tap(find.byTooltip('문서로 내보내기'));
-    await tester.pumpAndSettle();
+    await openExport(tester);
 
     expect(find.text('PDF'), findsOneWidget);
     expect(find.text('워드 문서 (.docx)'), findsOneWidget);
