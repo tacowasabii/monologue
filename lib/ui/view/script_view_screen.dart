@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app_scope.dart';
 import '../../data/script_repository.dart';
 import '../../domain/dialogue.dart';
+import '../../export/export_script.dart';
 import '../../settings/reading_settings.dart';
 import '../common/adaptive.dart';
 import '../common/korean_text.dart';
@@ -316,6 +318,38 @@ class _ScriptViewScreenState extends State<ScriptViewScreen> {
                   ),
                   const SizedBox(height: 24),
                 ],
+                // 인쇄하거나 다른 곳에 옮겨 적는 사람이 많아, 본문 바로 위에 복사·내보내기를 둔다
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      tooltip: '본문 복사',
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.copy_rounded, size: 20),
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: s.body));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('본문을 복사했어요')));
+                        }
+                      },
+                    ),
+                    Builder(
+                      builder: (context) => IconButton(
+                        tooltip: '문서로 내보내기',
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.file_download_outlined, size: 20),
+                        onPressed: () {
+                          final box = context.findRenderObject() as RenderBox?;
+                          exportScript(
+                            context,
+                            d,
+                            anchor: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
                 ListenableBuilder(
                   listenable: services.settings,
                   builder: (context, _) => ScriptBody(

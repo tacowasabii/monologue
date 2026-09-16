@@ -1,3 +1,4 @@
+Copyright 2012 Google Inc. All Rights Reserved. (Noto Sans KR — PDF로 내보낼 때만 쓰는 고딕)
 Copyright 2021 The Gowun Batang Project Authors (https://github.com/yangheeryu/Gowun-Batang)
 
 

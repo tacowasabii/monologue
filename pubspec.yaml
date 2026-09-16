@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   app_links: ^7.2.1
-  archive: ^4.2.0
+  archive: ">=4.0.0 <4.1.0"
   characters: ^1.4.1
   drift: ^2.35.0
   drift_flutter: ^0.3.1
@@ -23,6 +23,7 @@ dependencies:
   just_audio: ^0.10.6
   package_info_plus: ^10.2.1
   path: ^1.9.1
+  pdf: ^3.13.0
   path_provider: ^2.1.6
   record: ^7.1.1
   share_plus: ^13.3.0
@@ -46,6 +47,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/fonts/OFL.txt
+    # PDF에 담는 고딕(노토 산스 KR, OFL). 앱 화면에는 쓰지 않아서 글꼴 목록에는 넣지 않는다
+    - assets/fonts/NotoSansKR-Regular.ttf
+    - assets/fonts/NotoSansKR-Bold.ttf
   # 고운바탕(OFL)을 KS X 1001 한글 2,350자 + 라틴·문장부호로 줄였다. 없는 글자는 시스템 글꼴로 나온다.
   fonts:
     - family: GowunBatang
