@@ -42,7 +42,7 @@ Android는 `scripts/build-release.sh`가 서명 키 연결, AAB·APK 빌드, `re
    app_links가 링크를 등록하지 않아 앱이 열리지 않는다
 6. App Store Connect → 앱 개인정보 보호 페이지의 개인정보처리방침 URL을 `https://monologue.ink/privacy`로 맞춘다
 7. 등록 정보 입력 (`docs/store-listing.md`)
-   - 스크린샷: 6.9" iPhone 칸에 `docs/store-assets/ios-iphone-*.png`, 13" iPad 칸에 `ios-ipad-*.png`. iPad를 지원하므로 iPad 칸도 필수다
+   - 스크린샷: 6.5" iPhone 칸에 `docs/store-assets/ios-iphone-*.png`, 13" iPad 칸에 `ios-ipad-*.png`. iPad를 지원하므로 iPad 칸도 필수다
    - 앱 개인정보 보호 "사용자 콘텐츠 → 기타 사용자 콘텐츠" 수집(앱 기능, 신원과 연결하지 않음, 추적 없음 — 답은 docs/store-listing.md), 연령 등급 설문, 가격 무료
    - EU에 내면 디지털 서비스법(DSA) 거래자 여부를 답해야 한다. 거래자면 주소·전화번호가 공개되니, 싫으면 사용 가능 국가에서 EU를 뺀다
    - 심사 정보: 로그인 필요 없음. 메모 "로그인 없음. 사진 선택 또는 촬영 후 텍스트 인식. 대본은 기기에 저장되고, 대본 화면 ⋯ → 링크로 공유를 누른 대본만 7일 동안 서버에 저장됨. 받은 링크를 누르면 앱에서 '내 대본에 추가'로 가져옴." 심사 직전에 앱에서 만든 공유 링크 하나를 메모에 붙인다.
