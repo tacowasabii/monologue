@@ -593,12 +593,9 @@ const { tone = 'base', noindex = false } = Astro.props;
     padding: 116px 0;
   }
   /* 두 번째 장면은 좌우를 뒤집는다: 폭까지 함께 바꿔야 사진이 커지지 않는다 */
-  /* 가운데 장면은 패널로 띄워 리듬을 준다 */
+  /* 가운데 장면은 좌우만 바꾼다 */
   .scene.flip {
     grid-template-columns: 380px minmax(0, 1fr);
-    padding: 100px 60px;
-    border-radius: 44px;
-    background: var(--panel);
   }
   .scene.flip .scene-text {
     order: 2;
@@ -839,11 +836,6 @@ const { tone = 'base', noindex = false } = Astro.props;
       grid-template-columns: 1fr;
       gap: 36px;
       padding: 72px 0;
-      border-radius: 32px;
-    }
-    .scene.flip {
-      padding: 56px 24px;
-      margin-inline: -8px;
     }
     .share {
       padding: 8px 0 72px;
