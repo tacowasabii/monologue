@@ -227,6 +227,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     --line: #e6e4df;
     --accent: #7a4b5c;
     --accent-soft: #f1e6ea;
+    --panel: #efeae2;
     --stage: #17100f;
     --stage-fg: #f3ece6;
     --stage-muted: #a99b93;
@@ -242,6 +243,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
       --line: #2a2b2e;
       --accent: #d9a7b8;
       --accent-soft: #2c2226;
+      --panel: #17181a;
       --shadow: 0 30px 60px -32px rgba(0, 0, 0, 0.7);
     }
   }
@@ -253,7 +255,8 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     background: var(--bg);
     color: var(--fg);
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-    line-height: 1.7;
+    font-size: 17px;
+    line-height: 1.75;
     -webkit-font-smoothing: antialiased;
   }
   img {
@@ -288,7 +291,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     z-index: 1;
     max-width: 1080px;
     margin: 0 auto;
-    padding: 72px 24px 0;
+    padding: 104px 24px 0;
   }
   .eyebrow {
     display: inline-flex;
@@ -308,12 +311,13 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     box-shadow: 0 0 0 4px rgba(226, 176, 160, 0.18);
   }
   h1 {
-    margin: 18px 0 0;
-    max-width: 14em;
+    margin: 24px 0 0;
+    max-width: 13em;
+    text-wrap: balance;
     font-family: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
     font-weight: 800;
-    font-size: clamp(38px, 6.4vw, 68px);
-    line-height: 1.22;
+    font-size: clamp(40px, 6.6vw, 74px);
+    line-height: 1.18;
     letter-spacing: -0.02em;
     word-break: keep-all;
   }
@@ -334,20 +338,21 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     border-radius: 2px;
   }
   .lead {
-    margin: 20px 0 0;
-    max-width: 30em;
-    padding-left: 16px;
+    margin: 26px 0 0;
+    max-width: 27em;
+    padding-left: 20px;
     border-left: 2px solid rgba(226, 176, 160, 0.4);
     color: var(--stage-muted);
-    font-size: clamp(16px, 1.6vw, 18px);
+    font-size: clamp(17px, 1.7vw, 19px);
+    line-height: 1.8;
     word-break: keep-all;
   }
   .cta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px 24px;
-    margin-top: 34px;
+    gap: 18px 28px;
+    margin-top: 42px;
   }
   /* Apple 공식 배지: 높이 40px 이상, 주변 여백 유지 (Apple 마케팅 가이드라인) */
   .app-store {
@@ -393,12 +398,12 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   .trust {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 22px;
-    margin: 30px 0 0;
+    gap: 10px 26px;
+    margin: 36px 0 0;
     padding: 0;
     list-style: none;
     color: var(--stage-muted);
-    font-size: 14px;
+    font-size: 15px;
   }
   .trust li {
     position: relative;
@@ -455,8 +460,8 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   .marquee {
     position: relative;
     z-index: 1;
-    margin-top: 64px;
-    padding: 16px 0;
+    margin-top: 88px;
+    padding: 20px 0;
     border-top: 1px solid rgba(243, 236, 230, 0.12);
     border-bottom: 1px solid rgba(243, 236, 230, 0.12);
     overflow: hidden;
@@ -492,7 +497,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
 
   /* ───── 본문 ───── */
   main {
-    max-width: 1080px;
+    max-width: 1120px;
     margin: 0 auto;
     padding: 0 24px;
   }
@@ -507,15 +512,18 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   }
   .scene {
     display: grid;
-    grid-template-columns: 1fr minmax(240px, 300px);
+    grid-template-columns: minmax(0, 1fr) 360px;
     align-items: center;
-    gap: 48px;
-    padding: 84px 0;
-    border-bottom: 1px solid var(--line);
+    gap: 76px;
+    padding: 116px 0;
   }
   /* 두 번째 장면은 좌우를 뒤집는다: 폭까지 함께 바꿔야 사진이 커지지 않는다 */
+  /* 가운데 장면은 패널로 띄워 리듬을 준다 */
   .scene.flip {
-    grid-template-columns: minmax(240px, 300px) 1fr;
+    grid-template-columns: 360px minmax(0, 1fr);
+    padding: 100px 60px;
+    border-radius: 44px;
+    background: var(--panel);
   }
   .scene.flip .scene-text {
     order: 2;
@@ -524,34 +532,37 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     margin: 0;
     color: var(--accent);
     font-family: 'Nanum Myeongjo', serif;
-    font-size: 15px;
-    letter-spacing: 0.24em;
+    font-size: 14px;
+    letter-spacing: 0.3em;
   }
   h2 {
     margin: 10px 0 0;
     font-family: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
     font-weight: 700;
-    font-size: clamp(25px, 3.2vw, 35px);
-    line-height: 1.35;
-    letter-spacing: -0.02em;
+    font-size: clamp(27px, 3.4vw, 39px);
+    line-height: 1.3;
+    letter-spacing: -0.025em;
     word-break: keep-all;
+    text-wrap: balance;
   }
   .scene-body {
-    margin: 14px 0 0;
-    max-width: 34em;
+    margin: 20px 0 0;
+    max-width: 29em;
     color: var(--muted);
+    font-size: 17px;
+    line-height: 1.85;
     word-break: keep-all;
   }
   .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 22px 0 0;
+    gap: 10px;
+    margin: 30px 0 0;
     padding: 0;
     list-style: none;
   }
   .chips li {
-    padding: 5px 13px;
+    padding: 7px 15px;
     border-radius: 999px;
     background: var(--accent-soft);
     color: var(--accent);
@@ -562,22 +573,29 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     position: relative;
     margin: 0;
   }
+  .scene-shot::before {
+    content: '';
+    position: absolute;
+    inset: -12% -18%;
+    background: radial-gradient(50% 50% at 50% 50%, var(--accent-soft) 0%, transparent 72%);
+    opacity: 0.85;
+  }
   .scene-shot img {
+    position: relative;
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 24px;
+    border-radius: 28px;
     border: 1px solid var(--line);
     box-shadow: var(--shadow);
   }
 
   .share {
-    padding: 84px 0;
-    border-bottom: 1px solid var(--line);
+    padding: 16px 0 116px;
   }
   .share-card {
-    padding: 38px 40px;
-    border-radius: 26px;
+    padding: 68px 60px;
+    border-radius: 44px;
     background: var(--card);
     border: 1px solid var(--line);
     box-shadow: var(--shadow);
@@ -587,12 +605,12 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     flex-wrap: wrap;
     align-items: baseline;
     gap: 6px;
-    margin: 22px 0 0;
-    padding: 10px 16px;
-    border-radius: 12px;
+    margin: 30px 0 0;
+    padding: 14px 22px;
+    border-radius: 16px;
     border: 1px dashed var(--line);
     background: var(--bg);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
     letter-spacing: -0.01em;
   }
@@ -607,21 +625,20 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   }
 
   .grid {
-    padding: 84px 0;
-    border-bottom: 1px solid var(--line);
+    padding: 0 0 116px;
   }
   .grid-title {
-    margin: 0 0 30px;
+    margin: 0 0 36px;
     font-size: clamp(22px, 2.4vw, 28px);
   }
   .grid-items {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
   }
   .grid-items article {
-    padding: 24px;
-    border-radius: 20px;
+    padding: 32px 30px;
+    border-radius: 26px;
     background: var(--card);
     border: 1px solid var(--line);
     transition: transform 0.3s ease, border-color 0.3s ease;
@@ -632,22 +649,47 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   }
   .grid-items h3 {
     margin: 0;
-    font-size: 17px;
+    font-size: 18px;
+  }
+  .grid-items h3::before {
+    content: '';
+    display: block;
+    width: 26px;
+    height: 2px;
+    margin-bottom: 14px;
+    background: var(--accent);
+    opacity: 0.55;
   }
   .grid-items p {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     color: var(--muted);
     font-size: 15px;
     word-break: keep-all;
   }
 
   .closing {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 18px;
-    padding: 96px 0;
+    gap: 22px;
+    padding: 130px 0;
     text-align: center;
+    border-top: 1px solid var(--line);
+  }
+  .closing::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(680px, 90%);
+    height: 320px;
+    transform: translateX(-50%);
+    background: radial-gradient(50% 50% at 50% 30%, var(--accent-soft) 0%, transparent 70%);
+    opacity: 0.8;
+  }
+  .closing > * {
+    position: relative;
   }
   .closing h2 {
     max-width: 16em;
@@ -691,8 +733,8 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   @media (min-width: 980px) {
     .stage-inner {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 330px;
-      column-gap: 64px;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      column-gap: 80px;
       align-items: center;
       padding-bottom: 12px;
     }
@@ -720,17 +762,31 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     .scene,
     .scene.flip {
       grid-template-columns: 1fr;
-      gap: 32px;
-      padding: 60px 0;
+      gap: 36px;
+      padding: 72px 0;
+      border-radius: 32px;
+    }
+    .scene.flip {
+      padding: 56px 24px;
+      margin-inline: -8px;
     }
     .share {
-      padding: 60px 0;
+      padding: 8px 0 72px;
+    }
+    .share-card {
+      padding: 36px 26px;
+    }
+    .grid {
+      padding-bottom: 72px;
+    }
+    .closing {
+      padding: 88px 0;
     }
     .scene.flip .scene-text {
       order: 0;
     }
     .scene-shot {
-      max-width: 280px;
+      max-width: 300px;
       margin-inline: auto;
     }
     .share-card {
