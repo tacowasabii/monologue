@@ -1,0 +1,117 @@
+---
+// 네 가지 색 톤을 한 화면에서 비교한다. 고르고 나면 이 폴더째 지운다.
+const tones = [
+  { key: 'a', name: '자정 블루', note: '깊은 남색 무대 · 푸른 조명 · 차가운 회백색 본문' },
+  { key: 'b', name: '숯불 빨강', note: '짙은 갈색 무대 · 황동빛 조명 · 따뜻한 베이지 본문' },
+  { key: 'c', name: '숲 그늘', note: '짙은 녹색 무대 · 세이지 조명 · 연한 녹회색 본문' },
+  { key: 'd', name: '먹빛 살구', note: '먹빛 무대 · 살구색 조명 · 따뜻한 회백색 본문' },
+];
+const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>`;
+---
+
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>색 톤 비교 — 모노로그</title>
+    <link rel="icon" href={favicon} />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>색 톤 비교</h1>
+      <p>구조와 여백은 같고 색만 달라요. 각 칸은 따로 스크롤되고, 제목을 누르면 그 톤만 크게 볼 수 있어요.</p>
+    </header>
+
+    <div class="grid">
+      {tones.map((t) => (
+        <section>
+          <h2>
+            <a href={`/preview/${t.key}`}>{t.key.toUpperCase()}. {t.name}</a>
+            <span>{t.note}</span>
+          </h2>
+          <div class="frame">
+            <iframe src={`/preview/${t.key}`} title={`${t.name} 미리보기`} loading="lazy"></iframe>
+          </div>
+        </section>
+      ))}
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 28px 24px 48px;
+    background: #101012;
+    color: #ededec;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  header {
+    max-width: 1400px;
+    margin: 0 auto 24px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: -0.03em;
+  }
+  header p {
+    margin: 6px 0 0;
+    color: #9c9a97;
+    font-size: 15px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  section {
+    min-width: 0;
+  }
+  h2 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    margin: 0 0 10px;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+  h2 a {
+    color: inherit;
+  }
+  h2 span {
+    color: #8d8b88;
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .frame {
+    height: 78vh;
+    min-height: 520px;
+    border-radius: 16px;
+    border: 1px solid #2a2a2d;
+    overflow: hidden;
+    background: #17171a;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  @media (max-width: 820px) {
+    .frame {
+      height: 62vh;
+    }
+  }
+</style>
