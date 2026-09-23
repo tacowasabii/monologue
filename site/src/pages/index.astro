@@ -3,52 +3,19 @@ import { Image } from 'astro:assets';
 import list from '../assets/01-list.png';
 import paragraphs from '../assets/02-paragraphs.png';
 import dialogue from '../assets/03-dialogue.png';
+import immersive from '../assets/04-immersive.png';
 import practice from '../assets/05-practice.png';
 import { OG_IMAGE, SITE_ORIGIN } from '../lib/share/http';
 
-// 무대 커튼처럼 흘러가는 대사 조각. 저작권 없는 자작 문장이다.
-const marquee = [
-  '이 방은 네가 나간 뒤로 한 번도 따뜻해진 적이 없어.',
-  '엄마, 나 다음 주에 집 나가.',
-  '애들이 종이비행기를 날릴 때마다 혼냈어요.',
-  '웃기지? 나 아직도 그 자리에 서 있어.',
-  '물 마시러 나왔어. 정말이야.',
-];
+const APP_STORE = 'https://apps.apple.com/kr/app/id6812239274';
 
-const scenes = [
-  {
-    no: '01',
-    title: '사진을 올리면 대본이 돼요',
-    body: '사진첩에서 여러 장을 한 번에 고르거나 카메라로 찍으면, 순서대로 이어붙여 대본 하나로 만들어요. 필요한 문단만 골라 담고, 인식한 글은 바로 고칠 수 있어요.',
-    points: ['기기 안에서 글자 인식', '문단 골라 담기', '원본 사진도 함께 보관'],
-    src: paragraphs,
-    alt: '사진에서 인식한 문단을 골라 담는 화면',
-  },
-  {
-    no: '02',
-    title: '내 역할 대사만 또렷하게',
-    body: '대화 장면은 인물별로 나눠 보여주고, 내 역할을 고르면 그 대사만 진하게 보여요. 상황이나 떠오르는 생각은 연기 노트에 정해진 칸 없이 적어 둬요.',
-    points: ['인물별로 나눠 보기', '연기 노트', '몰입 읽기 모드'],
-    src: dialogue,
-    alt: '내 역할 대사를 진하게 보여 주는 대화 대본 화면',
-  },
-  {
-    no: '03',
-    title: '연습은 남겨 두고 다시 들어요',
-    body: '대본을 보면서 녹음하거나 영상을 찍어 대본 아래에 모아 둬요. 기기에 있는 음성·영상 파일도 그대로 가져올 수 있어요.',
-    points: ['대본 보며 녹음', '연습 영상', '파일 불러오기'],
-    src: practice,
-    alt: '대본 아래 녹음과 영상이 모인 연습 기록 화면',
-  },
-];
-
-const features = [
-  ['모음으로 정리', "'1차 오디션'처럼 모음을 만들어 대본을 넣고 순서를 정해요. 즐겨찾기한 대본은 맨 위에 모여요."],
-  ['한 구절로 검색', '작품명·한 줄 설명·본문·연기 노트까지 찾아요. 분위기 태그로도 추려 봐요.'],
-  ['몰입 읽기', '메뉴를 모두 감추고 화면을 가득 채워 대본만 읽어요.'],
-  ['내보내기', '대본을 PDF·Word·텍스트로 내보내거나 본문을 그대로 복사해요.'],
-  ['iPad에서 나란히', '넓은 화면에서는 목록 옆에 대본이 열려요. 아이패드와 폴더블에 맞춰 펼쳐져요.'],
-  ['백업과 복원', '기기를 바꿀 땐 백업 파일 하나로 대본과 연습 기록을 그대로 옮겨요.'],
+const extras = [
+  ['모음으로 정리', "'1차 오디션'처럼 모음을 만들어 대본을 넣고 순서를 정해요."],
+  ['한 구절로 검색', '작품명·한 줄 설명·본문·연기 노트까지 찾아요.'],
+  ['내보내기', 'PDF·Word·텍스트로 내보내거나 본문을 그대로 복사해요.'],
+  ['iPad에서 나란히', '넓은 화면에서는 목록 옆에 대본이 열려요.'],
+  ['백업과 복원', '기기를 바꿀 땐 백업 파일 하나로 옮겨요.'],
+  ['내 기기에 저장', '로그인이 없고 글자 인식도 기기 안에서 해요.'],
 ];
 
 const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>`;
@@ -77,122 +44,137 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
         document.documentElement.classList.add('js');
       }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
     />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&display=swap"
-    />
   </head>
   <body>
-    <header class="stage">
-      <div class="stage-inner">
-        <p class="eyebrow"><span class="dot"></span>iPhone · iPad · Android</p>
+    <header class="bar">
+      <a class="wordmark" href="/">모노로그</a>
+      <a class="bar-cta" href={APP_STORE}>App Store에서 받기</a>
+    </header>
 
-        <h1>캡처해 둔 독백 대본, <em>한곳에</em> 모아 둬요</h1>
-
-        <p class="lead">
+    <main>
+      <section class="hero">
+        <div class="blobs" aria-hidden="true"></div>
+        <p class="pill">iPhone · iPad · Android</p>
+        <h1>캡처해 둔 독백 대본,<br />한곳에 모아 둬요</h1>
+        <p class="sub">
           사진첩에 흩어진 대본을 올리면 글자를 인식해 텍스트로 저장해요.
           오디션 전날, 어느 사진에 있었는지 찾아 헤매지 않아요.
         </p>
 
         <div class="cta">
-          <a class="app-store" href="https://apps.apple.com/kr/app/id6812239274">
+          <a class="app-store" href={APP_STORE}>
             <img src="/badges/app-store-ko.svg" alt="App Store에서 다운로드하기" width="156" height="48" />
           </a>
-          <div class="cta-side">
-            <a class="ghost" href="/downloads/monologue-android-test.apk" download>
-              Android 테스트 APK 받기
-              <span aria-hidden="true">↓</span>
-            </a>
-            <p class="cta-note">Google Play 출시 준비 중 · 39MB</p>
-          </div>
+          <a class="ghost" href="/downloads/monologue-android-test.apk" download>
+            Android 테스트 APK
+            <span aria-hidden="true">↓</span>
+          </a>
         </div>
+        <p class="micro">로그인 없음 · 대본은 기기에 저장 · iOS 16 이상 · Google Play 출시 준비 중</p>
 
-        <ul class="trust">
-          <li>로그인 없음</li>
-          <li>대본은 기기에 저장</li>
-          <li>글자 인식도 기기 안에서</li>
-        </ul>
-
-        <div class="hero-shot">
-          <div class="glow" aria-hidden="true"></div>
-          <Image src={list} alt="즐겨찾기한 대본이 위에 모인 대본 목록 화면" widths={[320, 640]} sizes="300px" format="webp" quality={85} />
-        </div>
-      </div>
-
-      <div class="marquee" aria-hidden="true">
-        <div class="marquee-track">
-          {[...marquee, ...marquee].map((line) => <span>{line}</span>)}
-        </div>
-      </div>
-    </header>
-
-    <main>
-      {scenes.map((scene, i) => (
-        <section class={i % 2 === 1 ? 'scene reveal flip' : 'scene reveal'}>
-          <div class="scene-text">
-            <p class="scene-no">{scene.no}</p>
-            <h2>{scene.title}</h2>
-            <p class="scene-body">{scene.body}</p>
-            <ul class="chips">
-              {scene.points.map((p) => <li>{p}</li>)}
-            </ul>
-          </div>
-          <figure class="scene-shot">
-            <Image src={scene.src} alt={scene.alt} widths={[300, 600]} sizes="280px" format="webp" quality={85} />
-          </figure>
-        </section>
-      ))}
-
-      <section class="share reveal">
-        <div class="share-card">
-          <p class="scene-no">04</p>
-          <h2>링크 하나로 대본을 보내요</h2>
-          <p class="scene-body">
-            받은 사람은 링크를 눌러 바로 내 대본에 추가해요. 앱이 없어도 웹에서 읽을 수 있고,
-            링크는 7일 뒤 스스로 사라져요.
-          </p>
-          <p class="link-chip"><span>monologue.ink/s/</span>a7Kq2x<em>· 7일 뒤 만료</em></p>
+        <div class="hero-shots">
+          <Image class="shot back" src={dialogue} alt="내 역할 대사를 진하게 보여 주는 대화 대본 화면" widths={[280, 560]} sizes="260px" format="webp" quality={85} />
+          <Image class="shot front" src={list} alt="즐겨찾기한 대본이 위에 모인 대본 목록 화면" widths={[320, 640]} sizes="300px" format="webp" quality={85} />
+          <Image class="shot back" src={practice} alt="대본 아래 녹음과 영상이 모인 연습 기록 화면" widths={[280, 560]} sizes="260px" format="webp" quality={85} />
         </div>
       </section>
 
-      <section class="grid reveal">
-        <h2 class="grid-title">그 밖에</h2>
-        <div class="grid-items">
-          {features.map(([title, body]) => (
-            <article>
+      <section class="bento">
+        <article class="card wide blush reveal">
+          <div class="card-text">
+            <h2>사진을 올리면 대본이 돼요</h2>
+            <p>
+              사진첩에서 여러 장을 한 번에 고르거나 카메라로 찍으면 순서대로 이어붙여 대본 하나로 만들어요.
+              필요한 문단만 골라 담고, 인식한 글은 바로 고칠 수 있어요.
+            </p>
+            <ul class="chips">
+              <li>기기 안에서 인식</li>
+              <li>문단 골라 담기</li>
+              <li>원본 사진 보관</li>
+            </ul>
+          </div>
+          <div class="card-shot peek">
+            <Image src={paragraphs} alt="사진에서 인식한 문단을 골라 담는 화면" widths={[280, 560]} sizes="260px" format="webp" quality={85} />
+          </div>
+        </article>
+
+        <article class="card sand reveal">
+          <h2>내 역할 대사만<br />또렷하게</h2>
+          <p>대화 장면은 인물별로 나눠 보여주고, 고른 역할의 대사만 진하게 보여요.</p>
+          <div class="card-shot peek center">
+            <Image src={dialogue} alt="내 역할 대사를 진하게 보여 주는 대화 대본 화면" widths={[260, 520]} sizes="240px" format="webp" quality={85} />
+          </div>
+        </article>
+
+        <article class="card mist reveal">
+          <h2>메뉴 없이<br />대본에만 몰입</h2>
+          <p>화면을 가득 채워 대본만 읽어요. 연기 노트에는 상황과 떠오르는 생각을 자유롭게 적어 둬요.</p>
+          <div class="card-shot peek center">
+            <Image src={immersive} alt="메뉴 없이 대본만 보여 주는 몰입 읽기 화면" widths={[260, 520]} sizes="240px" format="webp" quality={85} />
+          </div>
+        </article>
+
+        <article class="card wide reveal">
+          <div class="card-text">
+            <h2>연습은 남겨 두고 다시 들어요</h2>
+            <p>
+              대본을 보면서 녹음하거나 영상을 찍어 대본 아래에 모아 둬요.
+              기기에 있는 음성·영상 파일도 그대로 가져올 수 있어요.
+            </p>
+            <ul class="chips">
+              <li>대본 보며 녹음</li>
+              <li>연습 영상</li>
+              <li>파일 불러오기</li>
+            </ul>
+          </div>
+          <div class="card-shot peek">
+            <Image src={practice} alt="대본 아래 녹음과 영상이 모인 연습 기록 화면" widths={[280, 560]} sizes="260px" format="webp" quality={85} />
+          </div>
+        </article>
+
+        <article class="card full accent reveal">
+          <h2>링크 하나로 대본을 보내요</h2>
+          <p>받은 사람은 링크를 눌러 바로 내 대본에 추가해요. 앱이 없어도 웹에서 읽을 수 있고, 링크는 7일 뒤 스스로 사라져요.</p>
+          <p class="link-chip"><span>monologue.ink/s/</span>a7Kq2x<em>7일 뒤 만료</em></p>
+        </article>
+      </section>
+
+      <section class="extras reveal">
+        <h2 class="extras-title">그 밖에</h2>
+        <div class="extras-grid">
+          {extras.map(([title, body]) => (
+            <div class="extra">
               <h3>{title}</h3>
               <p>{body}</p>
-            </article>
+            </div>
           ))}
         </div>
       </section>
 
       <section class="closing reveal">
         <h2>오늘 찍어 둔 대본부터 넣어 보세요</h2>
-        <a class="app-store" href="https://apps.apple.com/kr/app/id6812239274">
+        <a class="app-store" href={APP_STORE}>
           <img src="/badges/app-store-ko.svg" alt="App Store에서 다운로드하기" width="156" height="48" />
         </a>
-        <p class="cta-note">iPhone · iPad · iOS 16 이상</p>
+        <p class="micro">iPhone · iPad · iOS 16 이상</p>
       </section>
     </main>
 
     <footer>
-      <p class="mark">모노로그</p>
+      <p class="wordmark">모노로그</p>
       <nav>
         <a href="/privacy">개인정보처리방침</a>
-        <a href="https://apps.apple.com/kr/app/id6812239274">App Store</a>
+        <a href={APP_STORE}>App Store</a>
       </nav>
       <p class="copy">© 2026 이주현</p>
     </footer>
 
     <script is:inline>
-      // 스크롤에 맞춰 섹션을 띄운다. 모션을 줄이는 설정이면 그대로 보여 준다.
+      // 스크롤에 맞춰 카드를 띄운다. 모션을 줄이는 설정이면 그대로 보여 준다.
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const items = document.querySelectorAll('.reveal');
       if (reduce || !('IntersectionObserver' in window)) {
@@ -207,7 +189,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
               }
             });
           },
-          { rootMargin: '0px 0px -12% 0px' },
+          { rootMargin: '0px 0px -10% 0px' },
         );
         items.forEach((el) => io.observe(el));
       }
@@ -217,31 +199,30 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
 
 <style is:global>
   :root {
-    --bg: #f6f5f2;
-    --card: #fffefb;
-    --fg: #1b1b1c;
-    --muted: #6d6c69;
-    --line: #e6e4df;
-    --accent: #7a4b5c;
-    --accent-soft: #f1e6ea;
-    --panel: #efeae2;
-    --stage: #17100f;
-    --stage-fg: #f3ece6;
-    --stage-muted: #a99b93;
-    --stage-accent: #e2b0a0;
-    --shadow: 0 30px 60px -32px rgba(32, 18, 22, 0.45);
+    --bg: #faf7f3;
+    --card: #ffffff;
+    --blush: #fbecef;
+    --sand: #f4eee4;
+    --mist: #ebeff0;
+    --fg: #1b1917;
+    --muted: #6f6a65;
+    --line: #ece5db;
+    --accent: #8a4f62;
+    --shadow: 0 26px 50px -34px rgba(70, 45, 52, 0.45);
+    --radius: 34px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #111213;
-      --card: #191a1c;
-      --fg: #ececeb;
-      --muted: #9b9a97;
-      --line: #2a2b2e;
-      --accent: #d9a7b8;
-      --accent-soft: #2c2226;
-      --panel: #17181a;
-      --shadow: 0 30px 60px -32px rgba(0, 0, 0, 0.7);
+      --bg: #121213;
+      --card: #1a1a1c;
+      --blush: #241a1e;
+      --sand: #211e1a;
+      --mist: #1a1e1f;
+      --fg: #efedea;
+      --muted: #a09a94;
+      --line: #2b2b2e;
+      --accent: #b9697f;
+      --shadow: 0 26px 50px -34px rgba(0, 0, 0, 0.8);
     }
   }
   * {
@@ -262,100 +243,110 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   a {
     color: inherit;
   }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.035em;
+    word-break: keep-all;
+    text-wrap: balance;
+  }
 
-  /* ───── 무대: 어두운 히어로 ───── */
-  .stage {
-    position: relative;
-    overflow: hidden;
-    border-radius: 0 0 48px 48px;
-    background:
-      radial-gradient(120% 70% at 50% -10%, rgba(226, 176, 160, 0.22) 0%, rgba(23, 16, 15, 0) 60%),
-      radial-gradient(80% 50% at 80% 10%, rgba(122, 75, 92, 0.35) 0%, rgba(23, 16, 15, 0) 70%),
-      var(--stage);
-    color: var(--stage-fg);
-  }
-  /* 무대 조명의 입자감 */
-  .stage::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.35;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-    mix-blend-mode: soft-light;
-  }
-  .stage-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 104px 24px 0;
-  }
-  .eyebrow {
-    display: inline-flex;
+  /* ───── 상단 바 ───── */
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 0;
-    color: var(--stage-accent);
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 18px 24px;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(14px);
   }
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--stage-accent);
-    box-shadow: 0 0 0 4px rgba(226, 176, 160, 0.18);
+  .wordmark {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    text-decoration: none;
+  }
+  .bar-cta {
+    padding: 9px 18px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+  .bar-cta:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+  }
+
+  main {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+  }
+
+  /* ───── 히어로 ───── */
+  .hero {
+    position: relative;
+    padding: 72px 0 0;
+    text-align: center;
+  }
+  .blobs {
+    position: absolute;
+    inset: -120px -10% auto;
+    height: 620px;
+    z-index: -1;
+    background:
+      radial-gradient(38% 42% at 22% 30%, var(--blush) 0%, transparent 70%),
+      radial-gradient(34% 40% at 78% 24%, var(--sand) 0%, transparent 70%),
+      radial-gradient(30% 36% at 52% 62%, var(--mist) 0%, transparent 72%);
+    filter: blur(6px);
+  }
+  .pill {
+    display: inline-block;
+    margin: 0;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 700;
   }
   h1 {
-    margin: 24px 0 0;
-    max-width: 11em;
-    text-wrap: balance;
-    font-family: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+    margin: 22px auto 0;
+    max-width: 16em;
+    font-size: clamp(38px, 5.6vw, 66px);
     font-weight: 800;
-    font-size: clamp(38px, 5.4vw, 62px);
-    line-height: 1.18;
-    letter-spacing: -0.02em;
-    word-break: keep-all;
+    line-height: 1.16;
   }
-  h1 em {
-    font-style: normal;
-    color: var(--stage-accent);
-    position: relative;
-    white-space: nowrap;
-  }
-  h1 em::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0.1em;
-    height: 0.36em;
-    background: rgba(226, 176, 160, 0.16);
-    border-radius: 2px;
-  }
-  .lead {
-    margin: 26px 0 0;
-    max-width: 27em;
-    padding-left: 20px;
-    border-left: 2px solid rgba(226, 176, 160, 0.4);
-    color: var(--stage-muted);
-    font-size: clamp(17px, 1.7vw, 19px);
-    line-height: 1.8;
-    word-break: keep-all;
+  .sub {
+    margin: 22px auto 0;
+    max-width: 30em;
+    color: var(--muted);
+    font-size: clamp(16px, 1.6vw, 19px);
   }
   .cta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 18px 28px;
-    margin-top: 42px;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 34px;
   }
   /* Apple 공식 배지: 높이 40px 이상, 주변 여백 유지 (Apple 마케팅 가이드라인) */
   .app-store {
     display: inline-block;
-    transition: transform 0.25s ease;
+    transition: transform 0.2s ease;
   }
   .app-store:hover {
     transform: translateY(-2px);
@@ -365,433 +356,336 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     height: 52px;
     width: auto;
   }
-  .cta-side {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
   .ghost {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    align-self: flex-start;
-    padding: 9px 18px;
-    border: 1px solid rgba(243, 236, 230, 0.28);
+    padding: 14px 22px;
     border-radius: 999px;
-    color: var(--stage-fg);
+    border: 1px solid var(--line);
+    background: var(--card);
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
-    transition: border-color 0.25s ease, background 0.25s ease;
+    transition: border-color 0.2s ease, transform 0.2s ease;
   }
   .ghost:hover {
-    border-color: rgba(243, 236, 230, 0.6);
-    background: rgba(243, 236, 230, 0.06);
+    border-color: var(--accent);
+    transform: translateY(-2px);
   }
-  .cta-note {
-    margin: 0;
-    color: var(--stage-muted);
-    font-size: 13px;
+  .micro {
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: 14px;
   }
-  .trust {
+  .hero-shots {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px 26px;
-    margin: 36px 0 0;
-    padding: 0;
-    list-style: none;
-    color: var(--stage-muted);
-    font-size: 15px;
-  }
-  .trust li {
-    position: relative;
-    padding-left: 16px;
-  }
-  .trust li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.62em;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    border: 1px solid var(--stage-accent);
-  }
-  .hero-shot {
-    position: relative;
-    display: flex;
+    align-items: flex-end;
     justify-content: center;
-    margin-top: 48px;
+    gap: 22px;
+    margin-top: 56px;
   }
-  .hero-shot img {
-    position: relative;
-    z-index: 1;
-    width: 300px;
+  .hero-shots .shot {
+    width: 260px;
     height: auto;
-    border-radius: 26px;
-    border: 1px solid rgba(243, 236, 230, 0.16);
-    box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.8);
-    transform: translateY(24px) rotate(-1.5deg);
-    animation: rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
+    border-radius: 30px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    box-shadow: var(--shadow);
   }
-  .glow {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    width: min(620px, 92vw);
-    height: 420px;
-    transform: translateX(-50%);
-    background: radial-gradient(50% 50% at 50% 50%, rgba(226, 176, 160, 0.3) 0%, rgba(23, 16, 15, 0) 70%);
+  .hero-shots .front {
+    width: 300px;
+    z-index: 1;
+    animation: pop 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
-  @keyframes rise {
+  .hero-shots .back:first-child {
+    transform: rotate(-4deg) translateY(18px);
+    animation: pop 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+  }
+  .hero-shots .back:last-child {
+    transform: rotate(4deg) translateY(18px);
+    animation: pop 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+  }
+  @keyframes pop {
     from {
       opacity: 0;
-      transform: translateY(70px) rotate(-1.5deg);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(24px) rotate(-1.5deg);
-    }
-  }
-
-  /* 무대 아래 흘러가는 대사 */
-  .marquee {
-    position: relative;
-    z-index: 1;
-    margin-top: 88px;
-    padding: 20px 0;
-    border-top: 1px solid rgba(243, 236, 230, 0.12);
-    border-bottom: 1px solid rgba(243, 236, 230, 0.12);
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-  }
-  .marquee-track {
-    display: flex;
-    width: max-content;
-    gap: 48px;
-    animation: slide 42s linear infinite;
-  }
-  .marquee-track span {
-    font-family: 'Nanum Myeongjo', serif;
-    font-size: 17px;
-    color: rgba(243, 236, 230, 0.62);
-    white-space: nowrap;
-  }
-  @keyframes slide {
-    to {
-      transform: translateX(-50%);
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .marquee-track {
+    .hero-shots .shot {
       animation: none;
-    }
-    .hero-shot img {
-      animation: none;
-      transform: translateY(24px) rotate(-1.5deg);
     }
   }
 
-  /* ───── 본문 ───── */
-  main {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-  html.js .reveal {
-    opacity: 0;
-    transform: translateY(26px);
-    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  html.js .reveal.in {
-    opacity: 1;
-    transform: none;
-  }
-  .scene {
+  /* ───── 카드 그리드 ───── */
+  .bento {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 22px;
+    margin-top: 110px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    grid-column: span 3;
+    padding: 40px;
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+  }
+  .card.wide {
+    grid-column: span 6;
+    flex-direction: row;
     align-items: center;
-    gap: 80px;
-    padding: 116px 0;
+    gap: 48px;
+    padding-bottom: 0;
   }
-  /* 두 번째 장면은 좌우를 뒤집는다: 폭까지 함께 바꿔야 사진이 커지지 않는다 */
-  /* 가운데 장면은 패널로 띄워 리듬을 준다 */
-  .scene.flip {
-    grid-template-columns: 380px minmax(0, 1fr);
-    padding: 100px 60px;
-    border-radius: 44px;
-    background: var(--panel);
+  .card.full {
+    grid-column: span 6;
   }
-  .scene.flip .scene-text {
-    order: 2;
+  .card.blush {
+    background: var(--blush);
   }
-  .scene-no {
+  .card.sand {
+    background: var(--sand);
+  }
+  .card.mist {
+    background: var(--mist);
+  }
+  .card.accent {
+    background: var(--accent);
+    color: #fff;
+    border-color: transparent;
+  }
+  .card-text {
+    flex: 1;
+    padding-bottom: 40px;
+  }
+  .card h2 {
     margin: 0;
-    color: var(--accent);
-    font-family: 'Nanum Myeongjo', serif;
-    font-size: 14px;
-    letter-spacing: 0.3em;
+    font-size: clamp(24px, 2.6vw, 32px);
+    font-weight: 800;
+    line-height: 1.28;
   }
-  h2 {
-    margin: 10px 0 0;
-    font-family: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
-    font-weight: 700;
-    font-size: clamp(27px, 3.4vw, 39px);
-    line-height: 1.3;
-    letter-spacing: -0.025em;
-    word-break: keep-all;
-    text-wrap: balance;
-  }
-  .scene-body {
-    margin: 20px 0 0;
-    max-width: 29em;
+  .card p {
+    margin: 14px 0 0;
+    max-width: 30em;
     color: var(--muted);
-    font-size: 17px;
-    line-height: 1.85;
-    word-break: keep-all;
+  }
+  .card.accent p {
+    color: rgba(255, 255, 255, 0.86);
   }
   .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin: 30px 0 0;
+    gap: 8px;
+    margin: 24px 0 0;
     padding: 0;
     list-style: none;
   }
   .chips li {
     padding: 7px 15px;
     border-radius: 999px;
-    background: var(--accent-soft);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--line);
     color: var(--accent);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
   }
-  .scene-shot {
-    position: relative;
-    margin: 0;
+  /* 화면 캡처는 카드 아래로 살짝 잘려 들어간다 */
+  .card-shot {
+    margin-top: 28px;
+    margin-bottom: -60px;
   }
-  .scene-shot::before {
-    content: '';
-    position: absolute;
-    inset: -12% -18%;
-    background: radial-gradient(50% 50% at 50% 50%, var(--accent-soft) 0%, transparent 72%);
-    opacity: 0.85;
+  .card.wide .card-shot {
+    flex: 0 0 260px;
+    margin-top: 40px;
   }
-  .scene-shot img {
-    position: relative;
+  .card-shot.center {
+    display: flex;
+    justify-content: center;
+  }
+  .card-shot img {
     display: block;
     width: 100%;
+    max-width: 260px;
     height: auto;
-    border-radius: 28px;
+    border-radius: 26px 26px 0 0;
     border: 1px solid var(--line);
-    box-shadow: var(--shadow);
-  }
-
-  .share {
-    padding: 16px 0 116px;
-  }
-  .share-card {
-    padding: 68px 60px;
-    border-radius: 44px;
+    border-bottom: none;
     background: var(--card);
-    border: 1px solid var(--line);
     box-shadow: var(--shadow);
   }
   .link-chip {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 6px;
-    margin: 30px 0 0;
+    gap: 10px;
+    margin: 26px 0 0;
     padding: 14px 22px;
     border-radius: 16px;
-    border: 1px dashed var(--line);
-    background: var(--bg);
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
     font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-weight: 700;
   }
   .link-chip span {
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.7);
     font-weight: 500;
   }
   .link-chip em {
-    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
     font-size: 13px;
     font-style: normal;
+    font-weight: 600;
   }
 
-  .grid {
-    padding: 0 0 116px;
+  /* ───── 그 밖에 ───── */
+  .extras {
+    margin-top: 110px;
   }
-  .grid-title {
-    margin: 0 0 36px;
+  .extras-title {
+    margin: 0 0 28px;
     font-size: clamp(22px, 2.4vw, 28px);
+    font-weight: 800;
   }
-  .grid-items {
+  .extras-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 14px 40px;
   }
-  .grid-items article {
-    padding: 32px 30px;
-    border-radius: 26px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    transition: transform 0.3s ease, border-color 0.3s ease;
+  .extra {
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
   }
-  .grid-items article:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent);
-  }
-  .grid-items h3 {
+  .extra h3 {
     margin: 0;
     font-size: 18px;
+    font-weight: 700;
   }
-  .grid-items h3::before {
-    content: '';
-    display: block;
-    width: 26px;
-    height: 2px;
-    margin-bottom: 14px;
-    background: var(--accent);
-    opacity: 0.55;
-  }
-  .grid-items p {
-    margin: 10px 0 0;
+  .extra p {
+    margin: 6px 0 0;
     color: var(--muted);
     font-size: 15px;
-    word-break: keep-all;
   }
 
+  /* ───── 마무리 ───── */
   .closing {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 22px;
-    padding: 130px 0;
+    gap: 20px;
+    margin-top: 110px;
+    padding: 90px 32px;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(60% 80% at 50% 0%, var(--blush) 0%, transparent 70%),
+      var(--card);
+    border: 1px solid var(--line);
     text-align: center;
-    border-top: 1px solid var(--line);
-  }
-  .closing::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: min(680px, 90%);
-    height: 320px;
-    transform: translateX(-50%);
-    background: radial-gradient(50% 50% at 50% 30%, var(--accent-soft) 0%, transparent 70%);
-    opacity: 0.8;
-  }
-  .closing > * {
-    position: relative;
   }
   .closing h2 {
-    max-width: 16em;
+    margin: 0;
+    max-width: 14em;
+    font-size: clamp(26px, 3.4vw, 40px);
+    font-weight: 800;
+  }
+  .closing .micro {
+    margin: 0;
   }
 
   footer {
-    border-top: 1px solid var(--line);
-  }
-  footer > * {
-    max-width: 1080px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    max-width: 1160px;
     margin: 0 auto;
-    padding-inline: 24px;
-  }
-  .mark {
-    margin: 36px auto 0;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 19px;
+    padding: 40px 24px 56px;
+    color: var(--muted);
+    font-size: 14px;
   }
   footer nav {
     display: flex;
-    flex-wrap: wrap;
     gap: 18px;
-    margin-top: 10px;
-    font-size: 14px;
+    margin-right: auto;
   }
   footer nav a {
-    color: var(--muted);
     text-decoration: none;
   }
   footer nav a:hover {
     color: var(--accent);
   }
-  .copy {
-    margin: 14px auto 40px;
-    color: var(--muted);
-    font-size: 13px;
+  footer .wordmark {
+    color: var(--fg);
   }
 
-  /* 넓은 화면: 글 왼쪽, 화면 사진 오른쪽 */
-  @media (min-width: 980px) {
-    .stage-inner {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      column-gap: 80px;
-      align-items: center;
-      padding-bottom: 12px;
-    }
-    .stage-inner > .eyebrow,
-    .stage-inner > h1,
-    .stage-inner > .lead,
-    .stage-inner > .cta,
-    .stage-inner > .trust {
-      grid-column: 1;
-    }
-    .hero-shot {
-      grid-column: 2;
-      grid-row: 1 / span 5;
-      margin-top: 0;
-    }
-    .hero-shot img {
-      width: 100%;
-    }
+  /* ───── 등장 효과 ───── */
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  html.js .reveal.in {
+    opacity: 1;
+    transform: none;
   }
 
-  @media (max-width: 760px) {
-    .stage-inner {
-      padding-top: 56px;
+  @media (max-width: 900px) {
+    .card,
+    .card.wide,
+    .card.full {
+      grid-column: span 6;
     }
-    .scene,
-    .scene.flip {
-      grid-template-columns: 1fr;
-      gap: 36px;
-      padding: 72px 0;
-      border-radius: 32px;
+    .card.wide {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding-bottom: 0;
     }
-    .scene.flip {
-      padding: 56px 24px;
-      margin-inline: -8px;
-    }
-    .share {
-      padding: 8px 0 72px;
-    }
-    .share-card {
-      padding: 36px 26px;
-    }
-    .grid {
-      padding-bottom: 72px;
-    }
-    .closing {
-      padding: 88px 0;
-    }
-    .scene.flip .scene-text {
-      order: 0;
-    }
-    .scene-shot {
-      max-width: 300px;
+    .card.wide .card-shot {
+      flex: none;
       margin-inline: auto;
     }
-    .share-card {
-      padding: 26px;
+    .card-text {
+      padding-bottom: 0;
+    }
+  }
+  @media (max-width: 620px) {
+    .hero {
+      padding-top: 44px;
+    }
+    .hero-shots {
+      gap: 0;
+      margin-top: 44px;
+    }
+    .hero-shots .back {
+      display: none;
+    }
+    .hero-shots .front {
+      width: min(280px, 78vw);
+    }
+    .bento,
+    .extras,
+    .closing {
+      margin-top: 72px;
+    }
+    .card {
+      padding: 30px 26px;
     }
     .closing {
-      padding: 72px 0;
+      padding: 64px 24px;
+    }
+    .bar-cta {
+      display: none;
     }
   }
 </style>
