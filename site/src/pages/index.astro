@@ -57,7 +57,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
 
     <main>
       <section class="hero">
-        <div class="blobs" aria-hidden="true"></div>
+        <div class="blob-clip" aria-hidden="true"><div class="blobs"></div></div>
         <p class="pill">iPhone · iPad · Android</p>
         <h1>캡처해 둔 독백 대본,<br />한곳에 모아 둬요</h1>
         <p class="sub">
@@ -300,11 +300,18 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     padding: 72px 0 0;
     text-align: center;
   }
+  /* 배경 얼룩이 화면 밖으로 새어 가로 스크롤을 만들지 않게 잘라 둔다 */
+  .blob-clip {
+    position: absolute;
+    inset: 0 0 auto;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+  }
   .blobs {
     position: absolute;
     inset: -120px -10% auto;
     height: 620px;
-    z-index: -1;
     background:
       radial-gradient(38% 42% at 22% 30%, var(--blush) 0%, transparent 70%),
       radial-gradient(34% 40% at 78% 24%, var(--sand) 0%, transparent 70%),
