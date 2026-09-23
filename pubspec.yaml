@@ -1,7 +1,7 @@
 name: monologue
 description: "모노로그 — 사진으로 모으는 독백 대본 노트"
 publish_to: 'none'
-version: 1.0.0+5
+version: 1.0.1+6
 
 environment:
   sdk: ^3.13.3
