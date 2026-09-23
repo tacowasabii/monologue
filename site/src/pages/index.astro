@@ -32,6 +32,8 @@ const scenes = [
     points: ['인물별로 나눠 보기', '연기 노트', '몰입 읽기 모드'],
     src: dialogue,
     alt: '내 역할 대사를 진하게 보여 주는 대화 대본 화면',
+    extra: immersive,
+    extraAlt: '메뉴 없이 대본만 보여 주는 몰입 읽기 화면',
   },
   {
     no: '03',
@@ -72,6 +74,12 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     <meta property="og:image:height" content={String(OG_IMAGE.height)} />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href={favicon} />
+    <script is:inline>
+      // 등장 효과는 자바스크립트가 살아 있고 모션을 줄이지 않을 때만 건다.
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('js');
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -131,8 +139,8 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     </header>
 
     <main>
-      {scenes.map((scene) => (
-        <section class="scene reveal">
+      {scenes.map((scene, i) => (
+        <section class={i % 2 === 1 ? 'scene reveal flip' : 'scene reveal'}>
           <div class="scene-text">
             <p class="scene-no">{scene.no}</p>
             <h2>{scene.title}</h2>
@@ -141,8 +149,11 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
               {scene.points.map((p) => <li>{p}</li>)}
             </ul>
           </div>
-          <figure class="scene-shot">
+          <figure class={scene.extra ? 'scene-shot stack' : 'scene-shot'}>
             <Image src={scene.src} alt={scene.alt} widths={[300, 600]} sizes="280px" format="webp" quality={85} />
+            {scene.extra && (
+              <Image class="behind" src={scene.extra} alt={scene.extraAlt} widths={[300, 600]} sizes="240px" format="webp" quality={85} />
+            )}
           </figure>
         </section>
       ))}
@@ -157,9 +168,6 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
           </p>
           <p class="link-chip"><span>monologue.ink/s/</span>a7Kq2x<em>· 7일 뒤 만료</em></p>
         </div>
-        <figure class="share-shot">
-          <Image src={immersive} alt="메뉴 없이 대본만 보여 주는 몰입 읽기 화면" widths={[280, 560]} sizes="260px" format="webp" quality={85} />
-        </figure>
       </section>
 
       <section class="grid reveal">
@@ -470,7 +478,7 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
   .marquee-track span {
     font-family: 'Nanum Myeongjo', serif;
     font-size: 17px;
-    color: rgba(243, 236, 230, 0.42);
+    color: rgba(243, 236, 230, 0.62);
     white-space: nowrap;
   }
   @keyframes slide {
@@ -494,12 +502,12 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     margin: 0 auto;
     padding: 0 24px;
   }
-  .reveal {
+  html.js .reveal {
     opacity: 0;
     transform: translateY(26px);
     transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
-  .reveal.in {
+  html.js .reveal.in {
     opacity: 1;
     transform: none;
   }
@@ -511,7 +519,11 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     padding: 84px 0;
     border-bottom: 1px solid var(--line);
   }
-  .scene:nth-child(even) .scene-text {
+  /* 두 번째 장면은 좌우를 뒤집는다: 폭까지 함께 바꿔야 사진이 커지지 않는다 */
+  .scene.flip {
+    grid-template-columns: minmax(240px, 300px) 1fr;
+  }
+  .scene.flip .scene-text {
     order: 2;
   }
   .scene-no {
@@ -553,10 +565,10 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     font-weight: 600;
   }
   .scene-shot {
+    position: relative;
     margin: 0;
   }
-  .scene-shot img,
-  .share-shot img {
+  .scene-shot img {
     display: block;
     width: 100%;
     height: auto;
@@ -564,17 +576,27 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     border: 1px solid var(--line);
     box-shadow: var(--shadow);
   }
+  /* 두 장 겹치기: 뒤쪽은 살짝 기울여 뒤로 밀어 둔다 */
+  .scene-shot.stack img:first-child {
+    position: relative;
+    z-index: 1;
+    transform: rotate(-1.5deg);
+  }
+  .scene-shot.stack .behind {
+    position: absolute;
+    right: -14%;
+    bottom: -8%;
+    width: 62%;
+    transform: rotate(4deg);
+    opacity: 0.96;
+  }
 
   .share {
-    display: grid;
-    grid-template-columns: 1fr minmax(220px, 270px);
-    align-items: center;
-    gap: 48px;
     padding: 84px 0;
     border-bottom: 1px solid var(--line);
   }
   .share-card {
-    padding: 34px;
+    padding: 38px 40px;
     border-radius: 26px;
     background: var(--card);
     border: 1px solid var(--line);
@@ -685,23 +707,55 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
     font-size: 13px;
   }
 
+  /* 넓은 화면: 글 왼쪽, 화면 사진 오른쪽 */
+  @media (min-width: 980px) {
+    .stage-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      column-gap: 64px;
+      align-items: center;
+      padding-bottom: 12px;
+    }
+    .stage-inner > .eyebrow,
+    .stage-inner > h1,
+    .stage-inner > .lead,
+    .stage-inner > .cta,
+    .stage-inner > .trust {
+      grid-column: 1;
+    }
+    .hero-shot {
+      grid-column: 2;
+      grid-row: 1 / span 5;
+      margin-top: 0;
+    }
+    .hero-shot img {
+      width: 100%;
+    }
+  }
+
   @media (max-width: 760px) {
     .stage-inner {
       padding-top: 56px;
     }
     .scene,
-    .share {
+    .scene.flip {
       grid-template-columns: 1fr;
       gap: 32px;
       padding: 60px 0;
     }
-    .scene:nth-child(even) .scene-text {
+    .share {
+      padding: 60px 0;
+    }
+    .scene.flip .scene-text {
       order: 0;
     }
-    .scene-shot,
-    .share-shot {
+    .scene-shot {
       max-width: 280px;
       margin-inline: auto;
+    }
+    .scene-shot.stack .behind {
+      right: -10%;
+      width: 54%;
     }
     .share-card {
       padding: 26px;
