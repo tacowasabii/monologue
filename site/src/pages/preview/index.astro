@@ -1,6 +1,7 @@
 ---
 // 네 가지 색 톤을 한 화면에서 비교한다. 고르고 나면 이 폴더째 지운다.
 const tones = [
+  { key: '', name: '모노로그 분홍 (현재 적용)', note: '앱 아이콘 색에 맞춘 분홍 · 지금 본 페이지에 적용된 톤' },
   { key: 'a', name: '자정 블루', note: '깊은 남색 무대 · 푸른 조명 · 차가운 회백색 본문' },
   { key: 'b', name: '숯불 빨강', note: '짙은 갈색 무대 · 황동빛 조명 · 따뜻한 베이지 본문' },
   { key: 'c', name: '숲 그늘', note: '짙은 녹색 무대 · 세이지 조명 · 연한 녹회색 본문' },
@@ -31,11 +32,11 @@ const favicon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' view
       {tones.map((t) => (
         <section>
           <h2>
-            <a href={`/preview/${t.key}`}>{t.key.toUpperCase()}. {t.name}</a>
+            <a href={t.key ? `/preview/${t.key}` : '/'}>{t.key ? `${t.key.toUpperCase()}. ` : ''}{t.name}</a>
             <span>{t.note}</span>
           </h2>
           <div class="frame">
-            <iframe src={`/preview/${t.key}`} title={`${t.name} 미리보기`} loading="lazy"></iframe>
+            <iframe src={t.key ? `/preview/${t.key}` : '/'} title={`${t.name} 미리보기`} loading="lazy"></iframe>
           </div>
         </section>
       ))}
