@@ -231,14 +231,14 @@ const { tone = 'base', noindex = false } = Astro.props;
     --accent: #a54a68;
     --accent-soft: #fbe7ee;
     --panel: #f7e9ee;
-    --stage: #1e1015;
-    --stage-fg: #f7ecef;
-    --stage-muted: #b09ba2;
-    --stage-accent: #f2b3c4;
+    --stage: #fffdfe;
+    --stage-fg: #1d161a;
+    --stage-muted: #7b6e72;
+    --stage-accent: #a54a68;
     --accent-rgb: 165 74 104;
-    --stage-rgb: 30 16 21;
-    --stage-fg-rgb: 247 236 239;
-    --stage-accent-rgb: 242 179 196;
+    --stage-rgb: 255 253 254;
+    --stage-fg-rgb: 29 22 26;
+    --stage-accent-rgb: 165 74 104;
     --shadow: 0 30px 60px -32px rgba(70, 24, 42, 0.45);
   }
   @media (prefers-color-scheme: dark) {
@@ -250,6 +250,13 @@ const { tone = 'base', noindex = false } = Astro.props;
       --line: #2a2b2e;
       --accent: #e9a8bd;
       --accent-soft: #2e2026;
+      --stage: #17171a;
+      --stage-fg: #f2eff0;
+      --stage-muted: #a09a9c;
+      --stage-accent: #e9a8bd;
+      --stage-rgb: 23 23 26;
+      --stage-fg-rgb: 242 239 240;
+      --stage-accent-rgb: 233 168 189;
       --panel: #17181a;
       --shadow: 0 30px 60px -32px rgba(0, 0, 0, 0.7);
     }
@@ -357,7 +364,7 @@ const { tone = 'base', noindex = false } = Astro.props;
   .stage {
     position: relative;
     overflow: hidden;
-    border-radius: 0 0 48px 48px;
+    border-bottom: 1px solid var(--line);
     background:
       radial-gradient(120% 70% at 50% -10%, rgb(var(--stage-accent-rgb) / 0.22) 0%, rgb(var(--stage-rgb) / 0) 60%),
       radial-gradient(80% 50% at 80% 10%, rgb(var(--accent-rgb) / 0.35) 0%, rgb(var(--stage-rgb) / 0) 70%),
@@ -370,7 +377,7 @@ const { tone = 'base', noindex = false } = Astro.props;
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.35;
+    opacity: 0.16;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
     mix-blend-mode: soft-light;
   }
@@ -520,7 +527,7 @@ const { tone = 'base', noindex = false } = Astro.props;
     height: auto;
     border-radius: 26px;
     border: 1px solid rgb(var(--stage-fg-rgb) / 0.16);
-    box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.8);
+    box-shadow: var(--shadow);
     transform: translateY(24px) rotate(-1.5deg);
     animation: rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
   }
