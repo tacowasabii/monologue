@@ -63,7 +63,7 @@ const { tone = 'base', noindex = false } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="light" />
     <meta name="description" content="캡처해 둔 독백 대본을 사진으로 올리면 글자를 인식해 한곳에 모아 주는 연기 연습 노트" />
     <title>모노로그</title>
     {noindex && <meta name="robots" content="noindex" />}
@@ -240,26 +240,6 @@ const { tone = 'base', noindex = false } = Astro.props;
     --stage-fg-rgb: 29 22 26;
     --stage-accent-rgb: 165 74 104;
     --shadow: 0 30px 60px -32px rgba(70, 24, 42, 0.45);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111213;
-      --card: #191a1c;
-      --fg: #ececeb;
-      --muted: #9b9a97;
-      --line: #2a2b2e;
-      --accent: #e9a8bd;
-      --accent-soft: #2e2026;
-      --stage: #17171a;
-      --stage-fg: #f2eff0;
-      --stage-muted: #a09a9c;
-      --stage-accent: #e9a8bd;
-      --stage-rgb: 23 23 26;
-      --stage-fg-rgb: 242 239 240;
-      --stage-accent-rgb: 233 168 189;
-      --panel: #17181a;
-      --shadow: 0 30px 60px -32px rgba(0, 0, 0, 0.7);
-    }
   }
   /* 자정 블루 */
   body[data-tone='a'] {
