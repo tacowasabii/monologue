@@ -599,6 +599,13 @@ const { tone = 'base', noindex = false } = Astro.props;
   }
   .scene.flip .scene-text {
     order: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+  .scene.flip .chips {
+    justify-content: flex-end;
   }
   .scene-no {
     margin: 0;
@@ -851,6 +858,11 @@ const { tone = 'base', noindex = false } = Astro.props;
     }
     .scene.flip .scene-text {
       order: 0;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .scene.flip .chips {
+      justify-content: flex-start;
     }
     .scene-shot {
       max-width: 300px;
